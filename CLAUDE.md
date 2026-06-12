@@ -39,5 +39,6 @@ learnings), `meditate` (vault audit + skill refinement).
 
 ## Language
 
-Agent-facing text (this file, skills, brain) is English. Human-facing docs
-(README.md, docs/) are Korean.
+Agent-facing text (this file, skills, brain) is English. README.md is
+English (main) with a Korean mirror at README.ko.md — keep both in sync
+when either changes. Other human-facing docs (docs/) are Korean.
