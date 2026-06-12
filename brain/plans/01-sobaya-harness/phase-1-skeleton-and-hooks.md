@@ -322,6 +322,7 @@ esac
 BRAIN_DIR="${CLAUDE_PROJECT_DIR:-.}/brain"
 INDEX="$BRAIN_DIR/index.md"
 [ -d "$BRAIN_DIR" ] || exit 0
+if [ -e "$INDEX" ] && [ ! -f "$INDEX" ]; then exit 0; fi
 
 # Vault entries: vault-relative, .md stripped. Excludes index.md itself and
 # anything nested inside a plan directory (plans/index survives the filter —
@@ -365,6 +366,7 @@ known='^vision$|^principles$|^principles/|^apps$|^codebase/|^todos$|^plans/index
   fi
 } > "$tmp" 2>/dev/null || exit 0
 
+chmod 644 "$tmp" 2>/dev/null
 mv "$tmp" "$INDEX" 2>/dev/null
 exit 0
 ```
