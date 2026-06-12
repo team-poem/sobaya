@@ -326,7 +326,7 @@ INDEX="$BRAIN_DIR/index.md"
 # Vault entries: vault-relative, .md stripped. Excludes index.md itself and
 # anything nested inside a plan directory (plans/index survives the filter —
 # plan dirs are indexed via plans/index.md by convention).
-disk=$(find "$BRAIN_DIR" -type f -name '*.md' ! -name 'index.md' 2>/dev/null \
+disk=$(find "$BRAIN_DIR" -type f -name '*.md' ! -path "$INDEX" 2>/dev/null \
   | sed "s|^$BRAIN_DIR/||; s|\.md$||" \
   | grep -v '^plans/[^/]*/' \
   | grep -v '^archive/plans/[^/]*/' \
