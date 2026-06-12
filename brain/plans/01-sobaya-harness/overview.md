@@ -59,7 +59,7 @@ In scope:
 - `brain/` seeded: `index.md`, `vision.md`, `principles.md` + 10 principle files, `codebase/noodle-reference.md`, `apps.md`, `todos.md`, `plans/index.md`, `archive/` skeleton
 - 4 skills under `.claude/skills/`: `sobaya` (+ `references/dispatch-patterns.md`), `new-app`, `reflect`, `meditate`
 - 2 hooks under `.claude/hooks/` + `.claude/settings.json` wiring
-- `README.md` (Korean) + `docs/guide.md` (Korean)
+- `README.md` (Korean, banner-first format — see component spec) + `banner.svg` + `docs/guide.md` (Korean)
 - `references/noodle/` — working clone of poteto/noodle kept in the workspace for reference while building and extending Sobaya (gitignored; user request)
 - Verification of hooks (synthetic stdin tests, index golden check) and `new-app` (smoke test)
 
@@ -79,7 +79,8 @@ Out of scope (future candidates, tracked in todos):
 ```
 sobaya/                        # git repo (harness only)
 ├── CLAUDE.md                  # harness contract (EN)
-├── README.md                  # guide (KO)
+├── README.md                  # guide (KO), banner-first format
+├── banner.svg                 # README banner, authored in-repo
 ├── .gitignore                 # apps/* (with !apps/.gitkeep), references/, OS junk
 ├── .claude/
 │   ├── settings.json          # hook wiring
@@ -259,6 +260,18 @@ All four follow superpowers:writing-skills conventions during implementation (fr
 | scheduler-driven recovery (no auto-retry) | diagnose-then-decide on failure | CLAUDE.md; `sobaya` |
 | mise brief | pre-flight checklist | `sobaya` step 1 |
 | concurrency caps + backpressure | cap concurrent agents; no repeat dispatch of failing work | `sobaya`; `cost-aware-delegation` |
+
+### README.md (Korean)
+
+Format follows the user's reference, [coctostan/pi-superpowers-plus](https://github.com/coctostan/pi-superpowers-plus): H1 title, full-width banner image immediately below it (`![Sobaya banner](banner.svg)` — root-relative path, SVG authored in-repo so there is no external image dependency), one-line pitch, then flowing sections in this order:
+
+1. **무엇이 들어있나** — skills 4종, hooks 2종, brain vault, apps 구조 (bullet list)
+2. **시작하기** — 세션을 열면 일어나는 일(brain 인덱스 주입), 새 앱 만들기(new-app), 일상 워크플로
+3. **워크플로** — ASCII pipeline diagram (execute → review → reflect; meditate 루프) + supporting table, reference style
+4. **구조** — directory tree (fenced block)
+5. **noodle과 superpowers의 관계** — attribution: what came from noodle (commit `82d2921`), what superpowers owns
+
+Tables and fenced code blocks styled per the reference. Banner motif: soba shop (bowl/noodles/lantern), dark-friendly palette, "Sobaya" wordmark.
 
 ## Verification
 
