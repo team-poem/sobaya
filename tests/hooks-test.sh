@@ -50,6 +50,104 @@ check "$rc" "inject: exits 0 with unreadable index"
 [ -z "$out" ]; check $? "inject: silent with unreadable index"
 chmod 644 "$proj/brain/index.md"
 
+AUTOIDX="$ROOT/.claude/hooks/auto-index-brain.sh"
+
+# Helper: build a seeded fake vault. $1 = project dir.
+seed_vault() {
+  mkdir -p "$1/brain/principles" "$1/brain/codebase" \
+    "$1/brain/plans/01-x" "$1/brain/archive/plans/00-old"
+  printf '# Vision\n'      > "$1/brain/vision.md"
+  printf '# Principles\n'  > "$1/brain/principles.md"
+  printf '# P\n'           > "$1/brain/principles/prove-it-works.md"
+  printf '# N\n'           > "$1/brain/codebase/noodle-reference.md"
+  printf '# Apps\n'        > "$1/brain/apps.md"
+  printf '# Todos\n'       > "$1/brain/todos.md"
+  printf '# Plans\n'       > "$1/brain/plans/index.md"
+  printf '# Done\n'        > "$1/brain/archive/completed_todos.md"
+  printf '# nested\n'      > "$1/brain/plans/01-x/overview.md"
+  printf '# nested-old\n'  > "$1/brain/archive/plans/00-old/overview.md"
+}
+
+payload() { # $1 = file_path to embed
+  printf '{"tool_name":"Write","tool_input":{"file_path":"%s","content":"x"}}' "$1"
+}
+
+# --- auto-index: non-brain path is a no-op ---
+proj="$TMP/p3"
+seed_vault "$proj"
+printf '# stale\n' > "$proj/brain/index.md"
+payload "$proj/apps/foo/main.go" | CLAUDE_PROJECT_DIR="$proj" sh "$AUTOIDX" 2>/dev/null
+rc=$?
+check "$rc" "autoidx: exits 0 on non-brain path"
+grep -q '^# stale$' "$proj/brain/index.md"; check $? "autoidx: non-brain path leaves index untouched"
+
+# --- auto-index: malformed JSON is a no-op ---
+printf 'this is not json' | CLAUDE_PROJECT_DIR="$proj" sh "$AUTOIDX" 2>/dev/null
+rc=$?
+check "$rc" "autoidx: exits 0 on malformed input"
+grep -q '^# stale$' "$proj/brain/index.md"; check $? "autoidx: malformed input leaves index untouched"
+
+# --- auto-index: missing brain dir is a no-op ---
+proj4="$TMP/p4"
+mkdir -p "$proj4"
+payload "$proj4/brain/todos.md" | CLAUDE_PROJECT_DIR="$proj4" sh "$AUTOIDX" 2>/dev/null
+check $? "autoidx: exits 0 when brain dir missing"
+
+# --- auto-index: brain path rebuilds index to the golden expectation ---
+proj="$TMP/p5"
+seed_vault "$proj"
+payload "$proj/brain/todos.md" | CLAUDE_PROJECT_DIR="$proj" sh "$AUTOIDX" 2>/dev/null
+rc=$?
+check "$rc" "autoidx: exits 0 on brain path"
+
+golden="$TMP/golden.md"
+cat > "$golden" <<'EOF'
+# Brain
+
+## Vision
+- [[vision]]
+
+## Principles
+- [[principles]]
+- [[principles/prove-it-works]]
+
+## Apps
+- [[apps]]
+
+## Codebase
+- [[codebase/noodle-reference]]
+
+## Backlog
+- [[todos]]
+
+## Plans
+- [[plans/index]]
+
+## Archive
+- [[archive/completed_todos]]
+EOF
+diff -u "$golden" "$proj/brain/index.md" >/dev/null 2>&1
+check $? "autoidx: rebuilt index matches golden (plan-nested files excluded)"
+
+# --- auto-index: idempotent — second run takes the fast path, no rewrite ---
+touch -t 200001010000 "$proj/brain/index.md"
+marker="$TMP/marker"
+touch "$marker"
+payload "$proj/brain/todos.md" | CLAUDE_PROJECT_DIR="$proj" sh "$AUTOIDX" 2>/dev/null
+check $? "autoidx: exits 0 on no-change rerun"
+if [ "$proj/brain/index.md" -nt "$marker" ]; then
+  check 1 "autoidx: fast path does not rewrite an up-to-date index"
+else
+  check 0 "autoidx: fast path does not rewrite an up-to-date index"
+fi
+
+# --- auto-index: unknown top-level files land in Other ---
+printf '# misc\n' > "$proj/brain/scratchpad.md"
+payload "$proj/brain/scratchpad.md" | CLAUDE_PROJECT_DIR="$proj" sh "$AUTOIDX" 2>/dev/null
+check $? "autoidx: exits 0 after adding unknown file"
+grep -q '^## Other$' "$proj/brain/index.md" && grep -q '\[\[scratchpad\]\]' "$proj/brain/index.md"
+check $? "autoidx: unknown file indexed under Other"
+
 echo
 if [ "$fail" -eq 0 ]; then
   echo "ALL PASS"
