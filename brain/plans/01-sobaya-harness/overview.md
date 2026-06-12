@@ -108,6 +108,8 @@ sobaya/                        # git repo (harness only)
 │       └── plans/             # completed plan dirs move here
 ├── apps/                      # independent git repos, gitignored from root
 │   └── .gitkeep
+├── tests/
+│   └── hooks-test.sh          # POSIX test suite for the hooks
 ├── references/
 │   └── noodle/                # poteto/noodle working clone for reference (gitignored)
 └── docs/

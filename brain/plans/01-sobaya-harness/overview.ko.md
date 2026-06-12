@@ -104,6 +104,8 @@ sobaya/                        # git 저장소 (하네스만)
 │       └── plans/             # 완료된 플랜 디렉토리는 여기로 이동
 ├── apps/                      # 독립 git 저장소들, 루트에서 gitignore
 │   └── .gitkeep
+├── tests/
+│   └── hooks-test.sh          # 훅용 POSIX 테스트 스위트
 ├── references/
 │   └── noodle/                # 참조용 poteto/noodle 작업 클론 (gitignore됨)
 └── docs/
