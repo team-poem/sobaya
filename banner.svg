@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="Sobaya — subagent orchestration workspace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#15161e"/>
+      <stop offset="1" stop-color="#1e2235"/>
+    </linearGradient>
+    <linearGradient id="bowl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#33395c"/>
+      <stop offset="1" stop-color="#23263c"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="320" fill="url(#bg)"/>
+
+  <!-- noren curtain -->
+  <rect x="0" y="0" width="1200" height="14" fill="#c8472e"/>
+  <g fill="#c8472e">
+    <rect x="70"  y="14" width="120" height="34" rx="3"/>
+    <rect x="250" y="14" width="120" height="52" rx="3"/>
+    <rect x="430" y="14" width="120" height="34" rx="3"/>
+    <rect x="650" y="14" width="120" height="52" rx="3"/>
+    <rect x="830" y="14" width="120" height="34" rx="3"/>
+    <rect x="1010" y="14" width="120" height="52" rx="3"/>
+  </g>
+
+  <!-- lantern -->
+  <g>
+    <rect x="118" y="86" width="24" height="10" rx="2" fill="#3a3f5c"/>
+    <ellipse cx="130" cy="170" rx="46" ry="64" fill="#e8a33d"/>
+    <ellipse cx="130" cy="170" rx="46" ry="64" fill="none" stroke="#b97a1e" stroke-width="2"/>
+    <path d="M92 140 Q130 132 168 140" stroke="#b97a1e" stroke-width="1.5" fill="none"/>
+    <path d="M88 170 Q130 162 172 170" stroke="#b97a1e" stroke-width="1.5" fill="none"/>
+    <path d="M92 200 Q130 192 168 200" stroke="#b97a1e" stroke-width="1.5" fill="none"/>
+    <text x="130" y="158" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="26" fill="#7a4a12" text-anchor="middle">蕎麦</text>
+    <text x="130" y="190" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="26" fill="#7a4a12" text-anchor="middle">屋</text>
+    <rect x="118" y="232" width="24" height="8" rx="2" fill="#3a3f5c"/>
+  </g>
+
+  <!-- wordmark -->
+  <g>
+    <text x="240" y="178" font-family="Avenir Next, Futura, Helvetica Neue, Arial, sans-serif" font-size="84" font-weight="700" letter-spacing="6" fill="#f3ede2">SOBAYA</text>
+    <rect x="244" y="200" width="396" height="3" fill="#c8472e"/>
+    <text x="244" y="238" font-family="Menlo, Consolas, monospace" font-size="20" letter-spacing="2" fill="#9aa3c7">subagent orchestration workspace · そば屋</text>
+  </g>
+
+  <!-- bowl of soba -->
+  <g>
+    <g stroke="#d8b25a" stroke-width="5" fill="none" stroke-linecap="round">
+      <path d="M952 248 q18 -34 52 -40"/>
+      <path d="M978 248 q22 -28 54 -30"/>
+      <path d="M1006 248 q24 -20 54 -18"/>
+      <path d="M1032 248 q22 -12 48 -8"/>
+    </g>
+    <path d="M918 248 h220 q-8 46 -60 58 h-100 q-52 -12 -60 -58 Z" fill="url(#bowl)"/>
+    <path d="M918 248 h220" stroke="#4a5178" stroke-width="4"/>
+    <rect x="946" y="296" width="164" height="10" rx="4" fill="#2b2f49"/>
+    <g stroke="#b9c0e0" stroke-width="4" stroke-linecap="round">
+      <line x1="1064" y1="160" x2="1148" y2="236"/>
+      <line x1="1082" y1="150" x2="1158" y2="222"/>
+    </g>
+    <g stroke="#8d96bd" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8">
+      <path d="M986 216 q-10 -16 2 -30 q10 -12 2 -26"/>
+      <path d="M1022 212 q-10 -16 2 -30 q10 -12 2 -26"/>
+    </g>
+  </g>
+</svg>
