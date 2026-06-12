@@ -20,7 +20,11 @@
 - [[apps]]
 
 ## Codebase
+- [[codebase/claude-config-load-timing]]
+- [[codebase/gitignore-anchoring]]
 - [[codebase/noodle-reference]]
+- [[codebase/persistent-cwd-and-reference-clones]]
+- [[codebase/svg-visual-verification]]
 
 ## Backlog
 - [[todos]]

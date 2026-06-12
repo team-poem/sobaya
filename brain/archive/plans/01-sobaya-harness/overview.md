@@ -1,7 +1,7 @@
 ---
 id: 1
 created: 2026-06-12
-status: active
+status: done
 ---
 
 # Plan 01 — Sobaya Harness

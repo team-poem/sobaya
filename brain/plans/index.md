@@ -1,3 +1,3 @@
 # Plans
 
-- [ ] [[plans/01-sobaya-harness/overview]]
+- [x] [[archive/plans/01-sobaya-harness/overview]]
