@@ -71,4 +71,4 @@ sobaya/
 - **noodle** (커밋 `82d2921` 분석) — brain 볼트 구조, reflect/meditate 자기개선 루프, 결정론적 훅, 그리고 Go 메카닉의 컨벤션화(원자적 쓰기, 앱당 작성자 1명, 워크트리 격리, 진단 후 재시도)를 가져왔습니다. 작업 클론: `references/noodle/`
 - **superpowers** — 개발 수명주기(브레인스토밍 → 플랜 → TDD → 디버깅 → 리뷰)는 전부 superpowers 스킬을 따릅니다. Sobaya 스킬은 충돌하지 않도록 워크스페이스 오케스트레이션과 자기개선만 다룹니다
 
-자세한 사용법: [docs/guide.md](docs/guide.md) · 설계 스펙: [brain/plans/01-sobaya-harness/overview.ko.md](brain/plans/01-sobaya-harness/overview.ko.md)
+자세한 사용법: [docs/guide.md](docs/guide.md) · 설계 스펙: [brain/archive/plans/01-sobaya-harness/overview.ko.md](brain/archive/plans/01-sobaya-harness/overview.ko.md)

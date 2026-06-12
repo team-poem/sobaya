@@ -22,7 +22,7 @@
 - Create: `tests/` (directory)
 - Create: `.claude/hooks/` (directory)
 
-- [ ] **Step 1: Create the directories and keep-file**
+- [x] **Step 1: Create the directories and keep-file**
 
 ```bash
 cd /Users/amazon/lunch.cancelled/sobaya
@@ -30,7 +30,7 @@ mkdir -p apps docs tests .claude/hooks .claude/skills brain/codebase brain/princ
 touch apps/.gitkeep
 ```
 
-- [ ] **Step 2: Verify the tree**
+- [x] **Step 2: Verify the tree**
 
 Run: `find apps docs tests .claude brain -type d | sort`
 Expected output contains: `apps`, `docs`, `tests`, `.claude/hooks`, `.claude/skills`, `brain/archive/plans`, `brain/codebase`, `brain/principles`, `brain/plans/01-sobaya-harness`.
@@ -38,7 +38,7 @@ Expected output contains: `apps`, `docs`, `tests`, `.claude/hooks`, `.claude/ski
 Run: `git -C /Users/amazon/lunch.cancelled/sobaya status --short`
 Expected: `?? apps/.gitkeep` and nothing from `references/` (gitignored). Empty directories (docs, tests, .claude) won't show — that's fine, they get content in later tasks.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add apps/.gitkeep
@@ -55,7 +55,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Create: `tests/hooks-test.sh`
 - Create: `.claude/hooks/inject-brain.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/hooks-test.sh` with exactly:
 
@@ -121,12 +121,12 @@ else
 fi
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `sh tests/hooks-test.sh`
 Expected: FAIL lines (the inject script does not exist yet, `sh` returns non-zero), final line `FAILURES PRESENT`, exit code 1.
 
-- [ ] **Step 3: Write the hook**
+- [x] **Step 3: Write the hook**
 
 Create `.claude/hooks/inject-brain.sh` with exactly:
 
@@ -152,12 +152,12 @@ Then make it executable:
 chmod +x .claude/hooks/inject-brain.sh
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `sh tests/hooks-test.sh`
 Expected: 6 `ok` lines, final line `ALL PASS`, exit code 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add tests/hooks-test.sh .claude/hooks/inject-brain.sh
@@ -176,7 +176,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Modify: `tests/hooks-test.sh` (append scenarios before the final `echo` block)
 - Create: `.claude/hooks/auto-index-brain.sh`
 
-- [ ] **Step 1: Extend the test with failing scenarios**
+- [x] **Step 1: Extend the test with failing scenarios**
 
 In `tests/hooks-test.sh`, insert the following block **after** the last inject-brain scenario (the unreadable-index checks ending `chmod 644 "$proj/brain/index.md"`) and **before** the final summary `echo` block:
 
@@ -280,12 +280,12 @@ grep -q '^## Other$' "$proj/brain/index.md" && grep -q '\[\[scratchpad\]\]' "$pr
 check $? "autoidx: unknown file indexed under Other"
 ```
 
-- [ ] **Step 2: Run the test to verify the new scenarios fail**
+- [x] **Step 2: Run the test to verify the new scenarios fail**
 
 Run: `sh tests/hooks-test.sh`
 Expected: inject checks still `ok`; every `autoidx:` check FAILs (script missing); final line `FAILURES PRESENT`, exit 1.
 
-- [ ] **Step 3: Write the hook**
+- [x] **Step 3: Write the hook**
 
 Create `.claude/hooks/auto-index-brain.sh` with exactly:
 
@@ -377,17 +377,17 @@ Then make it executable:
 chmod +x .claude/hooks/auto-index-brain.sh
 ```
 
-- [ ] **Step 4: Run the test to verify everything passes**
+- [x] **Step 4: Run the test to verify everything passes**
 
 Run: `sh tests/hooks-test.sh`
 Expected: all `ok` (6 inject + 11 autoidx checks), final line `ALL PASS`, exit 0.
 
-- [ ] **Step 5: Run it twice more to prove the suite itself is idempotent**
+- [x] **Step 5: Run it twice more to prove the suite itself is idempotent**
 
 Run: `sh tests/hooks-test.sh && sh tests/hooks-test.sh`
 Expected: `ALL PASS` both times (fresh mktemp sandbox each run).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add tests/hooks-test.sh .claude/hooks/auto-index-brain.sh
@@ -409,7 +409,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Modify: `brain/plans/01-sobaya-harness/overview.md` (architecture tree)
 - Modify: `brain/plans/01-sobaya-harness/overview.ko.md` (architecture tree)
 
-- [ ] **Step 1: Write the settings**
+- [x] **Step 1: Write the settings**
 
 Create `.claude/settings.json` with exactly:
 
@@ -442,12 +442,12 @@ Create `.claude/settings.json` with exactly:
 }
 ```
 
-- [ ] **Step 2: Validate the JSON parses**
+- [x] **Step 2: Validate the JSON parses**
 
 Run: `python3 -c "import json,sys; json.load(open('.claude/settings.json')); print('valid')"`
 Expected: `valid`
 
-- [ ] **Step 3: Amend both spec trees with tests/**
+- [x] **Step 3: Amend both spec trees with tests/**
 
 In `brain/plans/01-sobaya-harness/overview.md`, in the Architecture tree, replace:
 
@@ -481,11 +481,11 @@ with:
 │   └── hooks-test.sh          # 훅용 POSIX 테스트 스위트
 ```
 
-- [ ] **Step 4: Note for this session (no action): hooks load at session start**
+- [x] **Step 4: Note for this session (no action): hooks load at session start**
 
 The hooks in `.claude/settings.json` will NOT fire in the session that creates them — Claude Code reads hook config at session start. Phase 2 therefore runs the index generator manually (Task 9), and the SessionStart injection is verified at the next session start (spec: Verification → "Hooks, e2e").
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add .claude/settings.json brain/plans/01-sobaya-harness/overview.md brain/plans/01-sobaya-harness/overview.ko.md

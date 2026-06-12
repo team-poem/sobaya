@@ -22,7 +22,7 @@
 - Create: `.claude/skills/sobaya/SKILL.md`
 - Create: `.claude/skills/sobaya/references/dispatch-patterns.md`
 
-- [ ] **Step 1: Write `.claude/skills/sobaya/SKILL.md`** with exactly:
+- [x] **Step 1: Write `.claude/skills/sobaya/SKILL.md`** with exactly:
 
 ````markdown
 ---
@@ -101,7 +101,7 @@ file exists in `brain/plans/` *before* spawning. If the session dies, the
 next one adopts the work from the plan's checkboxes and report files.
 ````
 
-- [ ] **Step 2: Write `.claude/skills/sobaya/references/dispatch-patterns.md`** with exactly:
+- [x] **Step 2: Write `.claude/skills/sobaya/references/dispatch-patterns.md`** with exactly:
 
 ````markdown
 # Dispatch Patterns
@@ -163,12 +163,12 @@ capture the failure verbatim and stop — do NOT fix it.
 ```
 ````
 
-- [ ] **Step 3: Verify frontmatter shape**
+- [x] **Step 3: Verify frontmatter shape**
 
 Run: `head -4 .claude/skills/sobaya/SKILL.md`
 Expected: line 1 `---`, line 2 starts `name: sobaya`, line 3 starts `description: Use when`, line 4 `---`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add .claude/skills/sobaya/
@@ -187,7 +187,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Files:**
 - Create: `.claude/skills/new-app/SKILL.md`
 
-- [ ] **Step 1: Write `.claude/skills/new-app/SKILL.md`** with exactly:
+- [x] **Step 1: Write `.claude/skills/new-app/SKILL.md`** with exactly:
 
 ````markdown
 ---
@@ -261,12 +261,12 @@ Creates `apps/<name>` as an independent git repository and registers it.
 App path, `git -C apps/<name> log --oneline` output, the registry row added.
 ````
 
-- [ ] **Step 2: Verify frontmatter shape**
+- [x] **Step 2: Verify frontmatter shape**
 
 Run: `head -4 .claude/skills/new-app/SKILL.md`
 Expected: `---` / `name: new-app` / `description: Use when creating...` / `---`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add .claude/skills/new-app/
@@ -282,7 +282,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Files:**
 - Create: `.claude/skills/reflect/SKILL.md`
 
-- [ ] **Step 1: Write `.claude/skills/reflect/SKILL.md`** with exactly:
+- [x] **Step 1: Write `.claude/skills/reflect/SKILL.md`** with exactly:
 
 ````markdown
 ---
@@ -338,12 +338,12 @@ Four lines: **Brain** (files written), **Skills** (files edited),
 "Nothing durable this session" is a valid outcome — say it and stop.
 ````
 
-- [ ] **Step 2: Verify frontmatter shape**
+- [x] **Step 2: Verify frontmatter shape**
 
 Run: `head -4 .claude/skills/reflect/SKILL.md`
 Expected: `---` / `name: reflect` / `description: Use at the end...` / `---`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add .claude/skills/reflect/
@@ -359,7 +359,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Files:**
 - Create: `.claude/skills/meditate/SKILL.md`
 
-- [ ] **Step 1: Write `.claude/skills/meditate/SKILL.md`** with exactly:
+- [x] **Step 1: Write `.claude/skills/meditate/SKILL.md`** with exactly:
 
 ````markdown
 ---
@@ -441,12 +441,12 @@ Counts: notes deleted/merged, principles added, skills fixed, plans
 archived — plus what was rejected and why.
 ````
 
-- [ ] **Step 2: Verify frontmatter shape**
+- [x] **Step 2: Verify frontmatter shape**
 
 Run: `head -4 .claude/skills/meditate/SKILL.md`
 Expected: `---` / `name: meditate` / `description: Use after several...` / `---`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add .claude/skills/meditate/
@@ -465,7 +465,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Create then delete: `apps/_smoke/` (never committed — `apps/*` is gitignored)
 - Modify then revert: `brain/apps.md`
 
-- [ ] **Step 1: Execute the new-app steps against a throwaway name**
+- [x] **Step 1: Execute the new-app steps against a throwaway name**
 
 Follow `.claude/skills/new-app/SKILL.md` steps 1–5 literally with name `_smoke`, purpose "smoke test", skipping the design gate (this is explicitly scaffold-only):
 
@@ -485,7 +485,7 @@ Then append the registry row to `brain/apps.md` table:
 | _smoke | smoke test | shell | scaffolded |
 ```
 
-- [ ] **Step 2: Verify the scaffold**
+- [x] **Step 2: Verify the scaffold**
 
 Run: `git -C apps/_smoke log --oneline && git -C /Users/amazon/lunch.cancelled/sobaya status --short`
 Expected: one commit `chore: scaffold _smoke`; root repo shows ONLY `M brain/apps.md` (the app itself is invisible to the root repo — proves the gitignore boundary).
@@ -493,7 +493,7 @@ Expected: one commit `chore: scaffold _smoke`; root repo shows ONLY `M brain/app
 Run: `grep -c '_smoke' brain/apps.md`
 Expected: `1`
 
-- [ ] **Step 3: Tear down (leave no trace)**
+- [x] **Step 3: Tear down (leave no trace)**
 
 ```bash
 rm -rf apps/_smoke
@@ -504,6 +504,6 @@ Remove the `| _smoke | ... |` row from `brain/apps.md` (restore the file to its 
 Run: `git -C /Users/amazon/lunch.cancelled/sobaya status --short && ls apps/`
 Expected: clean status (no modifications), `apps/` contains only `.gitkeep`.
 
-- [ ] **Step 4: Record the result (no commit needed)**
+- [x] **Step 4: Record the result (no commit needed)**
 
 Nothing to commit — the smoke test must leave the tree exactly as it found it. State PASS/FAIL with the observed outputs in the task report.

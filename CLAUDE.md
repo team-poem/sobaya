@@ -2,7 +2,7 @@
 
 Orchestration workspace for multi-project agent work. Projects live in
 `apps/<name>` — each an independent git repository. This root repo tracks
-only the harness: `CLAUDE.md`, `.claude/`, `brain/`, `docs/`.
+only the harness: `CLAUDE.md`, `.claude/`, `brain/`, `docs/`, `tests/`.
 
 ## Brain
 

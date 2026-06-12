@@ -20,7 +20,7 @@
 - Create: `brain/vision.md`
 - Create: `brain/principles.md`
 
-- [ ] **Step 1: Write `brain/vision.md`** with exactly:
+- [x] **Step 1: Write `brain/vision.md`** with exactly:
 
 ```markdown
 # Vision
@@ -46,7 +46,7 @@ composed with the superpowers plugin, which owns the dev lifecycle. Sobaya
 adds only what neither provides.
 ```
 
-- [ ] **Step 2: Write `brain/principles.md`** with exactly:
+- [x] **Step 2: Write `brain/principles.md`** with exactly:
 
 ```markdown
 # Principles
@@ -75,7 +75,7 @@ not documentation.
 - [[principles/encode-lessons-in-structure]]
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add brain/vision.md brain/principles.md
@@ -95,7 +95,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Create: `brain/principles/make-operations-idempotent.md`
 - Create: `brain/principles/encode-lessons-in-structure.md`
 
-- [ ] **Step 1: Write `brain/principles/prove-it-works.md`** with exactly:
+- [x] **Step 1: Write `brain/principles/prove-it-works.md`** with exactly:
 
 ```markdown
 # Prove It Works
@@ -116,7 +116,7 @@ is a claim, not evidence; acting on wrong claims costs more than checking.
 See also: [[principles/fix-root-causes]]
 ```
 
-- [ ] **Step 2: Write `brain/principles/fix-root-causes.md`** with exactly:
+- [x] **Step 2: Write `brain/principles/fix-root-causes.md`** with exactly:
 
 ```markdown
 # Fix Root Causes
@@ -137,7 +137,7 @@ once and cheaper forever.
 See also: [[principles/prove-it-works]]
 ```
 
-- [ ] **Step 3: Write `brain/principles/serialize-shared-state-mutations.md`** with exactly:
+- [x] **Step 3: Write `brain/principles/serialize-shared-state-mutations.md`** with exactly:
 
 ```markdown
 # Serialize Shared-State Mutations
@@ -159,7 +159,7 @@ have no coordination mechanism unless the structure provides one.
 See also: [[principles/make-operations-idempotent]]
 ```
 
-- [ ] **Step 4: Write `brain/principles/make-operations-idempotent.md`** with exactly:
+- [x] **Step 4: Write `brain/principles/make-operations-idempotent.md`** with exactly:
 
 ```markdown
 # Make Operations Idempotent
@@ -181,7 +181,7 @@ different outcome, every interruption becomes a debugging session.
 See also: [[principles/serialize-shared-state-mutations]]
 ```
 
-- [ ] **Step 5: Write `brain/principles/encode-lessons-in-structure.md`** with exactly:
+- [x] **Step 5: Write `brain/principles/encode-lessons-in-structure.md`** with exactly:
 
 ```markdown
 # Encode Lessons in Structure
@@ -201,7 +201,7 @@ took from noodle.
   has to be remembered.
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add brain/principles/
@@ -221,7 +221,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Create: `brain/principles/cost-aware-delegation.md`
 - Create: `brain/principles/never-block-on-the-human.md`
 
-- [ ] **Step 1: Write `brain/principles/subtract-before-you-add.md`** with exactly:
+- [x] **Step 1: Write `brain/principles/subtract-before-you-add.md`** with exactly:
 
 ```markdown
 # Subtract Before You Add
@@ -241,7 +241,7 @@ reveals the essential structure and usually shrinks the addition.
   noodle's block-sleep hook because the harness already enforces it.
 ```
 
-- [ ] **Step 2: Write `brain/principles/foundational-thinking.md`** with exactly:
+- [x] **Step 2: Write `brain/principles/foundational-thinking.md`** with exactly:
 
 ```markdown
 # Foundational Thinking
@@ -263,7 +263,7 @@ closes understanding.
 - Inside a file, prefer the boring implementation.
 ```
 
-- [ ] **Step 3: Write `brain/principles/guard-the-context-window.md`** with exactly:
+- [x] **Step 3: Write `brain/principles/guard-the-context-window.md`** with exactly:
 
 ```markdown
 # Guard the Context Window
@@ -285,7 +285,7 @@ content belongs in subagents.
 See also: [[principles/cost-aware-delegation]]
 ```
 
-- [ ] **Step 4: Write `brain/principles/cost-aware-delegation.md`** with exactly:
+- [x] **Step 4: Write `brain/principles/cost-aware-delegation.md`** with exactly:
 
 ```markdown
 # Cost-Aware Delegation
@@ -309,7 +309,7 @@ orchestrator already had.
 See also: [[principles/guard-the-context-window]]
 ```
 
-- [ ] **Step 5: Write `brain/principles/never-block-on-the-human.md`** with exactly:
+- [x] **Step 5: Write `brain/principles/never-block-on-the-human.md`** with exactly:
 
 ```markdown
 # Never Block on the Human
@@ -330,7 +330,7 @@ always go to the human.
   note the decision in your report, and flag it for review — don't pause.
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add brain/principles/
@@ -350,7 +350,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Create: `brain/plans/index.md`
 - Create: `brain/archive/completed_todos.md`
 
-- [ ] **Step 1: Write `brain/codebase/noodle-reference.md`** with exactly:
+- [x] **Step 1: Write `brain/codebase/noodle-reference.md`** with exactly:
 
 ```markdown
 # noodle Reference
@@ -383,7 +383,7 @@ others are noodle-CLI-specific).
 (orchestration mechanics), `docs/` (concepts).
 ```
 
-- [ ] **Step 2: Write `brain/apps.md`** with exactly:
+- [x] **Step 2: Write `brain/apps.md`** with exactly:
 
 ```markdown
 # Apps
@@ -395,7 +395,7 @@ One line per app. `new-app` registers entries; keep status current
 |---|---|---|---|
 ```
 
-- [ ] **Step 3: Write `brain/todos.md`** with exactly:
+- [x] **Step 3: Write `brain/todos.md`** with exactly:
 
 ```markdown
 ---
@@ -415,7 +415,7 @@ priority: [1]
    identity & docs. [[plans/01-sobaya-harness/overview]]
 ```
 
-- [ ] **Step 4: Write `brain/plans/index.md`** with exactly:
+- [x] **Step 4: Write `brain/plans/index.md`** with exactly:
 
 ```markdown
 # Plans
@@ -423,7 +423,7 @@ priority: [1]
 - [ ] [[plans/01-sobaya-harness/overview]]
 ```
 
-- [ ] **Step 5: Write `brain/archive/completed_todos.md`** with exactly:
+- [x] **Step 5: Write `brain/archive/completed_todos.md`** with exactly:
 
 ```markdown
 # Completed Todos
@@ -431,7 +431,7 @@ priority: [1]
 Items move here from [[todos]] when done, newest first.
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add brain/codebase/ brain/apps.md brain/todos.md brain/plans/index.md brain/archive/
@@ -447,7 +447,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Files:**
 - Create: `brain/index.md` (generated — never hand-written)
 
-- [ ] **Step 1: Generate the index with the phase-1 hook script**
+- [x] **Step 1: Generate the index with the phase-1 hook script**
 
 The hook won't fire in this session (hooks load at session start), so invoke it directly with a synthetic payload:
 
@@ -459,7 +459,7 @@ printf '{"tool_name":"Write","tool_input":{"file_path":"%s/brain/todos.md"}}' "$
 
 Expected: exit 0, `brain/index.md` now exists.
 
-- [ ] **Step 2: Verify against the golden index**
+- [x] **Step 2: Verify against the golden index**
 
 Run: `cat brain/index.md`
 Expected — exactly this content:
@@ -501,7 +501,7 @@ Expected — exactly this content:
 
 Note: nothing from `plans/01-sobaya-harness/` appears — plan-nested files are excluded by design; plans are reached via `plans/index`.
 
-- [ ] **Step 3: Verify the fast path (idempotence)**
+- [x] **Step 3: Verify the fast path (idempotence)**
 
 ```bash
 touch -t 200001010000 brain/index.md
@@ -512,12 +512,12 @@ ls -l brain/index.md
 
 Expected: exit 0 and the listed modification time still shows Jan 2000 (no rewrite happened).
 
-- [ ] **Step 4: Run the full hook test suite once more**
+- [x] **Step 4: Run the full hook test suite once more**
 
 Run: `sh tests/hooks-test.sh`
 Expected: `ALL PASS`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add brain/index.md
