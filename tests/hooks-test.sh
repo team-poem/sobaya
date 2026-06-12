@@ -39,6 +39,17 @@ rc=$?
 check "$rc" "inject: exits 0 with no brain"
 [ -z "$out" ]; check $? "inject: silent with no brain"
 
+# --- inject-brain: unreadable index is silent and exit 0 (fail-open) ---
+proj="$TMP/p3"
+mkdir -p "$proj/brain"
+printf '# Brain\n' > "$proj/brain/index.md"
+chmod 000 "$proj/brain/index.md"
+out=$(CLAUDE_PROJECT_DIR="$proj" sh "$INJECT" 2>/dev/null)
+rc=$?
+check "$rc" "inject: exits 0 with unreadable index"
+[ -z "$out" ]; check $? "inject: silent with unreadable index"
+chmod 644 "$proj/brain/index.md"
+
 echo
 if [ "$fail" -eq 0 ]; then
   echo "ALL PASS"

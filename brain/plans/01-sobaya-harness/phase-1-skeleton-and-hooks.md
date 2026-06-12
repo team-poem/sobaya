@@ -101,6 +101,17 @@ rc=$?
 check "$rc" "inject: exits 0 with no brain"
 [ -z "$out" ]; check $? "inject: silent with no brain"
 
+# --- inject-brain: unreadable index is silent and exit 0 (fail-open) ---
+proj="$TMP/p3"
+mkdir -p "$proj/brain"
+printf '# Brain\n' > "$proj/brain/index.md"
+chmod 000 "$proj/brain/index.md"
+out=$(CLAUDE_PROJECT_DIR="$proj" sh "$INJECT" 2>/dev/null)
+rc=$?
+check "$rc" "inject: exits 0 with unreadable index"
+[ -z "$out" ]; check $? "inject: silent with unreadable index"
+chmod 644 "$proj/brain/index.md"
+
 echo
 if [ "$fail" -eq 0 ]; then
   echo "ALL PASS"
@@ -126,9 +137,9 @@ Create `.claude/hooks/inject-brain.sh` with exactly:
 
 BRAIN_INDEX="${CLAUDE_PROJECT_DIR:-.}/brain/index.md"
 
-if [ -f "$BRAIN_INDEX" ]; then
+if [ -f "$BRAIN_INDEX" ] && [ -r "$BRAIN_INDEX" ]; then
   echo "Brain vault index — read the relevant files before acting:"
-  echo ""
+  echo
   cat "$BRAIN_INDEX"
 fi
 
@@ -144,7 +155,7 @@ chmod +x .claude/hooks/inject-brain.sh
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `sh tests/hooks-test.sh`
-Expected: 4 `ok` lines, final line `ALL PASS`, exit code 0.
+Expected: 6 `ok` lines, final line `ALL PASS`, exit code 0.
 
 - [ ] **Step 5: Commit**
 
@@ -167,7 +178,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 - [ ] **Step 1: Extend the test with failing scenarios**
 
-In `tests/hooks-test.sh`, insert the following block **between** the last inject-brain check (`check $? "inject: silent with no brain"`) and the final `echo` line:
+In `tests/hooks-test.sh`, insert the following block **after** the last inject-brain scenario (the unreadable-index checks ending `chmod 644 "$proj/brain/index.md"`) and **before** the final summary `echo` block:
 
 ```sh
 AUTOIDX="$ROOT/.claude/hooks/auto-index-brain.sh"
@@ -367,7 +378,7 @@ chmod +x .claude/hooks/auto-index-brain.sh
 - [ ] **Step 4: Run the test to verify everything passes**
 
 Run: `sh tests/hooks-test.sh`
-Expected: all `ok` (4 inject + 11 autoidx checks), final line `ALL PASS`, exit 0.
+Expected: all `ok` (6 inject + 11 autoidx checks), final line `ALL PASS`, exit 0.
 
 - [ ] **Step 5: Run it twice more to prove the suite itself is idempotent**
 
