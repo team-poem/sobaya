@@ -3,7 +3,7 @@ apps/*
 !apps/.gitkeep
 
 # Reference clones (e.g. references/noodle) — foreign repos kept for lookup
-references/
+/references/
 
 # OS junk
 .DS_Store
