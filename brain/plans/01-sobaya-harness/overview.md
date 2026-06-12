@@ -289,6 +289,15 @@ Tables and fenced code blocks styled per the reference. Banner motif: soba shop 
 - `meditate` early-exits below the findings threshold to avoid churning the vault.
 - Failed subagent dispatches are never blindly retried (diagnose-then-decide).
 
+## Phases
+
+Implementation plan, one file per phase (tasks use checkbox tracking; execute in order):
+
+- [[plans/01-sobaya-harness/phase-1-skeleton-and-hooks]] — skeleton dirs, inject-brain + auto-index-brain hooks (TDD, POSIX test suite), settings wiring
+- [[plans/01-sobaya-harness/phase-2-brain-seeding]] — vision, 10 principles, provenance/registry/todos/plan-index, golden-verified index generation
+- [[plans/01-sobaya-harness/phase-3-skills]] — sobaya (+dispatch patterns), new-app, reflect, meditate; new-app smoke test
+- [[plans/01-sobaya-harness/phase-4-identity-and-docs]] — CLAUDE.md, banner.svg, Korean README/guide, final sweep + plan close-out
+
 ## Future Work (tracked in todos after build)
 
 ruminate skill; unslop skill; cross-provider adversarial review when a second provider CLI is present; optional autonomous cycles via `/loop` or `/schedule`; `.agents/` indirection if a second harness is adopted.

@@ -287,6 +287,15 @@ docs/)는 한국어.
 - `meditate`는 발견이 기준치 미만이면 조기 종료해서 볼트를 휘젓지 않는다.
 - 실패한 서브에이전트 디스패치는 절대 맹목적으로 재시도하지 않는다(진단 후 결정).
 
+## 단계 (Phases)
+
+구현 플랜은 단계당 한 파일이다 (태스크는 체크박스로 추적, 순서대로 실행):
+
+- [[plans/01-sobaya-harness/phase-1-skeleton-and-hooks]] — 골격 디렉토리, inject-brain + auto-index-brain 훅 (TDD, POSIX 테스트 스위트), settings 연결
+- [[plans/01-sobaya-harness/phase-2-brain-seeding]] — vision, 원칙 10종, 출처/레지스트리/todos/플랜 인덱스, golden 검증 인덱스 생성
+- [[plans/01-sobaya-harness/phase-3-skills]] — sobaya(+디스패치 패턴), new-app, reflect, meditate, new-app 스모크 테스트
+- [[plans/01-sobaya-harness/phase-4-identity-and-docs]] — CLAUDE.md, banner.svg, 한국어 README/가이드, 최종 점검 + 플랜 마감
+
 ## 이후 작업 (빌드 후 todos로 추적)
 
 ruminate 스킬, unslop 스킬, 두 번째 프로바이더 CLI가 생기면 교차 프로바이더 적대적 리뷰, `/loop` 또는 `/schedule` 기반 자율 사이클(선택), 두 번째 하네스 채택 시 `.agents/` 간접 구조.
