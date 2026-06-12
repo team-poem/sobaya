@@ -1,0 +1,9 @@
+# Apps are independent git repositories — never tracked by the harness repo
+apps/*
+!apps/.gitkeep
+
+# Reference clones (e.g. references/noodle) — foreign repos kept for lookup
+references/
+
+# OS junk
+.DS_Store

@@ -60,6 +60,7 @@ In scope:
 - 4 skills under `.claude/skills/`: `sobaya` (+ `references/dispatch-patterns.md`), `new-app`, `reflect`, `meditate`
 - 2 hooks under `.claude/hooks/` + `.claude/settings.json` wiring
 - `README.md` (Korean) + `docs/guide.md` (Korean)
+- `references/noodle/` — working clone of poteto/noodle kept in the workspace for reference while building and extending Sobaya (gitignored; user request)
 - Verification of hooks (synthetic stdin tests, index golden check) and `new-app` (smoke test)
 
 Out of scope (future candidates, tracked in todos):
@@ -79,7 +80,7 @@ Out of scope (future candidates, tracked in todos):
 sobaya/                        # git repo (harness only)
 ├── CLAUDE.md                  # harness contract (EN)
 ├── README.md                  # guide (KO)
-├── .gitignore                 # apps/* (with !apps/.gitkeep), OS junk
+├── .gitignore                 # apps/* (with !apps/.gitkeep), references/, OS junk
 ├── .claude/
 │   ├── settings.json          # hook wiring
 │   ├── hooks/
@@ -106,6 +107,8 @@ sobaya/                        # git repo (harness only)
 │       └── plans/             # completed plan dirs move here
 ├── apps/                      # independent git repos, gitignored from root
 │   └── .gitkeep
+├── references/
+│   └── noodle/                # poteto/noodle working clone for reference (gitignored)
 └── docs/
     └── guide.md               # KO usage guide
 ```
@@ -181,7 +184,7 @@ Agent-facing text (this file, skills, brain) is English. Human-facing docs
 | `never-block-on-the-human` | During approved execution, make reasonable decisions and let the human course-correct afterward. Design-approval gates (brainstorming) are a different phase and still apply. |
 | `foundational-thinking` | Structural decisions optimize for option value; code-level decisions optimize for simplicity. |
 
-**`codebase/noodle-reference.md`** — provenance note: source repo URL, commit analyzed, what was borrowed (vault structure, reflect/meditate, hooks, conventions table), what was deliberately dropped, where to look when porting more.
+**`codebase/noodle-reference.md`** — provenance note: source repo URL, commit analyzed, what was borrowed (vault structure, reflect/meditate, hooks, conventions table), what was deliberately dropped, where to look when porting more. The working clone lives at `references/noodle/` (analyzed at commit `82d2921`).
 
 **`apps.md`** — registry header + table (name | purpose | stack | status), empty body.
 
