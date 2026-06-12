@@ -23,6 +23,8 @@ general-purpose agent. One unit of work per dispatch.
 Work in apps/<name> (a standalone git repo at apps/<name>).
 Task: <the change, concretely — behavior, not vibes>.
 Constraints: <stack, conventions; read apps/<name>/CLAUDE.md first>.
+Git: always `git -C <absolute path>`; never bare-`cd` into another repo —
+the shell cwd persists between calls.
 Do NOT touch: <files/areas owned by other agents or out of scope>.
 Process: follow superpowers:test-driven-development — failing test, minimal
 code, pass. Commit per logical change with conventional messages.

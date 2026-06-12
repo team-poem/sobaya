@@ -1,6 +1,6 @@
 ---
 priority: []
-# nothing ranked yet — 2..5 are backlog candidates from plan 01's Future Work
+# nothing ranked yet — 2..6 are backlog candidates from plan 01's Future Work
 ---
 
 # Todos

@@ -19,7 +19,7 @@
 **Files:**
 - Create: `CLAUDE.md`
 
-- [ ] **Step 1: Write `CLAUDE.md`** with exactly (this is the spec's approved draft, verbatim):
+- [x] **Step 1: Write `CLAUDE.md`** with exactly (this is the spec's approved draft, verbatim):
 
 ```markdown
 # Sobaya
@@ -67,12 +67,12 @@ Agent-facing text (this file, skills, brain) is English. Human-facing docs
 (README.md, docs/) are Korean.
 ```
 
-- [ ] **Step 2: Verify line budget**
+- [x] **Step 2: Verify line budget**
 
 Run: `wc -l CLAUDE.md`
 Expected: ≤ 45 lines (target ~40 — the contract must stay small; if it grew past 45, cut before committing).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add CLAUDE.md
@@ -88,7 +88,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Files:**
 - Create: `banner.svg`
 
-- [ ] **Step 1: Write `banner.svg`** with exactly:
+- [x] **Step 1: Write `banner.svg`** with exactly:
 
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="Sobaya — subagent orchestration workspace">
@@ -159,16 +159,16 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 </svg>
 ```
 
-- [ ] **Step 2: Validate it is well-formed XML**
+- [x] **Step 2: Validate it is well-formed XML**
 
 Run: `python3 -c "import xml.dom.minidom; xml.dom.minidom.parse('banner.svg'); print('well-formed')"`
 Expected: `well-formed`
 
-- [ ] **Step 3: Visual check**
+- [x] **Step 3: Visual check**
 
 Run: `open banner.svg` (opens in the default viewer) — confirm: dark background, red noren strip on top, amber lantern left with 蕎麦屋, SOBAYA wordmark center, noodle bowl with chopsticks and steam right. If a shape is visibly broken, fix coordinates and re-validate; pixel-perfection is not required.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add banner.svg
@@ -184,7 +184,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Files:**
 - Create: `README.md`
 
-- [ ] **Step 1: Write `README.md`** with exactly:
+- [x] **Step 1: Write `README.md`** with exactly:
 
 ````markdown
 # Sobaya
@@ -263,12 +263,12 @@ sobaya/
 자세한 사용법: [docs/guide.md](docs/guide.md) · 설계 스펙: [brain/plans/01-sobaya-harness/overview.ko.md](brain/plans/01-sobaya-harness/overview.ko.md)
 ````
 
-- [ ] **Step 2: Verify the banner reference resolves**
+- [x] **Step 2: Verify the banner reference resolves**
 
 Run: `grep -n 'banner.svg' README.md && ls banner.svg`
 Expected: the image line `![Sobaya banner](banner.svg)` directly under `# Sobaya`, and the file exists.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add README.md
@@ -286,7 +286,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Files:**
 - Create: `docs/guide.md`
 
-- [ ] **Step 1: Write `docs/guide.md`** with exactly:
+- [x] **Step 1: Write `docs/guide.md`** with exactly:
 
 ````markdown
 # Sobaya 사용 가이드
@@ -349,7 +349,7 @@ README가 "무엇"이라면 이 문서는 "어떻게"입니다. 세션에서 실
 - **noodle을 더 가져오고 싶어요** — `references/noodle/`이 작업 클론입니다. `brain/codebase/noodle-reference.md`에 어디를 봐야 하는지 정리돼 있습니다.
 ````
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add docs/guide.md
@@ -369,24 +369,24 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Modify: `brain/plans/01-sobaya-harness/overview.md` (frontmatter `status`)
 - Move: `brain/plans/01-sobaya-harness/` → `brain/archive/plans/01-sobaya-harness/`
 
-- [ ] **Step 1: Full test pass**
+- [x] **Step 1: Full test pass**
 
 Run: `sh tests/hooks-test.sh`
 Expected: `ALL PASS`, exit 0.
 
-- [ ] **Step 2: Inventory against the spec tree**
+- [x] **Step 2: Inventory against the spec tree**
 
 Run: `find . -path ./references -prune -o -path ./.git -prune -o -type f -print | sort`
 Expected files (exactly these, plus `.git*` internals excluded by the prune):
 `./.claude/hooks/auto-index-brain.sh`, `./.claude/hooks/inject-brain.sh`, `./.claude/settings.json`, `./.claude/skills/meditate/SKILL.md`, `./.claude/skills/new-app/SKILL.md`, `./.claude/skills/reflect/SKILL.md`, `./.claude/skills/sobaya/SKILL.md`, `./.claude/skills/sobaya/references/dispatch-patterns.md`, `./.gitignore`, `./CLAUDE.md`, `./README.md`, `./apps/.gitkeep`, `./banner.svg`, `./brain/apps.md`, `./brain/archive/completed_todos.md`, `./brain/codebase/noodle-reference.md`, `./brain/index.md`, `./brain/plans/01-sobaya-harness/overview.md`, `./brain/plans/01-sobaya-harness/overview.ko.md`, `./brain/plans/01-sobaya-harness/phase-1-skeleton-and-hooks.md`, `./brain/plans/01-sobaya-harness/phase-2-brain-seeding.md`, `./brain/plans/01-sobaya-harness/phase-3-skills.md`, `./brain/plans/01-sobaya-harness/phase-4-identity-and-docs.md`, `./brain/principles.md`, `./brain/principles/cost-aware-delegation.md`, `./brain/principles/encode-lessons-in-structure.md`, `./brain/principles/fix-root-causes.md`, `./brain/principles/foundational-thinking.md`, `./brain/principles/guard-the-context-window.md`, `./brain/principles/make-operations-idempotent.md`, `./brain/principles/never-block-on-the-human.md`, `./brain/principles/prove-it-works.md`, `./brain/principles/serialize-shared-state-mutations.md`, `./brain/principles/subtract-before-you-add.md`, `./brain/todos.md`, `./brain/plans/index.md`, `./brain/vision.md`, `./docs/guide.md`, `./tests/hooks-test.sh`.
 Any extra or missing file is a failure — resolve before continuing.
 
-- [ ] **Step 3: Working tree clean**
+- [x] **Step 3: Working tree clean**
 
 Run: `git -C /Users/amazon/lunch.cancelled/sobaya status --short`
 Expected: empty output.
 
-- [ ] **Step 4: Close out todo #1, file future work, and archive the plan**
+- [x] **Step 4: Close out todo #1, file future work, and archive the plan**
 
 1. In `brain/todos.md`: move item 1 into `brain/archive/completed_todos.md` as `1. [x] ~~Build the Sobaya harness~~ — done. [[archive/plans/01-sobaya-harness/overview]]`, then file the spec's Future Work section as new items so todos.md becomes exactly:
 
@@ -434,13 +434,13 @@ printf '{"tool_name":"Write","tool_input":{"file_path":"%s/brain/todos.md"}}' "$
 Run: `cat brain/index.md`
 Expected: identical to the phase-2 golden index — the archived plan's nested files stay excluded and `plans/index` remains the only Plans entry. (`brain/plans/` now contains only `index.md`.)
 
-- [ ] **Step 5: Reflect on the build (orchestrator step — use Skill(reflect))**
+- [x] **Step 5: Reflect on the build (orchestrator step — use Skill(reflect))**
 
 Run the reflect skill over the whole build effort. Known candidates observed during planning (verify they still hold, then route per the skill):
 - The persistent-shell-cwd gotcha: a `cd` into `references/noodle` made later `git` commands hit the wrong repo → candidate note `brain/codebase/persistent-cwd-and-reference-clones.md` recommending `git -C` + absolute paths.
 - Anything the executor hit during phases 1–4 (test flakes, macOS quirks, harness behaviors).
 
-- [ ] **Step 6: Final commit**
+- [x] **Step 6: Final commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add -A
@@ -451,6 +451,6 @@ Todo #1 done and archived; plan moved to archive/plans; index regenerated.
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
 
-- [ ] **Step 7: Report e2e residue for the next session**
+- [x] **Step 7: Report e2e residue for the next session**
 
 State in the final report: "SessionStart injection and PostToolUse auto-index must be observed at the next session start (hooks load then). Verify: open a new session in sobaya/ — the brain index should appear; edit any brain file — index should rebuild."
