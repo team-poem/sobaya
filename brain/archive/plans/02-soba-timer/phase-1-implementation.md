@@ -22,14 +22,14 @@
 - Create: `apps/soba-timer/README.md`
 - Create: `apps/soba-timer/.gitignore`
 
-- [ ] **Step 1: Create the directory and init the repo**
+- [x] **Step 1: Create the directory and init the repo**
 
 ```bash
 mkdir -p /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer
 git -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer init -b main
 ```
 
-- [ ] **Step 2: Write `apps/soba-timer/go.mod`** with exactly:
+- [x] **Step 2: Write `apps/soba-timer/go.mod`** with exactly:
 
 ```
 module github.com/amazon7737/soba-timer
@@ -37,7 +37,7 @@ module github.com/amazon7737/soba-timer
 go 1.26
 ```
 
-- [ ] **Step 3: Write `apps/soba-timer/CLAUDE.md`** with exactly:
+- [x] **Step 3: Write `apps/soba-timer/CLAUDE.md`** with exactly:
 
 ```markdown
 # soba-timer
@@ -55,7 +55,7 @@ one-writer-per-app) live in the root CLAUDE.md and apply here.
 - Vet: `go vet ./...`
 ```
 
-- [ ] **Step 4: Write `apps/soba-timer/README.md`** with exactly:
+- [x] **Step 4: Write `apps/soba-timer/README.md`** with exactly:
 
 ```markdown
 # soba-timer
@@ -71,14 +71,14 @@ go test ./...      # 테스트
 ```
 ```
 
-- [ ] **Step 5: Write `apps/soba-timer/.gitignore`** with exactly:
+- [x] **Step 5: Write `apps/soba-timer/.gitignore`** with exactly:
 
 ```
 /soba-timer
 *.out
 ```
 
-- [ ] **Step 6: Verify the scaffold**
+- [x] **Step 6: Verify the scaffold**
 
 Run: `git -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer status --short`
 Expected: four untracked files — `.gitignore`, `CLAUDE.md`, `README.md`, `go.mod`.
@@ -86,7 +86,7 @@ Expected: four untracked files — `.gitignore`, `CLAUDE.md`, `README.md`, `go.m
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer mod verify 2>&1 || true`
 Expected: `all modules verified` (no dependencies, so this is trivially true).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer add -A
@@ -103,7 +103,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Create: `apps/soba-timer/timer_test.go`
 - Create: `apps/soba-timer/timer.go`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `apps/soba-timer/timer_test.go` with exactly:
 
@@ -155,12 +155,12 @@ func TestResolve(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails to compile**
+- [x] **Step 2: Run the test to verify it fails to compile**
 
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer test ./...`
 Expected: FAIL — build error `undefined: Resolve`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `apps/soba-timer/timer.go` with exactly:
 
@@ -205,12 +205,12 @@ func Resolve(arg string) (time.Duration, error) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer test ./...`
 Expected: PASS (`ok  github.com/amazon7737/soba-timer`).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer add timer.go timer_test.go
@@ -227,7 +227,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Modify: `apps/soba-timer/timer_test.go` (append a test function)
 - Modify: `apps/soba-timer/timer.go` (append the function)
 
-- [ ] **Step 1: Append the failing test**
+- [x] **Step 1: Append the failing test**
 
 Append to `apps/soba-timer/timer_test.go` (after the existing `TestResolve` function, before EOF):
 
@@ -255,12 +255,12 @@ func TestFormatRemaining(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails to compile**
+- [x] **Step 2: Run the test to verify it fails to compile**
 
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer test ./...`
 Expected: FAIL — build error `undefined: FormatRemaining`.
 
-- [ ] **Step 3: Append the implementation**
+- [x] **Step 3: Append the implementation**
 
 Append to `apps/soba-timer/timer.go` (after `Resolve`, before EOF):
 
@@ -283,17 +283,17 @@ func FormatRemaining(d time.Duration) string {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer test ./...`
 Expected: PASS.
 
-- [ ] **Step 5: Vet**
+- [x] **Step 5: Vet**
 
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer vet ./...`
 Expected: no output (clean).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer add timer.go timer_test.go
@@ -314,7 +314,7 @@ it gets its own test.
 - Modify: `apps/soba-timer/timer_test.go` (append a test function)
 - Modify: `apps/soba-timer/timer.go` (append the function)
 
-- [ ] **Step 1: Append the failing test**
+- [x] **Step 1: Append the failing test**
 
 Append to `apps/soba-timer/timer_test.go` (after `TestFormatRemaining`, before EOF):
 
@@ -340,12 +340,12 @@ func TestLabel(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails to compile**
+- [x] **Step 2: Run the test to verify it fails to compile**
 
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer test ./...`
 Expected: FAIL — build error `undefined: label`.
 
-- [ ] **Step 3: Append the implementation**
+- [x] **Step 3: Append the implementation**
 
 Append to `apps/soba-timer/timer.go` (after `FormatRemaining`, before EOF):
 
@@ -360,12 +360,12 @@ func label(arg string, d time.Duration) string {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer test ./...`
 Expected: PASS (all three test functions).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer add timer.go timer_test.go
@@ -385,7 +385,7 @@ verified by live runs in Task 6.
 **Files:**
 - Create: `apps/soba-timer/main.go`
 
-- [ ] **Step 1: Write `apps/soba-timer/main.go`** with exactly:
+- [x] **Step 1: Write `apps/soba-timer/main.go`** with exactly:
 
 ```go
 package main
@@ -455,17 +455,17 @@ func run(name string, d time.Duration) {
 }
 ```
 
-- [ ] **Step 2: Build to verify it compiles**
+- [x] **Step 2: Build to verify it compiles**
 
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer build ./...`
 Expected: no output, exit 0.
 
-- [ ] **Step 3: Re-run the full test suite (nothing should break)**
+- [x] **Step 3: Re-run the full test suite (nothing should break)**
 
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer test ./...`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer add main.go
@@ -489,14 +489,14 @@ First build a binary once so the live checks don't recompile each time:
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer build -o /tmp/soba-timer .`
 Expected: no output, exit 0; `/tmp/soba-timer` exists.
 
-- [ ] **Step 1: Countdown completes and rings the bell**
+- [x] **Step 1: Countdown completes and rings the bell**
 
 Run: `/tmp/soba-timer 3s | cat -v; echo "exit=${PIPESTATUS[0]}"`
 Expected: the display line refreshes (`cat -v` shows the `\r` carriage returns as `^M`), ending with `3s: 00:00` then `done! (3s, 3s)`. `exit=0`.
 
 NOTE: `label("3s", 3s)` → `"3s"` (raw duration normalized), so the display reads `3s: 00:03`, `00:02`, `00:01`, `00:00`. That is expected.
 
-- [ ] **Step 2: Preset opens at the right time (non-blocking peek)**
+- [x] **Step 2: Preset opens at the right time (non-blocking peek)**
 
 The first line renders immediately, before the first one-second tick. Capture it without waiting for the full 5 minutes by launching in the background, reading the output, then killing:
 
@@ -510,7 +510,7 @@ cat -v /tmp/soba-open.txt | head -c 80; echo
 ```
 Expected: the captured output begins with `soba: 05:00`.
 
-- [ ] **Step 3: Error paths**
+- [x] **Step 3: Error paths**
 
 Run: `/tmp/soba-timer xyz; echo "exit=$?"`
 Expected: stderr shows `unknown preset or duration: "xyz"` then `run with -h for usage`; `exit=2`.
@@ -524,22 +524,22 @@ Expected: `duration must be positive: "0s"`; `exit=2`.
 Run: `/tmp/soba-timer; echo "exit=$?"`
 Expected: usage printed to stderr; `exit=2`.
 
-- [ ] **Step 4: Help path**
+- [x] **Step 4: Help path**
 
 Run: `/tmp/soba-timer -h; echo "exit=$?"`
 Expected: usage with a preset table sorted by duration (`somen 2m0s`, `ramen 3m0s`, `soba 5m0s`, `udon 10m0s`) printed to **stdout**; `exit=0` (help is not an error).
 
-- [ ] **Step 5: Final test + vet pass**
+- [x] **Step 5: Final test + vet pass**
 
 Run: `go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer test ./... && go -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer vet ./...`
 Expected: `ok` then no vet output. Both exit 0.
 
-- [ ] **Step 6: Confirm the app's git history is clean and conventional**
+- [x] **Step 6: Confirm the app's git history is clean and conventional**
 
 Run: `git -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer log --oneline && git -C /Users/amazon/lunch.cancelled/sobaya/apps/soba-timer status --short`
 Expected: five commits (scaffold, resolve, format, label, CLI shell); working tree clean.
 
-- [ ] **Step 7: Register in the harness brain**
+- [x] **Step 7: Register in the harness brain**
 
 Append one row to the table in `/Users/amazon/lunch.cancelled/sobaya/brain/apps.md`:
 
@@ -547,7 +547,7 @@ Append one row to the table in `/Users/amazon/lunch.cancelled/sobaya/brain/apps.
 | soba-timer | noodle-cooking countdown timer | Go | active |
 ```
 
-- [ ] **Step 8: Commit the registry update (harness repo)**
+- [x] **Step 8: Commit the registry update (harness repo)**
 
 ```bash
 git -C /Users/amazon/lunch.cancelled/sobaya add brain/apps.md

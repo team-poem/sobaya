@@ -25,6 +25,8 @@
 - [[codebase/noodle-reference]]
 - [[codebase/persistent-cwd-and-reference-clones]]
 - [[codebase/svg-visual-verification]]
+- [[codebase/terminal-redraw-clear-to-eol]]
+- [[codebase/thin-shell-needs-a-refuter]]
 
 ## Backlog
 - [[todos]]

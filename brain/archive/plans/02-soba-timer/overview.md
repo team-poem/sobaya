@@ -1,7 +1,7 @@
 ---
 id: 2
 created: 2026-06-13
-status: active
+status: done
 ---
 
 # Plan 02 — soba-timer
