@@ -51,7 +51,8 @@ soba-timer <preset|duration>
 | `somen` | 2m countdown |
 | `ramen` | 3m countdown |
 | `90s`, `2m30s`, `1h2m` | parsed by `time.ParseDuration` |
-| no args / `-h` / `--help` | usage + preset table to stdout, exit 0 for `-h`, exit 2 for no args |
+| `-h` / `--help` | usage + preset table to stdout, exit 0 (help is not an error) |
+| no args | usage to stderr, exit 2 (a usage error, per the Error Handling section and D2) |
 | unknown string | `unknown preset or duration: "xyz"` to stderr + usage hint, exit 2 |
 | `0s`, negative, `> 24h` | rejected to stderr, exit 2 |
 

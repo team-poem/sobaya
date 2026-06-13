@@ -5,3 +5,4 @@ One line per app. `new-app` registers entries; keep status current
 
 | App | Purpose | Stack | Status |
 |---|---|---|---|
+| soba-timer | noodle-cooking countdown timer | Go | active |
