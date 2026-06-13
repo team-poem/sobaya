@@ -5,7 +5,7 @@ priority: []
 
 # Todos
 
-<!-- next-id: 7 -->
+<!-- next-id: 8 -->
 <!-- completed todos live in archive/completed_todos.md -->
 <!-- completed plans live in archive/plans/ -->
 
@@ -21,3 +21,8 @@ priority: []
    noodle).
 6. [ ] .agents/ multi-harness indirection — only if a second harness is
    adopted (migrate-callers, then delete).
+
+## Apps
+
+7. [ ] soba-timer — first app, e2e pipeline test vehicle.
+   [[plans/02-soba-timer/overview]]
