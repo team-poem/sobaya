@@ -7,3 +7,6 @@ apps/*
 
 # OS junk
 .DS_Store
+
+# Visual companion (brainstorming) artifacts
+.superpowers/
