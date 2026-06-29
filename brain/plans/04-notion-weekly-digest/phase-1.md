@@ -787,16 +787,22 @@ git commit -m "feat: Notion bullet markdown renderer"
 - Consumes: `Article`, `Summary`.
 - Produces:
   - `build_prompt(items: list[tuple[Article, str]], target_count: int) -> str`
-  - `run_codex(prompt: str, timeout: int = 300) -> str` (subprocess; the real codex call)
+  - `run_codex(prompt: str, timeout: int = 600) -> str` (subprocess; the real codex call, via `--output-last-message`)
   - `extract_block(output: str) -> str` (slice between sentinels)
   - `parse_block(block: str) -> list[Summary]`
   - `summarize(items, target_count: int = 6, runner=run_codex) -> list[Summary]` — `runner` is injectable so tests never invoke codex. Fills each `Summary.source` by matching its URL back to `items`.
 - Module constants `START = "===DIGEST START==="`, `END = "===DIGEST END==="`.
 
-- [ ] **Step 1: Empirically verify codex exec before wiring it**
+- [ ] **Step 1: Confirm the pre-verified codex invocation**
 
-Run: `codex exec "한 단어로만 답하세요: 사과의 색은?"`
-Expected: prints a short model answer to stdout (e.g. "빨강"). Note whether there is surrounding log noise — the sentinel slicing in `extract_block` is what makes parsing robust to it. If `codex exec` errors about sandbox/approval in this non-interactive context, capture the exact flag it suggests and add it to the `run_codex` arg list (e.g. an auto-approve flag); the parsing/prompt design is unaffected.
+The controller already verified the working invocation. Key finding: the
+user's global `~/.codex/config.toml` sets `service_tier = "default"`, which
+this codex version (0.129.0) rejects (`expected fast or flex`), so plain
+`codex exec` fails. The app MUST pass `--ignore-user-config` (auth still
+works via CODEX_HOME) and set the model explicitly. Confirm it works:
+
+Run: `codex exec --ignore-user-config --skip-git-repo-check --color never -s read-only -m gpt-5.5 --output-last-message /tmp/cx.txt "한 단어로만 답: 사과의 색은?"; cat /tmp/cx.txt`
+Expected: exit 0 and `/tmp/cx.txt` contains a short answer (e.g. "빨강"). Use exactly these flags in `run_codex` below; read the answer from the `--output-last-message` file (cleaner than stdout, which carries logs). The `===DIGEST START/END===` sentinels still bound the bullet block inside that message.
 
 - [ ] **Step 2: Write the failing test** — `tests/test_summarize.py`
 
@@ -862,8 +868,10 @@ Expected: FAIL — `ModuleNotFoundError: No module named 'notion_weekly_digest.s
 ```python
 from __future__ import annotations
 
+import os
 import re
 import subprocess
+import tempfile
 
 from .models import Article, Summary
 
@@ -901,18 +909,44 @@ def build_prompt(items: list[tuple[Article, str]], target_count: int) -> str:
     )
 
 
-def run_codex(prompt: str, timeout: int = 300) -> str:
-    proc = subprocess.run(
-        ["codex", "exec", prompt],
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-    )
-    if proc.returncode != 0:
-        raise RuntimeError(
-            f"codex exec failed (rc={proc.returncode}): {proc.stderr[:500]}"
+# The user's global ~/.codex/config.toml has an invalid `service_tier` that
+# this codex version rejects, so we skip it with --ignore-user-config and set
+# the model explicitly. --output-last-message gives the clean final message.
+CODEX_BASE_ARGS = [
+    "codex",
+    "exec",
+    "--ignore-user-config",
+    "--skip-git-repo-check",
+    "--color",
+    "never",
+    "-s",
+    "read-only",
+    "-m",
+    "gpt-5.5",
+]
+
+
+def run_codex(prompt: str, timeout: int = 600) -> str:
+    fd, out_path = tempfile.mkstemp(suffix=".txt")
+    os.close(fd)
+    try:
+        proc = subprocess.run(
+            CODEX_BASE_ARGS + ["--output-last-message", out_path, prompt],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
         )
-    return proc.stdout
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"codex exec failed (rc={proc.returncode}): {proc.stderr[:500]}"
+            )
+        with open(out_path, encoding="utf-8") as f:
+            return f.read()
+    finally:
+        try:
+            os.remove(out_path)
+        except OSError:
+            pass
 
 
 def extract_block(output: str) -> str:
