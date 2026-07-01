@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/amazon/lunch.cancelled/sobaya/.codex/hooks/auto-index-brain.sh'"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/amazon/lunch.cancelled/sobaya/.codex/hooks/inject-brain.sh'"
+          }
+        ]
+      }
+    ]
+  }
+}
