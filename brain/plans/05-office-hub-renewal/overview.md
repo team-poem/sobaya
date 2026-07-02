@@ -1,6 +1,6 @@
 # 05 · office-hub-renewal — Design Spec
 
-Status: **spec (awaiting user approval — direction chosen autonomously, see "Open decision")**
+Status: **spec approved (option A confirmed by user 2026-07-02) — awaiting phase-1 plan**
 Date: 2026-07-02
 App: `apps/office-automation-hub-design/app/` (existing repo, restructured in place)
 
