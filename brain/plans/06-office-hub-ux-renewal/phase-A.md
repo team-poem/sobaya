@@ -891,6 +891,15 @@ git commit -m "refactor(ui): drop legacy requester UI code superseded by counter
 
 ---
 
+## Execution amendments (2026-07-05, adjudicated during SDD run)
+
+The implemented code deviates from this document's code blocks in four reviewed places:
+1. Task 6's legacy-function deletion was pulled into Task 2 (review found the legacy `loadMyRequests` dereferenced the deleted `#myRequests` → TypeError).
+2. counter.js gained a `_submitting` double-submit guard and submitComposer is wrapped in try/catch/finally with `console.error(e)` + network-error copy (review findings, spec-aligned).
+3. ui.css gained `.attach-row[hidden] { display: none; }` (final review: flex defeated the hidden attribute).
+4. Dead legacy CSS (header/.tabs/.identity/#reqForm/.req-actions) removed in Task 6.
+The repo (`ux/phase-a`) is the source of truth; ledger: app `.superpowers/sdd/progress.md`.
+
 ## Self-review notes
 
 - Spec coverage (overview.md 창구 section): composer w/ chips+PII+↑ (T4), receipt number + title derivation (T3/T4), inline error keeping text (T4), hint line (T4), cards grid + stepper + accent rules (T5), 검수 대기 actions incl. rework (T5), detail expand w/ text/files/timeline (T5), empty states (T5). Shell/segments/identity (T2). 보류 stepper-freeze relaxed to pill-only — documented in T3 (status alone can't reconstruct the last reached step; revisit in Phase B where audit data is already loaded).

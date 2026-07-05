@@ -1,6 +1,6 @@
 # 06 · office-hub-ux-renewal — Design Spec
 
-Status: **spec approved pending user review (2026-07-05)**
+Status: **spec approved; Phase A implemented (2026-07-05) — branch `ux/phase-a` (10 commits, 156 tests green, final review: Ready to merge=Yes). Browser visual checklist pending user; Phases B–C not started.**
 Date: 2026-07-05
 App: `apps/office-automation-hub-design/app/`
 Base: branch off `renewal/phase-1` (unmerged; merge to main deferred by user)
