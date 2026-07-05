@@ -1,0 +1,551 @@
+<title>Office Hub — 디자인 컨셉</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-sub: #f7f7f8;
+    --bg-hover: #f0f0f1;
+    --line: #e6e6e6;
+    --line-soft: #ececec;
+    --text: #0d0d0d;
+    --text-2: #6e6e80;
+    --text-3: #a6a6b0;
+    --btn: #0d0d0d;
+    --btn-text: #ffffff;
+    --accent: #10a37f;
+    --ok: #10a37f;
+    --warn: #b45309;
+    --warn-bg: #fef3e2;
+    --bad: #c53030;
+    --bad-bg: #fdeaea;
+    --ok-bg: #e7f6f1;
+    --font-kr: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, "Pretendard Variable", "Noto Sans KR", sans-serif;
+    --font-num: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+    --shadow-seg: 0 1px 3px rgba(13,13,13,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #212121; --bg-sub: #2a2a2e; --bg-hover: #313136;
+      --line: #3a3a40; --line-soft: #333338;
+      --text: #ececec; --text-2: #b4b4bd; --text-3: #7c7c86;
+      --btn: #ececec; --btn-text: #212121;
+      --warn-bg: #3a2f1c; --bad-bg: #3d2626; --ok-bg: #1d3630;
+      --shadow-seg: 0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff; --bg-sub: #f7f7f8; --bg-hover: #f0f0f1;
+    --line: #e6e6e6; --line-soft: #ececec;
+    --text: #0d0d0d; --text-2: #6e6e80; --text-3: #a6a6b0;
+    --btn: #0d0d0d; --btn-text: #ffffff;
+    --warn-bg: #fef3e2; --bad-bg: #fdeaea; --ok-bg: #e7f6f1;
+    --shadow-seg: 0 1px 3px rgba(13,13,13,.08);
+  }
+  :root[data-theme="dark"] {
+    --bg: #212121; --bg-sub: #2a2a2e; --bg-hover: #313136;
+    --line: #3a3a40; --line-soft: #333338;
+    --text: #ececec; --text-2: #b4b4bd; --text-3: #7c7c86;
+    --btn: #ececec; --btn-text: #212121;
+    --warn-bg: #3a2f1c; --bad-bg: #3d2626; --ok-bg: #1d3630;
+    --shadow-seg: 0 1px 3px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-kr);
+    background: var(--bg); color: var(--text);
+    font-size: 14px; line-height: 1.55;
+    letter-spacing: -.011em;
+  }
+  button { font-family: inherit; letter-spacing: inherit; }
+
+  /* ---------- 상단 바 ---------- */
+  .bar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 22px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .brand { display: flex; align-items: baseline; gap: 8px; min-width: 160px; }
+  .brand strong { font-size: 15px; font-weight: 700; }
+  .brand span { font-size: 11.5px; color: var(--text-3); }
+  .seg {
+    display: flex; gap: 2px; padding: 3px;
+    background: var(--bg-sub); border-radius: 999px;
+  }
+  .seg button {
+    font-size: 13px; font-weight: 600; color: var(--text-2);
+    border: none; background: transparent; cursor: pointer;
+    padding: 6px 16px; border-radius: 999px;
+    transition: color .2s, background .2s;
+  }
+  .seg button.on { color: var(--text); background: var(--bg); box-shadow: var(--shadow-seg); }
+  .who { min-width: 160px; text-align: right; font-size: 12.5px; color: var(--text-2); }
+
+  .view { display: none; }
+  .view.on { display: block; }
+
+  /* ---------- 창구 ---------- */
+  .counter { max-width: 720px; margin: 0 auto; padding: 72px 24px 80px; }
+  .greet {
+    font-size: 30px; font-weight: 600; letter-spacing: -.025em;
+    text-align: center; margin: 0 0 6px; text-wrap: balance;
+  }
+  .greet-sub { text-align: center; color: var(--text-2); margin: 0 0 36px; font-size: 14.5px; }
+
+  .composer {
+    border: 1px solid var(--line);
+    border-radius: 26px;
+    background: var(--bg);
+    box-shadow: 0 2px 12px rgba(13,13,13,.04);
+    padding: 16px 18px 12px;
+  }
+  .composer textarea {
+    width: 100%; border: none; outline: none; resize: none;
+    font-family: inherit; font-size: 15px; color: var(--text);
+    background: transparent; height: 72px; letter-spacing: inherit;
+  }
+  .composer ::placeholder { color: var(--text-3); }
+  .attach-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .file-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12.5px; font-weight: 500;
+    padding: 6px 12px; border-radius: 10px;
+    background: var(--bg-sub); border: 1px solid var(--line-soft);
+  }
+  .file-chip i { font-style: normal; font-size: 11px; color: var(--text-3); font-family: var(--font-num); }
+  .composer-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+  .foot-left { display: flex; align-items: center; gap: 14px; }
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--bg);
+    color: var(--text-2); font-size: 17px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:hover { background: var(--bg-sub); }
+  .pii-toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-2); cursor: pointer; }
+  .pii-toggle input { accent-color: var(--accent); }
+  .send {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: none; background: var(--btn); color: var(--btn-text);
+    font-size: 16px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: opacity .2s;
+  }
+  .send:hover { opacity: .85; }
+  .hint { text-align: center; font-size: 12px; color: var(--text-3); margin-top: 12px; }
+
+  .my-requests { margin-top: 56px; }
+  .sec-label {
+    font-size: 12px; font-weight: 600; color: var(--text-2);
+    letter-spacing: .02em; margin-bottom: 12px;
+  }
+  .rcards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .rcards { grid-template-columns: 1fr; } }
+  .rcard {
+    border: 1px solid var(--line); border-radius: 16px;
+    padding: 16px 18px 14px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .rcard:hover { border-color: var(--text-3); box-shadow: 0 2px 10px rgba(13,13,13,.05); }
+  .rcard .head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+  .rcard .no { font-family: var(--font-num); font-size: 11px; color: var(--text-3); }
+  .rcard h3 { font-size: 14.5px; font-weight: 600; margin: 0 0 14px; letter-spacing: -.015em; }
+
+  .status {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 600;
+    padding: 3px 9px; border-radius: 999px;
+  }
+  .status i { font-style: normal; width: 6px; height: 6px; border-radius: 50%; }
+  .status.run  { color: var(--ok); background: var(--ok-bg); }
+  .status.run i { background: var(--ok); animation: pulse 1.6s infinite; }
+  .status.wait { color: var(--warn); background: var(--warn-bg); }
+  .status.wait i { background: var(--warn); }
+  .status.done { color: var(--text-2); background: var(--bg-sub); }
+  .status.done i { background: var(--text-3); }
+  .status.need { color: var(--bad); background: var(--bad-bg); }
+  .status.need i { background: var(--bad); }
+  @keyframes pulse { 50% { opacity: .3; } }
+  @media (prefers-reduced-motion: reduce) { .status.run i { animation: none; } }
+
+  .steps { display: flex; align-items: center; }
+  .step { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .step i {
+    font-style: normal; width: 9px; height: 9px; border-radius: 50%;
+    background: var(--bg); border: 1.5px solid var(--line);
+  }
+  .step.fill i { background: var(--text); border-color: var(--text); }
+  .step.now i { background: var(--accent); border-color: var(--accent); }
+  .step span { font-size: 10px; color: var(--text-3); }
+  .step.fill span, .step.now span { color: var(--text-2); font-weight: 600; }
+  .step-line { flex: 1; height: 1.5px; background: var(--line); margin: 0 4px 15px; min-width: 22px; }
+  .step-line.fill { background: var(--text); }
+
+  .rcard .acts { display: flex; gap: 8px; margin-top: 14px; }
+  .b-solid {
+    font-size: 12.5px; font-weight: 600; color: var(--btn-text);
+    background: var(--btn); border: none; cursor: pointer;
+    padding: 8px 14px; border-radius: 999px;
+  }
+  .b-solid:hover { opacity: .85; }
+  .b-ghost {
+    font-size: 12.5px; font-weight: 600; color: var(--text);
+    background: var(--bg); border: 1px solid var(--line); cursor: pointer;
+    padding: 8px 14px; border-radius: 999px;
+  }
+  .b-ghost:hover { background: var(--bg-sub); }
+
+  /* ---------- 관제실 ---------- */
+  .console { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+  .console h1 { font-size: 20px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 4px; }
+  .console .desc { color: var(--text-2); font-size: 13.5px; margin: 0 0 28px; }
+
+  .statrow {
+    display: flex; margin-bottom: 32px;
+    border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft);
+  }
+  .stat { flex: 1; padding: 16px 20px; border-left: 1px solid var(--line-soft); }
+  .stat:first-child { border-left: none; padding-left: 4px; }
+  .stat .n { font-family: var(--font-num); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat .n em { font-style: normal; color: var(--accent); }
+  .stat .l { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+  .console-grid { display: grid; grid-template-columns: 1.75fr 1fr; gap: 28px; align-items: start; }
+  @media (max-width: 880px) { .console-grid { grid-template-columns: 1fr; } }
+
+  .qwrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 13px; }
+  th {
+    text-align: left; font-size: 11px; font-weight: 600; color: var(--text-3);
+    letter-spacing: .03em; padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-sub);
+  }
+  th:first-child, td:first-child { padding-left: 16px; }
+  th:last-child, td:last-child { padding-right: 16px; }
+  td { padding: 12px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr.row:hover td { background: var(--bg-sub); }
+  td.no { font-family: var(--font-num); font-size: 12px; color: var(--text-2); }
+  td .t { font-weight: 600; letter-spacing: -.01em; }
+  td .tpl { font-family: var(--font-num); font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  td.person { color: var(--text-2); }
+
+  .risk { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+  .risk i { font-style: normal; width: 7px; height: 7px; border-radius: 2px; }
+  .risk.low i  { background: var(--ok); }
+  .risk.mid i  { background: var(--warn); }
+  .risk.high i { background: var(--bad); }
+
+  .b-run {
+    font-size: 12px; font-weight: 600; color: var(--text);
+    background: var(--bg); border: 1px solid var(--line); cursor: pointer;
+    padding: 6px 12px; border-radius: 999px; white-space: nowrap;
+  }
+  .b-run:hover:not([disabled]) { border-color: var(--text); }
+  .b-run[disabled] { color: var(--text-3); cursor: default; }
+
+  .audit { border: 1px solid var(--line); border-radius: 14px; padding-bottom: 6px; }
+  .audit h2 {
+    font-size: 12px; font-weight: 600; color: var(--text-2);
+    margin: 0; padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    background: var(--bg-sub);
+    border-radius: 14px 14px 0 0;
+  }
+  .logline {
+    display: flex; gap: 10px; align-items: baseline;
+    padding: 10px 16px; font-size: 12.5px;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--text-2);
+  }
+  .logline:last-child { border-bottom: none; }
+  .logline time { font-family: var(--font-num); font-size: 11px; color: var(--text-3); white-space: nowrap; }
+  .logline b { color: var(--text); font-weight: 600; }
+  .logline .ok { color: var(--ok); font-weight: 600; }
+  .logline .warn { color: var(--warn); font-weight: 600; }
+
+  /* ---------- 작업 공간 (채팅) ---------- */
+  .work { max-width: 760px; margin: 0 auto; padding: 0 24px 40px; display: flex; flex-direction: column; min-height: calc(100vh - 55px); }
+  .ctx {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 2px; margin-bottom: 24px;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 12.5px; color: var(--text-2);
+  }
+  .ctx .no { font-family: var(--font-num); color: var(--text-3); }
+  .ctx b { color: var(--text); font-weight: 600; }
+  .ctx .tplchip {
+    font-family: var(--font-num); font-size: 11px;
+    padding: 3px 9px; border-radius: 999px;
+    background: var(--bg-sub); border: 1px solid var(--line-soft);
+  }
+
+  .thread { flex: 1; display: flex; flex-direction: column; gap: 22px; padding-bottom: 28px; }
+  .msg-user {
+    align-self: flex-end; max-width: 78%;
+    background: var(--bg-sub);
+    padding: 11px 16px; border-radius: 20px;
+    font-size: 14.5px;
+  }
+  .msg-ai { max-width: 100%; font-size: 14.5px; }
+  .msg-ai p { margin: 0 0 12px; }
+  .evidence { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .ev-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 500; color: var(--text-2);
+    padding: 5px 11px; border-radius: 999px;
+    border: 1px solid var(--line); cursor: pointer;
+    font-family: var(--font-num);
+  }
+  .ev-chip:hover { border-color: var(--text); color: var(--text); }
+  .ev-chip i { font-style: normal; color: var(--accent); }
+  .result-block {
+    border: 1px solid var(--line); border-radius: 12px;
+    overflow: hidden; margin-bottom: 6px;
+  }
+  .result-block .rb-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11.5px; color: var(--text-2);
+    padding: 8px 14px; background: var(--bg-sub);
+    border-bottom: 1px solid var(--line-soft);
+    font-family: var(--font-num);
+  }
+  .rb-head button { font-size: 11.5px; border: none; background: none; color: var(--text-2); cursor: pointer; font-weight: 600; font-family: var(--font-kr); }
+  .rb-head button:hover { color: var(--text); }
+  .result-block pre {
+    margin: 0; padding: 12px 14px; overflow-x: auto;
+    font-family: var(--font-num); font-size: 12px; line-height: 1.7;
+    color: var(--text);
+  }
+
+  .work-composer {
+    position: sticky; bottom: 0;
+    background: var(--bg);
+    padding: 8px 0 18px;
+  }
+  .wc-inner {
+    display: flex; align-items: flex-end; gap: 10px;
+    border: 1px solid var(--line); border-radius: 26px;
+    padding: 10px 10px 10px 8px;
+    box-shadow: 0 2px 12px rgba(13,13,13,.05);
+    background: var(--bg);
+  }
+  .wc-inner textarea {
+    flex: 1; border: none; outline: none; resize: none;
+    font-family: inherit; font-size: 14.5px; color: var(--text);
+    background: transparent; height: 24px; padding: 6px 0; letter-spacing: inherit;
+  }
+
+  .concept-note {
+    max-width: 720px; margin: 0 auto; padding: 0 24px 60px;
+    font-size: 12.5px; color: var(--text-2); line-height: 1.8;
+  }
+  .concept-note b { color: var(--text); }
+  .concept-note .rule { border-top: 1px solid var(--line-soft); padding-top: 18px; }
+</style>
+
+<header class="bar">
+  <div class="brand"><strong>Office Hub</strong><span>부서 업무자동화</span></div>
+  <nav class="seg" aria-label="화면 전환">
+    <button id="b0" class="on" onclick="go(0)">창구</button>
+    <button id="b1" onclick="go(1)">관제실</button>
+    <button id="b2" onclick="go(2)">작업 공간</button>
+  </nav>
+  <div class="who" id="who">김선영 선생님</div>
+</header>
+
+<!-- ============ 창구 ============ -->
+<main class="view on" id="v0">
+  <div class="counter">
+    <h1 class="greet">무엇을 도와드릴까요?</h1>
+    <p class="greet-sub">업무 내용과 파일을 남겨주시면 접수부터 완료까지 여기서 확인할 수 있어요.</p>
+
+    <div class="composer">
+      <div class="attach-row">
+        <span class="file-chip">성적_2026_1학기.xlsx <i>184 KB</i></span>
+      </div>
+      <textarea placeholder="예: 학과별 성적 파일을 하나로 정리하고, 누락된 학생이 있는지 확인해 주세요."></textarea>
+      <div class="composer-foot">
+        <div class="foot-left">
+          <button class="icon-btn" title="파일 첨부">＋</button>
+          <label class="pii-toggle"><input type="checkbox" checked />개인정보 포함</label>
+        </div>
+        <button class="send" title="요청 제출">↑</button>
+      </div>
+    </div>
+    <p class="hint">제출하면 접수번호가 발급되고, 담당자 검토 후 진행 상황을 알려드려요.</p>
+
+    <div class="my-requests">
+      <div class="sec-label">내 요청 3건</div>
+      <div class="rcards">
+        <div class="rcard">
+          <div class="head"><span class="no">제 2026-041 호</span><span class="status run"><i></i>실행 중</span></div>
+          <h3>성적 파일 정리</h3>
+          <div class="steps">
+            <div class="step fill"><i></i><span>접수</span></div><div class="step-line fill"></div>
+            <div class="step fill"><i></i><span>검토</span></div><div class="step-line fill"></div>
+            <div class="step now"><i></i><span>실행</span></div><div class="step-line"></div>
+            <div class="step"><i></i><span>완료</span></div>
+          </div>
+        </div>
+
+        <div class="rcard">
+          <div class="head"><span class="no">제 2026-040 호</span><span class="status wait"><i></i>검수 대기</span></div>
+          <h3>학과 명단 취합</h3>
+          <div class="steps">
+            <div class="step fill"><i></i><span>접수</span></div><div class="step-line fill"></div>
+            <div class="step fill"><i></i><span>검토</span></div><div class="step-line fill"></div>
+            <div class="step fill"><i></i><span>실행</span></div><div class="step-line"></div>
+            <div class="step"><i></i><span>완료</span></div>
+          </div>
+          <div class="acts">
+            <button class="b-solid">결과 확인하고 완료</button>
+            <button class="b-ghost">수정 요청</button>
+          </div>
+        </div>
+
+        <div class="rcard" style="opacity:.72">
+          <div class="head"><span class="no">제 2026-038 호</span><span class="status done"><i></i>완료</span></div>
+          <h3>학칙 개정 조항 질의</h3>
+          <div class="steps">
+            <div class="step fill"><i></i><span>접수</span></div><div class="step-line fill"></div>
+            <div class="step fill"><i></i><span>검토</span></div><div class="step-line fill"></div>
+            <div class="step fill"><i></i><span>실행</span></div><div class="step-line fill"></div>
+            <div class="step fill"><i></i><span>완료</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ============ 관제실 ============ -->
+<main class="view" id="v1">
+  <div class="console">
+    <h1>오늘의 큐</h1>
+    <p class="desc">대기 2건 — #043은 위험도 높음이라 승인 기록이 있어야 실행할 수 있어요.</p>
+
+    <div class="statrow">
+      <div class="stat"><div class="n">2</div><div class="l">대기</div></div>
+      <div class="stat"><div class="n"><em>1</em></div><div class="l">실행 중</div></div>
+      <div class="stat"><div class="n">1</div><div class="l">검수 대기</div></div>
+      <div class="stat"><div class="n">5</div><div class="l">오늘 완료</div></div>
+    </div>
+
+    <div class="console-grid">
+      <div class="qwrap">
+        <table>
+          <thead>
+            <tr><th>No.</th><th>요청</th><th>요청자</th><th>위험도</th><th>상태</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr class="row">
+              <td class="no">041</td>
+              <td><div class="t">성적 파일 정리</div><div class="tpl">excel-cleanup</div></td>
+              <td class="person">김선영</td>
+              <td><span class="risk mid"><i></i>중간</span></td>
+              <td><span class="status run"><i></i>실행 중</span></td>
+              <td><button class="b-run" disabled>실행</button></td>
+            </tr>
+            <tr class="row">
+              <td class="no">042</td>
+              <td><div class="t">수강편람 규정 질의</div><div class="tpl">chat-answer</div></td>
+              <td class="person">박정호</td>
+              <td><span class="risk low"><i></i>낮음</span></td>
+              <td><span class="status done"><i></i>검토 중</span></td>
+              <td><button class="b-run">실행</button></td>
+            </tr>
+            <tr class="row">
+              <td class="no">043</td>
+              <td><div class="t">졸업사정 명단 취합</div><div class="tpl">file-merge</div></td>
+              <td class="person">이민아</td>
+              <td><span class="risk high"><i></i>높음</span></td>
+              <td><span class="status need"><i></i>승인 필요</span></td>
+              <td><button class="b-run" disabled>실행</button></td>
+            </tr>
+            <tr class="row">
+              <td class="no">040</td>
+              <td><div class="t">학과 명단 취합</div><div class="tpl">file-merge</div></td>
+              <td class="person">김선영</td>
+              <td><span class="risk mid"><i></i>중간</span></td>
+              <td><span class="status wait"><i></i>검수 대기</span></td>
+              <td><button class="b-run" disabled>실행</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="audit">
+        <h2>감사 로그</h2>
+        <div class="logline"><time>14:02:11</time><div><b>job #12</b> excel-cleanup <span class="ok">시작</span> — #041</div></div>
+        <div class="logline"><time>13:58:47</time><div>#041 검토 중 → <b>자동화 가능</b> (위험도 중간)</div></div>
+        <div class="logline"><time>13:41:20</time><div><b>#043 접수</b> — 개인정보 포함, 위험도 <span class="warn">높음 강제</span></div></div>
+        <div class="logline"><time>11:22:05</time><div><b>job #11</b> chat-answer <span class="ok">완료</span> 3.2s — #038</div></div>
+        <div class="logline"><time>10:07:33</time><div>#040 실행 완료 → <b>검수 대기</b></div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ============ 작업 공간 ============ -->
+<main class="view" id="v2">
+  <div class="work">
+    <div class="ctx">
+      <span class="no">제 2026-041 호</span>
+      <b>성적 파일 정리</b>
+      <span class="tplchip">excel-cleanup</span>
+      <span style="margin-left:auto" class="status run"><i></i>실행 중</span>
+    </div>
+
+    <div class="thread">
+      <div class="msg-user">3반 성적에서 누락된 학생이 몇 명인지 확인해줘</div>
+      <div class="msg-ai">
+        <p>3반에서 성적이 누락된 학생은 <b>4명</b>입니다. 중간고사 열이 비어 있는 경우가 3건, 기말고사가 1건이에요.</p>
+        <div class="evidence">
+          <span class="ev-chip"><i>▸</i>성적_2026_1학기.xlsx · 3반!C14:C40</span>
+          <span class="ev-chip"><i>▸</i>query_rows · missing=4</span>
+        </div>
+        <div class="result-block">
+          <div class="rb-head">누락 학생 4명 <button>xlsx로 내보내기</button></div>
+          <pre>학번        이름    누락 항목
+20261103   김지우   중간고사
+20261117   이서준   중간고사
+20261124   박하은   중간고사
+20261131   정민재   기말고사</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="work-composer">
+      <div class="wc-inner">
+        <button class="icon-btn" title="파일 첨부">＋</button>
+        <textarea placeholder="이 요청의 파일에 대해 물어보세요"></textarea>
+        <button class="send" title="보내기">↑</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="concept-note">
+  <div class="rule">
+    <b>컨셉 노트</b> — 모노크롬 + 여백, 포인트는 OpenAI 그린(#10A37F) 하나만 (실행 중·현재 단계·근거 마커).
+    창구와 관제실의 구분은 색이 아니라 <b>밀도</b>: 창구는 720px 한 컬럼에 글자 크게,
+    관제실은 1080px에 촘촘한 테이블. 작업 공간의 입력창·메시지·근거 칩·결과 블록은
+    ChatGPT Prompt Input / prompt-kit 문법을 따랐어요. 다크 모드는 토큰으로 지원(뷰어 테마 따라감).
+  </div>
+</div>
+
+<script>
+  function go(i) {
+    for (var k = 0; k < 3; k++) {
+      document.getElementById('b' + k).classList.toggle('on', k === i);
+      document.getElementById('v' + k).classList.toggle('on', k === i);
+    }
+    document.getElementById('who').textContent =
+      i === 0 ? '김선영 선생님' : i === 1 ? 'FDE 콘솔 · 관리자' : '제 2026-041 호 작업 중';
+    window.scrollTo(0, 0);
+  }
+</script>
