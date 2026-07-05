@@ -5,6 +5,10 @@ apps/*
 # Reference clones (e.g. references/noodle) — foreign repos kept for lookup
 /references/
 
+# App-project artifacts (mockups etc.) — plans hold specs only; the harness
+# repo carries no other project's build/design files
+/brain/**/*.html
+
 # OS junk
 .DS_Store
 
