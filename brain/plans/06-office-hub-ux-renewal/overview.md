@@ -1,6 +1,6 @@
 # 06 · office-hub-ux-renewal — Design Spec
 
-Status: **spec approved; Phase A implemented (2026-07-05) — branch `ux/phase-a` (10 commits, 156 tests green, final review: Ready to merge=Yes). Browser visual checklist pending user; Phases B–C not started.**
+Status: **Phases A+B implemented (2026-07-05) — branch `ux/phase-a` (18 commits, 156 tests green, both final reviews: Ready to merge=Yes). 창구·관제실·카탈로그 드로어 renewed; 작업 공간(채팅)은 Phase C 대상. Browser visual checklist pending user. Brand: 뚝딱 Hub.**
 Date: 2026-07-05
 App: `apps/office-automation-hub-design/app/`
 Base: branch off `renewal/phase-1` (unmerged; merge to main deferred by user)

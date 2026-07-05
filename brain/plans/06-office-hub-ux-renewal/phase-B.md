@@ -24,6 +24,18 @@
 1. **No editable title / reviewer memo in the workbench** — `ReviewBody` is `{actor, risk_level, template_id}` only (verified `hub/api/ops.py:31-34`); adding fields is backend work, deferred to 05-plan phase 2 alongside `manual_minutes_estimate`.
 2. **Audit panel is per-selected-request**, not a global feed — no global audit endpoint exists (`store.list_audit` is only exposed through `GET /requests/{id}`). Global feed = future backend candidate.
 3. 카탈로그 segment is removed from the nav (드로어로 이동) — resolves Phase A transitional deviation #2.
+4. (final review, 2026-07-05) The queue does NOT render a disabled "승인 필요" action state — `GET /requests` carries no approvals data; the gate is enforced server-side (409) and surfaced as an inline error. Overview's queue description is aspirational here until a backend field exists.
+
+## Execution amendments (2026-07-05, adjudicated during SDD run)
+
+The repo deviates from this document's code blocks in reviewed places: legacy-error
+persistence (`_wbErrMsg` state + selection-change clear in `openWorkbench`),
+`getTemplates` null-sentinel retry, drawer-close as first line of `go()`
+(typeof-guarded), and E2E step 3b's `resume→접수됨` was a doc error (actual
+contract: `검토 중`). The repo (`ux/phase-a`) is the source of truth; ledger:
+app `.superpowers/sdd/progress.md`. Phase C inherits: counter.js fetch-rejection
+handling (4 sites), 이름없음 validation, detail double-click race, getTemplates
+Array.isArray hardening, conErr clear-on-recovery.
 
 ## API contract used (verified in `hub/api/ops.py`, `hub/api/catalog.py` — no changes)
 
