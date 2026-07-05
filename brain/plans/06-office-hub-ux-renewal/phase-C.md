@@ -22,7 +22,7 @@
 1. **Requesters KEEP workspace access** via 창구's "결과 채팅 열기" — overview said FDE-only, but 05's chat-answer contract makes the session the requester's deliverable (검수 대기 → requester reviews = uses the chat). Overview amended after this phase.
 2. **Evidence chips expand to locator detail** (파일·위치 정보), not source excerpts — `/ask` citations carry only `{filename, locator}` (verified `hub/api/chat.py:81-83`); a true excerpt endpoint is a future backend candidate.
 3. **One backend addition** (export download route) — `/export` returns a server filesystem path unreachable from a browser; without a download route the spec's export button cannot work. Explicit per overview's API-mapping rule.
-4. **Standalone chat is removed**: the workspace requires an attached session. Phase-1's free upload+ask flow is superseded by request binding. *(Amended 2026-07-05 post-phase, user report: the disabled-segment gate read as breakage in real use — the segment is now always clickable and an in-view empty state guides to 관제실/창구 instead. Commit d211866.)*
+4. ~~**Standalone chat is removed**~~ **WITHDRAWN (2026-07-05 post-phase, two consecutive user-friction reports)**: the workspace now supports scratch sessions — attach/ask auto-creates an unbound session (`ensureWsSession`), ctx strip shows "임시 작업 · 요청과 연결되지 않음"; request-bound sessions keep the receipt strip. The disabled-segment gate was also removed (segment always clickable, in-view empty state guides). Commits d211866, 9492f64. Lesson: request-binding is the happy path, not a wall.
 
 ## API contract used (verified in `hub/api/chat.py` — Task 3 adds one route)
 
