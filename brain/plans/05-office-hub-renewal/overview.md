@@ -1,6 +1,6 @@
 # 05 · office-hub-renewal — Design Spec
 
-Status: **phase 1 implemented (2026-07-02) — branch `renewal/phase-1` (13 commits, 156 tests green, final review: Ready to merge=Yes). User is verifying locally before merge; phases 2-3 pending.**
+Status: **phase 1 implemented (2026-07-02) — branch `renewal/phase-1` (13 commits, 156 tests green, final review: Ready to merge=Yes). Superseded by plan 06 (ux/phase-a branches off renewal/phase-1 and carries the UI work forward); phases 2-3 will not proceed under this plan.**
 Date: 2026-07-02
 App: `apps/office-automation-hub-design/app/` (existing repo, restructured in place)
 

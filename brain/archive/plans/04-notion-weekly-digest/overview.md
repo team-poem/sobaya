@@ -1,6 +1,6 @@
 # Plan 04 — notion-weekly-digest (Spec)
 
-> Status: spec (awaiting user review) · Created 2026-06-29
+> Status: shipped (2026-07-05 audit: phase-1 executed — app implemented and posting to the Notion staging page, runbook in app README; archived) · Created 2026-06-29
 
 ## One-liner
 

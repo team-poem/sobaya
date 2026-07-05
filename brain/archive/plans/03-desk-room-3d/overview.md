@@ -1,6 +1,6 @@
 # 03 · desk-room-3d — Design Spec
 
-Status: **spec** (awaiting plan)
+Status: **shipped** (2026-07-05 audit: phase-1/phase-2 plans exist and app is built — `apps/desk-room-3d` carries feature commits through lighting/desk-arm polish; archived)
 Date: 2026-06-16
 App: `apps/desk-room-3d/` (new, own git repo)
 
