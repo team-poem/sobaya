@@ -561,6 +561,20 @@ No file changes expected (fixes only if E2E exposes a defect — report first).
 
 ---
 
+## Execution amendments (2026-07-05, adjudicated during SDD run)
+
+Implemented with review-driven additions beyond this document's code blocks:
+null-byte filename → 404 in the download route (+ regression test, suite 161);
+`_conFetchFailed` recovery-only console-error clear (this doc's Task 3 Step 5
+as written reintroduced the B3 wipe bug — fixed); stale workbench responses
+dropped on rapid selection change; ui.css stale header comment corrected.
+Doc slips found: Task 3 Step 7's `dataset.busy` grep expectation (1 → actually
+3 lines). Final review (fable): Phase C ready=Yes, branch merge-ready=Yes,
+0 Critical/Important. Open records: --ok/--ok-bg contrast (light 2.87:1 —
+palette follow-up candidate), ctx status snapshot-at-attach, runs_dir
+cwd-relative test isolation, [data-theme] override channel unimplemented
+(no toggle exists — overview's token table is aspirational there).
+
 ## Self-review notes
 
 - Overview 작업 공간 section coverage: context strip (T1 renderCtx), prompt-kit thread (T1), evidence chips clickable (T1 — locator detail per deviation #2), export button wired end-to-end (T1 UI + T2 backend), composer pill sticky + attach (T1), segment disabled until session (T1), requester access kept (deviation #1). Carryover hardening (T3) covers every item named in phase-B.md's amendments. Dark mode + tokens-only CSS (T4) closes Phase A deviation #1 and #4.
