@@ -23,14 +23,16 @@
       .steam  { opacity: 0; animation: rise 3.8s ease-out infinite; }
       .pulse  { opacity: .85; stroke-dasharray: 18 360; animation: flow 2.6s linear infinite; }
       .sweep  { opacity: 0; animation: sweep 5.5s ease-in-out -1s infinite; }
+      .lift   { animation: lift 5.2s ease-in-out -1.6s infinite; }
       @keyframes sway  { 0%,100% { transform: skewX(0.6deg); }  50% { transform: skewX(-0.6deg); } }
       @keyframes swing { 0%,100% { transform: rotate(1.6deg); } 50% { transform: rotate(-1.6deg); } }
       @keyframes glow  { 0%,100% { opacity: .2; } 50% { opacity: .42; } }
       @keyframes rise  { 0% { transform: translateY(6px); opacity: 0; } 25% { opacity: .55; } 100% { transform: translateY(-18px); opacity: 0; } }
       @keyframes flow  { from { stroke-dashoffset: 378; } to { stroke-dashoffset: 0; } }
       @keyframes sweep { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: .9; } 38% { transform: translateX(336px); opacity: 0; } 100% { transform: translateX(336px); opacity: 0; } }
+      @keyframes lift  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
       @media (prefers-reduced-motion: reduce) {
-        .noren, .lantern, .glow, .steam, .pulse, .sweep { animation: none; }
+        .noren, .lantern, .glow, .steam, .pulse, .sweep, .lift { animation: none; }
         .steam, .sweep { opacity: 0; }
         .pulse { opacity: 0; }
         .glow  { opacity: .3; }
@@ -83,25 +85,46 @@
       <text x="244" y="238" font-family="Menlo, Consolas, monospace" font-size="20" letter-spacing="2" fill="#9aa3c7">subagent orchestration workspace · そば屋</text>
     </g>
 
-    <!-- the head cook serves: strands fan out from one pair of chopsticks into three bowls -->
-    <g stroke="#d8b25a" stroke-width="4" fill="none" stroke-linecap="round">
-      <path d="M952 126 C 892 162 868 206 876 250"/>
-      <path d="M948 130 C 880 168 856 212 866 250"/>
-      <path d="M956 130 C 982 175 1000 212 1004 250"/>
-      <path d="M960 134 C 992 180 1014 214 1016 250"/>
-      <path d="M960 128 C 1058 158 1116 204 1124 250"/>
-      <path d="M964 132 C 1072 168 1128 212 1134 250"/>
-    </g>
-    <g stroke="#f7e2ac" stroke-width="4" fill="none" stroke-linecap="round">
-      <path class="pulse" d="M952 126 C 892 162 868 206 876 250"/>
-      <path class="pulse" style="animation-delay:-0.9s" d="M956 130 C 982 175 1000 212 1004 250"/>
-      <path class="pulse" style="animation-delay:-1.7s" d="M960 128 C 1058 158 1116 204 1124 250"/>
-    </g>
+    <!-- the head cook serves: strands fan out from one pair of chopsticks into three bowls.
+         Each strand's belly sways on its own period (SMIL d-morph); the whole hand lifts gently. -->
+    <g class="lift">
+      <g stroke="#d8b25a" stroke-width="4" fill="none" stroke-linecap="round">
+        <path d="M952 126 C 892 162 868 206 876 258">
+          <animate attributeName="d" dur="3.4s" begin="-0.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M952 126 C 892 162 868 206 876 258;M952 126 C 904 167 882 211 876 258;M952 126 C 892 162 868 206 876 258"/>
+        </path>
+        <path d="M948 130 C 880 168 856 212 866 258">
+          <animate attributeName="d" dur="3.1s" begin="-1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M948 130 C 880 168 856 212 866 258;M948 130 C 869 172 845 216 866 258;M948 130 C 880 168 856 212 866 258"/>
+        </path>
+        <path d="M956 130 C 982 175 1000 212 1004 258">
+          <animate attributeName="d" dur="3.6s" begin="-0.9s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M956 130 C 982 175 1000 212 1004 258;M956 130 C 969 179 988 216 1004 258;M956 130 C 982 175 1000 212 1004 258"/>
+        </path>
+        <path d="M960 134 C 992 180 1014 214 1016 258">
+          <animate attributeName="d" dur="3s" begin="-2.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M960 134 C 992 180 1014 214 1016 258;M960 134 C 1004 184 1027 218 1016 258;M960 134 C 992 180 1014 214 1016 258"/>
+        </path>
+        <path d="M960 128 C 1058 158 1116 204 1124 258">
+          <animate attributeName="d" dur="3.5s" begin="-1.3s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M960 128 C 1058 158 1116 204 1124 258;M960 128 C 1046 165 1103 211 1124 258;M960 128 C 1058 158 1116 204 1124 258"/>
+        </path>
+        <path d="M964 132 C 1072 168 1128 212 1134 258">
+          <animate attributeName="d" dur="3.3s" begin="-0.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M964 132 C 1072 168 1128 212 1134 258;M964 132 C 1084 174 1141 217 1134 258;M964 132 C 1072 168 1128 212 1134 258"/>
+        </path>
+      </g>
+      <g stroke="#f7e2ac" stroke-width="4" fill="none" stroke-linecap="round">
+        <path class="pulse" d="M952 126 C 892 162 868 206 876 258">
+          <animate attributeName="d" dur="3.4s" begin="-0.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M952 126 C 892 162 868 206 876 258;M952 126 C 904 167 882 211 876 258;M952 126 C 892 162 868 206 876 258"/>
+        </path>
+        <path class="pulse" style="animation-delay:-0.9s" d="M956 130 C 982 175 1000 212 1004 258">
+          <animate attributeName="d" dur="3.6s" begin="-0.9s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M956 130 C 982 175 1000 212 1004 258;M956 130 C 969 179 988 216 1004 258;M956 130 C 982 175 1000 212 1004 258"/>
+        </path>
+        <path class="pulse" style="animation-delay:-1.7s" d="M960 128 C 1058 158 1116 204 1124 258">
+          <animate attributeName="d" dur="3.5s" begin="-1.3s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M960 128 C 1058 158 1116 204 1124 258;M960 128 C 1046 165 1103 211 1124 258;M960 128 C 1058 158 1116 204 1124 258"/>
+        </path>
+      </g>
 
-    <!-- chopsticks -->
-    <g stroke="#c3cae4" stroke-width="5" stroke-linecap="round">
-      <line x1="1152" y1="60" x2="950" y2="122"/>
-      <line x1="1162" y1="78" x2="960" y2="136"/>
+      <!-- chopsticks -->
+      <g stroke="#c3cae4" stroke-width="5" stroke-linecap="round">
+        <line x1="1152" y1="60" x2="950" y2="122"/>
+        <line x1="1162" y1="78" x2="960" y2="136"/>
+      </g>
     </g>
 
     <!-- three bowls, one per dish in apps/ -->
