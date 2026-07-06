@@ -1,6 +1,6 @@
 # 10 · office-hub-drive — Design Spec
 
-Status: **spec draft (brainstormed 2026-07-06, awaiting user review)**
+Status: **phase 1 implemented (2026-07-06) — branch `drive/phase-1` (18 commits off ux/phase-a, 230 tests green, E2E 5/5, final whole-branch review: Ready to merge=Yes, both conditions fixed in 5a90e9e). Deferred product decisions for user: same-name re-upload silent overwrite (recommend confirm/409+flag early in phase 2), and the no-auth owner model now holds persistent personal files — auth must precede shared campus deployment. Phases 2 (workdoc + real-time relay) and 3 (export expansion) not started.**
 Date: 2026-07-06
 App: `apps/office-automation-hub-design/app/`
 Base: to branch off `ux/phase-a` (the current tip of the stack main ← renewal/phase-1 ← ux/phase-a)

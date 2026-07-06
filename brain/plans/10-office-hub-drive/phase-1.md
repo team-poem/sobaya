@@ -1633,3 +1633,5 @@ Dispatch per superpowers:requesting-code-review with the review package `scripts
 ## Execution amendments
 
 (record deviations here during execution)
+
+Execution record (2026-07-06): all 9 tasks complete on `drive/phase-1` (4515659..5a90e9e, 18 commits), 230 tests green, E2E 5/5. Final review Ready-to-merge=Yes; its two conditions (CP949 tabular 500→422, move/delete `_view` cache invalidation) fixed in 5a90e9e. Notable amendments vs plan text: folder-create file-collision → 409; hidden-name guards on upload/move; download's manual ".." pre-check removed as false-positive (resolve_within suffices); viewer cache namespaced `_kordoc_out/_view/` to stay out of ingest's converter scan; `_dChatGen` guard added against cross-folder chat contamination; `.work[hidden]` pre-existing layout bug fixed. Deferred decisions and minors: see app `.superpowers/sdd/progress.md` drive section.
