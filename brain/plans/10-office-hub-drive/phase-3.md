@@ -597,3 +597,5 @@ git commit -m "feat(export): 뷰어 내보내기 UI + E2E + README"
 ## Execution amendments
 
 (record deviations here during execution)
+
+Execution record (2026-07-06): all 4 tasks complete on `drive/phase-1` (76bbbad..e565556, 6 commits), 301 tests green, E2E 14/14. Final review conditional-Yes; condition (H1 dedup name reservation — generation-time-wide overwrite window between different same-stem files) fixed in e565556 with O_EXCL reservation + failure cleanup + concurrency tests. Notable amendments: xlsx sheet-title sanitization (Excel-forbidden chars, reachable via normal upload), md table pipe/newline escaping, None-text defense. Adjudicated accepted: lock-held pdf generation latency (correct same-file serialization), exported .md dead-end in-app, wide-table pdf clipping. Untested holes recorded for phase 4: real-kordoc document export E2E, pdf Korean glyph content verification.
