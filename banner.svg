@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="Sobaya — subagent orchestration workspace">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="Sobaya — a soba kitchen: the head cook's chopsticks lift noodles that flow into three bowls, one per app">
+  <title>Sobaya — 蕎麦屋 · subagent orchestration workspace</title>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#15161e"/>
@@ -8,59 +9,124 @@
       <stop offset="0" stop-color="#33395c"/>
       <stop offset="1" stop-color="#23263c"/>
     </linearGradient>
+    <radialGradient id="halo">
+      <stop offset="0" stop-color="#e8a33d" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#e8a33d" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="round">
+      <rect width="1200" height="320" rx="16"/>
+    </clipPath>
+    <style>
+      .noren  { animation: sway 7s ease-in-out -2s infinite; transform-box: fill-box; transform-origin: 50% 0; }
+      .lantern{ animation: swing 6s ease-in-out -1s infinite; transform-box: fill-box; transform-origin: 50% 0; }
+      .glow   { opacity: .3; animation: glow 6s ease-in-out -1s infinite; }
+      .steam  { opacity: 0; animation: rise 3.8s ease-out infinite; }
+      .pulse  { opacity: .85; stroke-dasharray: 18 360; animation: flow 2.6s linear infinite; }
+      .sweep  { opacity: 0; animation: sweep 5.5s ease-in-out -1s infinite; }
+      @keyframes sway  { 0%,100% { transform: skewX(0.6deg); }  50% { transform: skewX(-0.6deg); } }
+      @keyframes swing { 0%,100% { transform: rotate(1.6deg); } 50% { transform: rotate(-1.6deg); } }
+      @keyframes glow  { 0%,100% { opacity: .2; } 50% { opacity: .42; } }
+      @keyframes rise  { 0% { transform: translateY(6px); opacity: 0; } 25% { opacity: .55; } 100% { transform: translateY(-18px); opacity: 0; } }
+      @keyframes flow  { from { stroke-dashoffset: 378; } to { stroke-dashoffset: 0; } }
+      @keyframes sweep { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: .9; } 38% { transform: translateX(336px); opacity: 0; } 100% { transform: translateX(336px); opacity: 0; } }
+      @media (prefers-reduced-motion: reduce) {
+        .noren, .lantern, .glow, .steam, .pulse, .sweep { animation: none; }
+        .steam, .sweep { opacity: 0; }
+        .pulse { opacity: 0; }
+        .glow  { opacity: .3; }
+      }
+    </style>
   </defs>
 
-  <rect width="1200" height="320" fill="url(#bg)"/>
+  <g clip-path="url(#round)">
+    <rect width="1200" height="320" fill="url(#bg)"/>
 
-  <!-- noren curtain -->
-  <rect x="0" y="0" width="1200" height="14" fill="#c8472e"/>
-  <g fill="#c8472e">
-    <rect x="70"  y="14" width="120" height="34" rx="3"/>
-    <rect x="250" y="14" width="120" height="52" rx="3"/>
-    <rect x="430" y="14" width="120" height="34" rx="3"/>
-    <rect x="650" y="14" width="120" height="52" rx="3"/>
-    <rect x="830" y="14" width="120" height="34" rx="3"/>
-    <rect x="1010" y="14" width="120" height="52" rx="3"/>
-  </g>
+    <!-- lantern halo -->
+    <circle cx="130" cy="170" r="100" fill="url(#halo)" class="glow"/>
 
-  <!-- lantern -->
-  <g>
-    <rect x="118" y="86" width="24" height="10" rx="2" fill="#3a3f5c"/>
-    <ellipse cx="130" cy="170" rx="46" ry="64" fill="#e8a33d"/>
-    <ellipse cx="130" cy="170" rx="46" ry="64" fill="none" stroke="#b97a1e" stroke-width="2"/>
-    <path d="M92 140 Q130 132 168 140" stroke="#b97a1e" stroke-width="1.5" fill="none"/>
-    <path d="M88 170 Q130 162 172 170" stroke="#b97a1e" stroke-width="1.5" fill="none"/>
-    <path d="M92 200 Q130 192 168 200" stroke="#b97a1e" stroke-width="1.5" fill="none"/>
-    <text x="130" y="158" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="26" fill="#7a4a12" text-anchor="middle">蕎麦</text>
-    <text x="130" y="190" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="26" fill="#7a4a12" text-anchor="middle">屋</text>
-    <rect x="118" y="232" width="24" height="8" rx="2" fill="#3a3f5c"/>
-  </g>
-
-  <!-- wordmark -->
-  <g>
-    <text x="240" y="178" font-family="Avenir Next, Futura, Helvetica Neue, Arial, sans-serif" font-size="84" font-weight="700" letter-spacing="6" fill="#f3ede2">SOBAYA</text>
-    <rect x="244" y="200" width="396" height="3" fill="#c8472e"/>
-    <text x="244" y="238" font-family="Menlo, Consolas, monospace" font-size="20" letter-spacing="2" fill="#9aa3c7">subagent orchestration workspace · そば屋</text>
-  </g>
-
-  <!-- bowl of soba -->
-  <g>
-    <g stroke="#d8b25a" stroke-width="5" fill="none" stroke-linecap="round">
-      <path d="M952 248 q18 -34 52 -40"/>
-      <path d="M978 248 q22 -28 54 -30"/>
-      <path d="M1006 248 q24 -20 54 -18"/>
-      <path d="M1032 248 q22 -12 48 -8"/>
+    <!-- noren curtain: そ · ば · や -->
+    <rect x="0" y="0" width="1200" height="14" fill="#c8472e"/>
+    <g class="noren">
+      <g fill="#c8472e">
+        <rect x="70"   y="14" width="120" height="34" rx="3"/>
+        <rect x="250"  y="14" width="120" height="52" rx="3"/>
+        <rect x="430"  y="14" width="120" height="34" rx="3"/>
+        <rect x="650"  y="14" width="120" height="52" rx="3"/>
+        <rect x="830"  y="14" width="120" height="34" rx="3"/>
+        <rect x="1010" y="14" width="120" height="52" rx="3"/>
+      </g>
+      <g font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="28" fill="#f7ece0" opacity="0.9" text-anchor="middle">
+        <text x="310"  y="52">そ</text>
+        <text x="710"  y="52">ば</text>
+        <text x="1070" y="52">や</text>
+      </g>
     </g>
-    <path d="M918 248 h220 q-8 46 -60 58 h-100 q-52 -12 -60 -58 Z" fill="url(#bowl)"/>
-    <path d="M918 248 h220" stroke="#4a5178" stroke-width="4"/>
-    <rect x="946" y="296" width="164" height="10" rx="4" fill="#2b2f49"/>
-    <g stroke="#b9c0e0" stroke-width="4" stroke-linecap="round">
-      <line x1="1064" y1="160" x2="1148" y2="236"/>
-      <line x1="1082" y1="150" x2="1158" y2="222"/>
+
+    <!-- lantern -->
+    <g class="lantern">
+      <rect x="118" y="86" width="24" height="10" rx="2" fill="#3a3f5c"/>
+      <ellipse cx="130" cy="170" rx="46" ry="64" fill="#e8a33d"/>
+      <ellipse cx="130" cy="170" rx="46" ry="64" fill="none" stroke="#b97a1e" stroke-width="2"/>
+      <path d="M92 140 Q130 132 168 140" stroke="#b97a1e" stroke-width="1.5" fill="none"/>
+      <path d="M88 170 Q130 162 172 170" stroke="#b97a1e" stroke-width="1.5" fill="none"/>
+      <path d="M92 200 Q130 192 168 200" stroke="#b97a1e" stroke-width="1.5" fill="none"/>
+      <text x="130" y="158" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="26" fill="#7a4a12" text-anchor="middle">蕎麦</text>
+      <text x="130" y="190" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="26" fill="#7a4a12" text-anchor="middle">屋</text>
+      <rect x="118" y="232" width="24" height="8" rx="2" fill="#3a3f5c"/>
     </g>
-    <g stroke="#8d96bd" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8">
-      <path d="M986 216 q-10 -16 2 -30 q10 -12 2 -26"/>
-      <path d="M1022 212 q-10 -16 2 -30 q10 -12 2 -26"/>
+
+    <!-- wordmark -->
+    <g>
+      <text x="240" y="178" font-family="Avenir Next, Futura, Helvetica Neue, Arial, sans-serif" font-size="84" font-weight="700" letter-spacing="6" fill="#f3ede2">SOBAYA</text>
+      <rect x="244" y="200" width="396" height="3" fill="#c8472e"/>
+      <rect x="244" y="200" width="60" height="3" fill="#ffd9a8" class="sweep"/>
+      <text x="244" y="238" font-family="Menlo, Consolas, monospace" font-size="20" letter-spacing="2" fill="#9aa3c7">subagent orchestration workspace · そば屋</text>
+    </g>
+
+    <!-- the head cook serves: strands fan out from one pair of chopsticks into three bowls -->
+    <g stroke="#d8b25a" stroke-width="4" fill="none" stroke-linecap="round">
+      <path d="M952 126 C 892 162 868 206 876 250"/>
+      <path d="M948 130 C 880 168 856 212 866 250"/>
+      <path d="M956 130 C 982 175 1000 212 1004 250"/>
+      <path d="M960 134 C 992 180 1014 214 1016 250"/>
+      <path d="M960 128 C 1058 158 1116 204 1124 250"/>
+      <path d="M964 132 C 1072 168 1128 212 1134 250"/>
+    </g>
+    <g stroke="#f7e2ac" stroke-width="4" fill="none" stroke-linecap="round">
+      <path class="pulse" d="M952 126 C 892 162 868 206 876 250"/>
+      <path class="pulse" style="animation-delay:-0.9s" d="M956 130 C 982 175 1000 212 1004 250"/>
+      <path class="pulse" style="animation-delay:-1.7s" d="M960 128 C 1058 158 1116 204 1124 250"/>
+    </g>
+
+    <!-- chopsticks -->
+    <g stroke="#c3cae4" stroke-width="5" stroke-linecap="round">
+      <line x1="1152" y1="60" x2="950" y2="122"/>
+      <line x1="1162" y1="78" x2="960" y2="136"/>
+    </g>
+
+    <!-- three bowls, one per dish in apps/ -->
+    <g>
+      <path d="M822 248 h116 q-5 36 -42 44 h-32 q-37 -8 -42 -44 Z" fill="url(#bowl)"/>
+      <path d="M822 248 h116" stroke="#4a5178" stroke-width="3.5"/>
+      <rect x="848" y="294" width="64" height="8" rx="3" fill="#2b2f49"/>
+
+      <path d="M952 248 h116 q-5 36 -42 44 h-32 q-37 -8 -42 -44 Z" fill="url(#bowl)"/>
+      <path d="M952 248 h116" stroke="#4a5178" stroke-width="3.5"/>
+      <rect x="978" y="294" width="64" height="8" rx="3" fill="#2b2f49"/>
+
+      <path d="M1072 248 h116 q-5 36 -42 44 h-32 q-37 -8 -42 -44 Z" fill="url(#bowl)"/>
+      <path d="M1072 248 h116" stroke="#4a5178" stroke-width="3.5"/>
+      <rect x="1098" y="294" width="64" height="8" rx="3" fill="#2b2f49"/>
+    </g>
+
+    <!-- steam -->
+    <g stroke="#a9b2d4" stroke-width="3.5" fill="none" stroke-linecap="round">
+      <path class="steam" style="animation-delay:-0.2s" d="M868 236 q-8 -14 2 -26 q10 -12 2 -24"/>
+      <path class="steam" style="animation-delay:-1.4s" d="M894 236 q-8 -14 2 -26 q10 -12 2 -24"/>
+      <path class="steam" style="animation-delay:-2.3s" d="M998 236 q-8 -14 2 -26 q10 -12 2 -24"/>
+      <path class="steam" style="animation-delay:-0.8s" d="M1024 236 q-8 -14 2 -26 q10 -12 2 -24"/>
+      <path class="steam" style="animation-delay:-1.9s" d="M1118 236 q-8 -14 2 -26 q10 -12 2 -24"/>
+      <path class="steam" style="animation-delay:-2.9s" d="M1144 236 q-8 -14 2 -26 q10 -12 2 -24"/>
     </g>
   </g>
 </svg>
