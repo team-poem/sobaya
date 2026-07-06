@@ -15,7 +15,11 @@ Creates `apps/<name>` as an independent git repository and registers it.
 2. **Existing target:** if `apps/<name>` already exists, stop and report.
    Never overwrite or "merge into" an existing app.
    ([[principles/make-operations-idempotent]])
-3. **Design gate:** if this is a new product/feature being designed (not a
+3. **Flat root:** `apps/<name>` IS the project root. Sources, manifest, and
+   `.git` go directly in it — never a nested wrapper (`apps/<name>/app/`)
+   and never another workspace clone (`apps/<name>/apps/`). When importing
+   an existing project, flatten it into `apps/<name>` at import time.
+4. **Design gate:** if this is a new product/feature being designed (not a
    directory the user already fully specified), run superpowers:brainstorming
    first. Scaffold immediately only when the user explicitly asks for just
    the scaffold.
