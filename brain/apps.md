@@ -16,8 +16,8 @@ clone's origin still points at this template repo (push hazard).
 | desk-room-3d | interactive 3D desk scene for blog main page | React/R3F/Vite | active | own repo (local only) |
 | lms-chatbot-model-change | LearningX LMS RAG chatbot fork for model/purpose changes | Python/FastAPI/Ollama | active | team-poem/lms-chatbot |
 | notion-weekly-digest | weekly dev-news digest → Notion reference articles | Python | active | own repo (local only) |
-| office-automation-hub-design | FDE office-automation hub — specs at top level, app nested at `app/` (plans 05/06) | Python + static UI | active | nested repo at `app/.git` |
-| bdad-mentor-match | BDAD mentor-matching workspace — full sobaya harness clone (apps/brain/CLAUDE.md inside) | sobaya clone | active | ⚠ origin = this template repo — repoint or remove before any push |
+| office-automation-hub-design | FDE office-automation hub — specs at top level, app nested at `app/` (plans 05/06) | Python + static UI | active | ⚠ nested repo at `app/.git` — predates flat-root rule, flatten when branch work settles |
+| bdad-mentor-match | BDAD mentor-matching workspace — full sobaya harness clone (apps/brain/CLAUDE.md inside) | sobaya clone | active | ⚠ origin = this template repo (repoint/remove before push); nested workspace also breaks the flat-root rule |
 | bdad-report | BDAD learning-community activity report generation (xlsx/pdf in, scripts out) | Python scripts | active | local only |
 | DsuGroupware2-Source | Dongseo groupware v2 vendor source drop | C#/installer | imported | GP101/DsuGroupware2-Source |
 | employee-feedback-form | employee feedback form web app | Next.js | active | amazon7737/work-helper |

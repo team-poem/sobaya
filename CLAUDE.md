@@ -20,6 +20,10 @@ A hook injects its index at session start.
 
 - **Apps:** Never create projects outside `apps/`. Each app is its own git
   repo; cross-app changes are separate commits per app.
+- **Flat root:** `apps/<name>` IS the project root — sources, manifest, and
+  the app's `.git` sit directly in it. Never nest the real project a level
+  down (`apps/<name>/app/`) or put another workspace inside
+  (`apps/<name>/apps/`).
 - **Subagent-first:** For multi-file or exploratory work, dispatch subagents
   (Explore to read, general-purpose to change) — keep this context clean.
   See Skill(sobaya) for dispatch patterns.
