@@ -6,6 +6,7 @@
 - [x] [[archive/plans/04-notion-weekly-digest/overview]] — weekly dev-news digest → Notion reference articles (shipped)
 - [ ] [[plans/05-office-hub-renewal/overview]] — rebuild hub as MVP operational flow (phase 1 done on `renewal/phase-1`; superseded by 06)
 - [ ] [[plans/06-office-hub-ux-renewal/overview]] — OpenAI-minimal UI/UX renewal (phases A+B done on `ux/phase-a`; phase C code appears landed, review record pending)
+- [ ] [[plans/10-office-hub-drive/overview]] — 내 드라이브 + live document viewer (spec draft, awaiting user review)
 
 <!-- Numbers 07-09 are reserved: the second checkout at ~/file1/bench/sobaya
      grew its own plans 03-workout-app / 04-workout-auth / 05-login-and-dark-mode
