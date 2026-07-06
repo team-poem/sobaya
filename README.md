@@ -1,16 +1,88 @@
-# Sobaya
+<div align="center">
 
-![Sobaya banner](banner.svg)
+<img src="banner.svg" alt="Sobaya banner — the head cook's chopsticks lift soba noodles that flow into three bowls, one per app" width="100%">
 
 **English** · [한국어](README.ko.md)
 
-A subagent-orchestration workspace — like a soba shop (蕎麦屋): the workspace is the kitchen, the orchestrating Claude session is the head cook, subagents are the brigade, and each project in `apps/` is a dish.
+<br>
 
-Sobaya ports the working methods of [poteto/noodle](https://github.com/poteto/noodle) onto native Claude Code primitives. It is not a framework — no daemon, no scheduler, no runtime beyond two shell hooks. It is a set of conventions, skills, and persistent memory that make max-effort models (Opus 4.8 / Fable 5) orchestrate well, composed with the [superpowers](https://github.com/obra/superpowers) plugin, which owns the dev lifecycle.
+*A subagent-orchestration workspace — like a soba shop (蕎麦屋):*<br>
+*the workspace is the kitchen, the orchestrating Claude session is the head cook,*<br>
+*subagents are the brigade, and each project in `apps/` is a dish.*
 
-## How noodle's flow became Sobaya's flow
+<br>
 
-noodle is a Go event loop that schedules LLM "cook" sessions over file-based work orders. Sobaya keeps the flow but swaps the machinery: everything noodle's Go loop did mechanically is either a Claude Code primitive or a convention the orchestrating session follows.
+[Getting started](#getting-started) · [How a session flows](#how-a-session-flows) · [What's inside](#whats-inside) · [How superpowers fits](#how-superpowers-fits) · [From noodle to Sobaya](#from-noodle-to-sobaya)
+
+</div>
+
+---
+
+Sobaya ports the working methods of [poteto/noodle](https://github.com/poteto/noodle) onto native Claude Code primitives. It is **not a framework** — no daemon, no scheduler, no runtime beyond two shell hooks. It is a set of conventions, skills, and persistent memory that make max-effort models (Opus 4.8 / Fable 5) orchestrate well, composed with the [superpowers](https://github.com/obra/superpowers) plugin, which owns the dev lifecycle.
+
+## Getting started
+
+```sh
+cd sobaya && claude
+```
+
+Every session starts with the brain index already injected. From there, three moves cover most days:
+
+| You want | What happens |
+|---|---|
+| **A new app** | `new-app` scaffolds `apps/<name>` + git init + registry entry — design goes through brainstorming first |
+| **Work on an app** | Substantial requests trigger the `sobaya` skill: pre-flight → dispatch → pipeline |
+| **To wrap up** | `reflect` captures what the session learned; `meditate` periodically curates the vault |
+
+## How a session flows
+
+Work moves through a fixed pipeline, and everything learned lands in `brain/` — where the next session picks it up:
+
+```mermaid
+flowchart LR
+    P["mise pre-flight<br>brain · app state"] --> E["execute<br>cook"]
+    E --> R["review<br>refuter"]
+    R --> F["reflect<br>capture"]
+    F --> B[("brain/")]
+    B -- "read by the next session" --> P
+    B -.-> M["meditate<br>vault audit · principles · skill refinement"]
+    M -.-> B
+```
+
+- **pre-flight** — before dispatching anything, the orchestrator reads the brain index (hook-injected), relevant notes, app git status, and active plans
+- **execute → review** — cooks implement; review goes to an independent refuter told to refute the work, never to the implementer
+- **reflect / meditate** — learnings are routed into the vault; accumulated lessons become principles and skill edits
+
+## What's inside
+
+- **4 skills** — `sobaya` (orchestration playbook), `new-app` (scaffold), `reflect` (learning capture), `meditate` (vault audit + skill refinement)
+- **2 hooks** — brain index injected at session start; index auto-rebuilt on brain writes (deterministic POSIX shell, fail-open, atomic writes)
+- **brain/ vault** — Obsidian-compatible persistent memory: 10 principles, codebase notes, plans, backlog
+- **apps/ layout** — every project is its own git repository; the root repo tracks only the harness
+
+## How superpowers fits
+
+superpowers owns the dev lifecycle; Sobaya owns the workspace around it. The seams are explicit so the two never compete for the same trigger:
+
+| Phase | Owner | What happens |
+|---|---|---|
+| Design | superpowers:brainstorming | Mandatory gate before creative work — `new-app` defers to it for any new product |
+| Spec & plan | superpowers:writing-plans | Output lands in `brain/plans/NN-slug/` (overview.md = spec, phase-*.md = plan) — Sobaya's location preference, honored by the plugin |
+| Implement | superpowers:subagent-driven-development or executing-plans, with TDD | Sobaya's `sobaya` skill governs the dispatches themselves: briefs, isolation, concurrency, failure handling |
+| Debug | superpowers:systematic-debugging | Used by cooks and the orchestrator alike |
+| Review | superpowers code review + Sobaya refuter dispatches | An independent agent told to refute the work — never the implementer |
+| Learn | Sobaya `reflect` / `meditate` | Session learnings → brain; accumulated lessons → principles and skill edits |
+
+A typical feature run: brainstorm the design (gate) → spec + plan in `brain/plans/` → dispatch cooks per the plan → refuter review → reflect. **The lifecycle is superpowers'; the kitchen discipline is Sobaya's.**
+
+## From noodle to Sobaya
+
+noodle is a Go event loop that schedules LLM "cook" sessions over file-based work orders. Sobaya keeps the flow but swaps the machinery: everything the Go loop did mechanically became either a Claude Code primitive or a convention the orchestrating session follows.
+
+<details>
+<summary><b>The full mapping — every noodle mechanism and its Sobaya counterpart</b></summary>
+
+<br>
 
 | noodle (Go runtime) | Sobaya (Claude Code native) |
 |---|---|
@@ -27,48 +99,9 @@ noodle is a Go event loop that schedules LLM "cook" sessions over file-based wor
 | `inject-brain` / `auto-index-brain` hooks | Ported as fail-open POSIX hooks, with a wiring fix (Claude Code matchers are tool names, not paths) |
 | Autonomous cron loop, web UI, NDJSON event sourcing | Deliberately absent — `/loop` / `/schedule` remain a future option (backlog #4) |
 
-```
-        ┌────────── meditate (vault audit · principle extraction · skill refinement) ◄─┐
-        ▼                                                                              │
-mise pre-flight ─► execute ─► review ─► reflect ─► brain/ ─────────────────────────────┘
-(brain · app state)  (cook)   (refuter)  (capture)   (read by the next session)
-```
+</details>
 
-## How superpowers fits
-
-superpowers owns the dev lifecycle; Sobaya owns the workspace around it. The seams are explicit so the two never compete for the same trigger:
-
-| Phase | Owner | What happens |
-|---|---|---|
-| Design | superpowers:brainstorming | Mandatory gate before creative work — `new-app` defers to it for any new product |
-| Spec & plan | superpowers:writing-plans | Output lands in `brain/plans/NN-slug/` (overview.md = spec, phase-*.md = plan) — Sobaya's location preference, honored by the plugin |
-| Implement | superpowers:subagent-driven-development or executing-plans, with TDD | Sobaya's `sobaya` skill governs the dispatches themselves: briefs, isolation, concurrency, failure handling |
-| Debug | superpowers:systematic-debugging | Used by cooks and the orchestrator alike |
-| Review | superpowers code review + Sobaya refuter dispatches | An independent agent told to refute the work — never the implementer |
-| Learn | Sobaya `reflect` / `meditate` | Session learnings → brain; accumulated lessons → principles and skill edits |
-
-A typical feature run: brainstorm the design (gate) → spec + plan in `brain/plans/` → dispatch cooks per the plan → refuter review → reflect. The lifecycle is superpowers'; the kitchen discipline is Sobaya's.
-
-## What's inside
-
-- **4 skills** — `sobaya` (orchestration playbook), `new-app` (scaffold), `reflect` (learning capture), `meditate` (vault audit + skill refinement)
-- **2 hooks** — brain index injected at session start; index auto-rebuilt on brain writes (deterministic POSIX shell, fail-open, atomic writes)
-- **brain/ vault** — Obsidian-compatible persistent memory: 10 principles, codebase notes, plans, backlog
-- **apps/ layout** — every project is its own git repository; the root repo tracks only the harness
-
-## Getting started
-
-```sh
-cd sobaya && claude
-```
-
-The session starts with the brain index injected. From there:
-
-- **New app** — ask for one; `new-app` scaffolds `apps/<name>` + git init + registry entry (design goes through brainstorming first)
-- **App work** — substantial requests trigger the `sobaya` skill: pre-flight → dispatch → pipeline
-- **Wrap up** — `reflect` captures what the session learned; `meditate` periodically curates the vault
-
-## Structure
+## Repository layout
 
 ```
 sobaya/
