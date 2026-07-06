@@ -1254,3 +1254,5 @@ git commit -m "test(drive): 라이브 편집 E2E + README 편집 모드 안내"
 ## Execution amendments
 
 (record deviations here during execution)
+
+Execution record (2026-07-06): all 7 tasks complete on `drive/phase-1` (5a90e9e..76bbbad, 13 commits), 278 tests green, E2E 12/12 (deterministic scripted-LLM server `tests/e2e_server.py`). Final review conditional-Yes; all four conditions (upload event-loop freeze, invalidated-event viewer resync, folder-move prefix purge, multi-sheet patch coherence) fixed in f69af20, I1 regression test strengthened with proven revert-fails bystander check in 76bbbad. Notable amendments: mode chip (.dchip) replaced by hint-text signal (reviewer-adjudicated stronger); on_patch failure separated from edit failure (double-apply prevention); mid-turn exception still persists+audits applied patches (finally); load_workdoc hardened to converge all corruption to None. Deferred/known limits in app ledger (.superpowers/sdd/progress.md drive/phase-2 section).
