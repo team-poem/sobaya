@@ -17,20 +17,20 @@
       <rect width="1200" height="320" rx="16"/>
     </clipPath>
     <style>
-      .noren  { animation: sway 7s ease-in-out -2s infinite; transform-box: fill-box; transform-origin: 50% 0; }
-      .lantern{ animation: swing 6s ease-in-out -1s infinite; transform-box: fill-box; transform-origin: 50% 0; }
-      .glow   { opacity: .3; animation: glow 6s ease-in-out -1s infinite; }
-      .steam  { opacity: 0; animation: rise 3.8s ease-out infinite; }
-      .pulse  { opacity: .85; stroke-dasharray: 18 360; animation: flow 2.6s linear infinite; }
-      .sweep  { opacity: 0; animation: sweep 5.5s ease-in-out -1s infinite; }
-      .lift   { animation: lift 5.2s ease-in-out -1.6s infinite; }
-      @keyframes sway  { 0%,100% { transform: skewX(0.6deg); }  50% { transform: skewX(-0.6deg); } }
-      @keyframes swing { 0%,100% { transform: rotate(1.6deg); } 50% { transform: rotate(-1.6deg); } }
-      @keyframes glow  { 0%,100% { opacity: .2; } 50% { opacity: .42; } }
-      @keyframes rise  { 0% { transform: translateY(6px); opacity: 0; } 25% { opacity: .55; } 100% { transform: translateY(-18px); opacity: 0; } }
-      @keyframes flow  { from { stroke-dashoffset: 378; } to { stroke-dashoffset: 0; } }
+      .noren  { animation: sway 6s ease-in-out -2s infinite; transform-box: fill-box; transform-origin: 50% 0; }
+      .lantern{ animation: swing 5s ease-in-out -1s infinite; transform-box: fill-box; transform-origin: 50% 0; }
+      .glow   { opacity: .3; animation: glow 5s ease-in-out -1s infinite; }
+      .steam  { opacity: 0; animation: rise 3.2s ease-out infinite; }
+      .pulse  { opacity: 1; stroke-dasharray: 30 360; animation: flow 2.2s linear infinite; }
+      .sweep  { opacity: 0; animation: sweep 4.5s ease-in-out -1s infinite; }
+      .lift   { animation: lift 4.6s ease-in-out -1.6s infinite; }
+      @keyframes sway  { 0%,100% { transform: skewX(1.3deg); }  50% { transform: skewX(-1.3deg); } }
+      @keyframes swing { 0%,100% { transform: rotate(3.2deg); } 50% { transform: rotate(-3.2deg); } }
+      @keyframes glow  { 0%,100% { opacity: .15; } 50% { opacity: .55; } }
+      @keyframes rise  { 0% { transform: translateY(8px); opacity: 0; } 25% { opacity: .75; } 100% { transform: translateY(-26px); opacity: 0; } }
+      @keyframes flow  { from { stroke-dashoffset: 390; } to { stroke-dashoffset: 0; } }
       @keyframes sweep { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: .9; } 38% { transform: translateX(336px); opacity: 0; } 100% { transform: translateX(336px); opacity: 0; } }
-      @keyframes lift  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+      @keyframes lift  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
       @media (prefers-reduced-motion: reduce) {
         .noren, .lantern, .glow, .steam, .pulse, .sweep, .lift { animation: none; }
         .steam, .sweep { opacity: 0; }
@@ -86,37 +86,37 @@
     </g>
 
     <!-- the head cook serves: strands fan out from one pair of chopsticks into three bowls.
-         Each strand's belly sways on its own period (SMIL d-morph); the whole hand lifts gently. -->
+         Each strand's belly sways on its own period (SMIL d-morph); the whole hand lifts. -->
     <g class="lift">
       <g stroke="#d8b25a" stroke-width="4" fill="none" stroke-linecap="round">
-        <path d="M952 126 C 892 162 868 206 876 258">
-          <animate attributeName="d" dur="3.4s" begin="-0.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M952 126 C 892 162 868 206 876 258;M952 126 C 904 167 882 211 876 258;M952 126 C 892 162 868 206 876 258"/>
+        <path d="M952 126 C 892 162 868 206 876 262">
+          <animate attributeName="d" dur="2.8s" begin="-0.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M952 126 C 892 162 868 206 876 262;M952 126 C 914 170 890 214 876 262;M952 126 C 892 162 868 206 876 262"/>
         </path>
-        <path d="M948 130 C 880 168 856 212 866 258">
-          <animate attributeName="d" dur="3.1s" begin="-1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M948 130 C 880 168 856 212 866 258;M948 130 C 869 172 845 216 866 258;M948 130 C 880 168 856 212 866 258"/>
+        <path d="M948 130 C 880 168 856 212 866 262">
+          <animate attributeName="d" dur="2.5s" begin="-1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M948 130 C 880 168 856 212 866 262;M948 130 C 860 175 836 220 866 262;M948 130 C 880 168 856 212 866 262"/>
         </path>
-        <path d="M956 130 C 982 175 1000 212 1004 258">
-          <animate attributeName="d" dur="3.6s" begin="-0.9s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M956 130 C 982 175 1000 212 1004 258;M956 130 C 969 179 988 216 1004 258;M956 130 C 982 175 1000 212 1004 258"/>
+        <path d="M956 130 C 982 175 1000 212 1004 262">
+          <animate attributeName="d" dur="3s" begin="-0.9s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M956 130 C 982 175 1000 212 1004 262;M956 130 C 960 182 978 219 1004 262;M956 130 C 982 175 1000 212 1004 262"/>
         </path>
-        <path d="M960 134 C 992 180 1014 214 1016 258">
-          <animate attributeName="d" dur="3s" begin="-2.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M960 134 C 992 180 1014 214 1016 258;M960 134 C 1004 184 1027 218 1016 258;M960 134 C 992 180 1014 214 1016 258"/>
+        <path d="M960 134 C 992 180 1014 214 1016 262">
+          <animate attributeName="d" dur="2.4s" begin="-2.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M960 134 C 992 180 1014 214 1016 262;M960 134 C 1014 187 1036 221 1016 262;M960 134 C 992 180 1014 214 1016 262"/>
         </path>
-        <path d="M960 128 C 1058 158 1116 204 1124 258">
-          <animate attributeName="d" dur="3.5s" begin="-1.3s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M960 128 C 1058 158 1116 204 1124 258;M960 128 C 1046 165 1103 211 1124 258;M960 128 C 1058 158 1116 204 1124 258"/>
+        <path d="M960 128 C 1058 158 1116 204 1124 262">
+          <animate attributeName="d" dur="2.9s" begin="-1.3s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M960 128 C 1058 158 1116 204 1124 262;M960 128 C 1036 168 1092 214 1124 262;M960 128 C 1058 158 1116 204 1124 262"/>
         </path>
-        <path d="M964 132 C 1072 168 1128 212 1134 258">
-          <animate attributeName="d" dur="3.3s" begin="-0.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M964 132 C 1072 168 1128 212 1134 258;M964 132 C 1084 174 1141 217 1134 258;M964 132 C 1072 168 1128 212 1134 258"/>
+        <path d="M964 132 C 1072 168 1128 212 1134 262">
+          <animate attributeName="d" dur="2.7s" begin="-0.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M964 132 C 1072 168 1128 212 1134 262;M964 132 C 1094 178 1150 220 1134 262;M964 132 C 1072 168 1128 212 1134 262"/>
         </path>
       </g>
       <g stroke="#f7e2ac" stroke-width="4" fill="none" stroke-linecap="round">
-        <path class="pulse" d="M952 126 C 892 162 868 206 876 258">
-          <animate attributeName="d" dur="3.4s" begin="-0.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M952 126 C 892 162 868 206 876 258;M952 126 C 904 167 882 211 876 258;M952 126 C 892 162 868 206 876 258"/>
+        <path class="pulse" d="M952 126 C 892 162 868 206 876 262">
+          <animate attributeName="d" dur="2.8s" begin="-0.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M952 126 C 892 162 868 206 876 262;M952 126 C 914 170 890 214 876 262;M952 126 C 892 162 868 206 876 262"/>
         </path>
-        <path class="pulse" style="animation-delay:-0.9s" d="M956 130 C 982 175 1000 212 1004 258">
-          <animate attributeName="d" dur="3.6s" begin="-0.9s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M956 130 C 982 175 1000 212 1004 258;M956 130 C 969 179 988 216 1004 258;M956 130 C 982 175 1000 212 1004 258"/>
+        <path class="pulse" style="animation-delay:-0.9s" d="M956 130 C 982 175 1000 212 1004 262">
+          <animate attributeName="d" dur="3s" begin="-0.9s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M956 130 C 982 175 1000 212 1004 262;M956 130 C 960 182 978 219 1004 262;M956 130 C 982 175 1000 212 1004 262"/>
         </path>
-        <path class="pulse" style="animation-delay:-1.7s" d="M960 128 C 1058 158 1116 204 1124 258">
-          <animate attributeName="d" dur="3.5s" begin="-1.3s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M960 128 C 1058 158 1116 204 1124 258;M960 128 C 1046 165 1103 211 1124 258;M960 128 C 1058 158 1116 204 1124 258"/>
+        <path class="pulse" style="animation-delay:-1.7s" d="M960 128 C 1058 158 1116 204 1124 262">
+          <animate attributeName="d" dur="2.9s" begin="-1.3s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M960 128 C 1058 158 1116 204 1124 262;M960 128 C 1036 168 1092 214 1124 262;M960 128 C 1058 158 1116 204 1124 262"/>
         </path>
       </g>
 
@@ -143,7 +143,7 @@
     </g>
 
     <!-- steam -->
-    <g stroke="#a9b2d4" stroke-width="3.5" fill="none" stroke-linecap="round">
+    <g stroke="#a9b2d4" stroke-width="4" fill="none" stroke-linecap="round">
       <path class="steam" style="animation-delay:-0.2s" d="M868 236 q-8 -14 2 -26 q10 -12 2 -24"/>
       <path class="steam" style="animation-delay:-1.4s" d="M894 236 q-8 -14 2 -26 q10 -12 2 -24"/>
       <path class="steam" style="animation-delay:-2.3s" d="M998 236 q-8 -14 2 -26 q10 -12 2 -24"/>
