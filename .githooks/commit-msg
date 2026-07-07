@@ -1,0 +1,28 @@
+#!/bin/sh
+# commit-msg hook: the root harness repo accepts agent commits from Fable
+# only (CLAUDE.md "Harness guard"). Agent sessions sign commits with a
+# Co-Authored-By trailer; reject any non-Fable agent signature. Human
+# commits (no agent trailer) pass. Wire once per clone:
+#   git config core.hooksPath .githooks
+
+LC_ALL=C
+export LC_ALL
+
+msg_file="$1"
+[ -f "$msg_file" ] || exit 0
+
+offender=$(grep -Ei '^Co-Authored-By:.*(Claude|Codex|GPT|Gemini|Copilot)' "$msg_file" \
+  | grep -iv 'fable')
+
+if [ -n "$offender" ]; then
+  {
+    echo "sobaya harness guard: commit rejected — root-repo agent commits are Fable-only."
+    echo "Offending trailer(s):"
+    printf '%s\n' "$offender" | sed 's/^/  /'
+    echo "Work under apps/ has its own repos and is unrestricted. For harness"
+    echo "changes, hand off to the user or a Fable session (CLAUDE.md 'Harness guard')."
+  } >&2
+  exit 1
+fi
+
+exit 0

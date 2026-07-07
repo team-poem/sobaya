@@ -148,6 +148,69 @@ check $? "autoidx: exits 0 after adding unknown file"
 grep -q '^## Other$' "$proj/brain/index.md" && grep -q '\[\[scratchpad\]\]' "$proj/brain/index.md"
 check $? "autoidx: unknown file indexed under Other"
 
+GUARD="$ROOT/.claude/hooks/guard-fable-only.sh"
+GITGATE="$ROOT/.githooks/commit-msg"
+
+# Helper: guard hook stdin JSON. $1 = file_path, $2 = transcript_path.
+guard_payload() {
+  printf '{"session_id":"t","transcript_path":"%s","hook_event_name":"PreToolUse","tool_name":"Write","tool_input":{"file_path":"%s","content":"x"}}' "$2" "$1"
+}
+
+proj="$TMP/g1"
+mkdir -p "$proj/apps/demo" "$proj/brain"
+tr_fable="$TMP/tr-fable.jsonl"
+printf '{"type":"assistant","message":{"model":"claude-fable-5"}}\n' > "$tr_fable"
+tr_opus="$TMP/tr-opus.jsonl"
+printf '{"type":"assistant","message":{"model":"claude-opus-4-8-20260101"}}\n' > "$tr_opus"
+
+# --- guard: non-Fable model editing a root file is blocked (exit 2) ---
+guard_payload "$proj/CLAUDE.md" "$tr_opus" | CLAUDE_PROJECT_DIR="$proj" sh "$GUARD" 2>/dev/null
+[ $? -eq 2 ]; check $? "guard: blocks non-Fable edit to root file"
+
+# --- guard: Fable editing a root file passes ---
+guard_payload "$proj/CLAUDE.md" "$tr_fable" | CLAUDE_PROJECT_DIR="$proj" sh "$GUARD" 2>/dev/null
+check $? "guard: allows Fable edit to root file"
+
+# --- guard: non-Fable editing under apps/ passes ---
+guard_payload "$proj/apps/demo/main.py" "$tr_opus" | CLAUDE_PROJECT_DIR="$proj" sh "$GUARD" 2>/dev/null
+check $? "guard: allows non-Fable edit under apps/"
+
+# --- guard: brain/ counts as root territory ---
+guard_payload "$proj/brain/todos.md" "$tr_opus" | CLAUDE_PROJECT_DIR="$proj" sh "$GUARD" 2>/dev/null
+[ $? -eq 2 ]; check $? "guard: blocks non-Fable edit to brain/"
+
+# --- guard: missing transcript fails open ---
+guard_payload "$proj/CLAUDE.md" "$TMP/nope.jsonl" | CLAUDE_PROJECT_DIR="$proj" sh "$GUARD" 2>/dev/null
+check $? "guard: fails open when transcript is missing"
+
+# --- guard: path outside the workspace is ignored ---
+guard_payload "$TMP/elsewhere.md" "$tr_opus" | CLAUDE_PROJECT_DIR="$proj" sh "$GUARD" 2>/dev/null
+check $? "guard: ignores paths outside the workspace"
+
+# --- commit gate: non-Fable agent trailer rejected ---
+msg="$TMP/msg1"
+printf 'feat: x\n\nCo-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>\n' > "$msg"
+sh "$GITGATE" "$msg" 2>/dev/null
+[ $? -ne 0 ]; check $? "gate: rejects Opus trailer"
+
+# --- commit gate: Codex trailer rejected ---
+msg="$TMP/msg2"
+printf 'feat: x\n\nCo-Authored-By: Codex <codex@openai.com>\n' > "$msg"
+sh "$GITGATE" "$msg" 2>/dev/null
+[ $? -ne 0 ]; check $? "gate: rejects Codex trailer"
+
+# --- commit gate: Fable trailer passes ---
+msg="$TMP/msg3"
+printf 'feat: x\n\nCo-Authored-By: Claude Fable 5 <noreply@anthropic.com>\n' > "$msg"
+sh "$GITGATE" "$msg" 2>/dev/null
+check $? "gate: allows Fable trailer"
+
+# --- commit gate: human commit without trailer passes ---
+msg="$TMP/msg4"
+printf 'chore: manual tweak\n' > "$msg"
+sh "$GITGATE" "$msg" 2>/dev/null
+check $? "gate: allows human commit without trailer"
+
 echo
 if [ "$fail" -eq 0 ]; then
   echo "ALL PASS"

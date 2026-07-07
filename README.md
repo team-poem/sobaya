@@ -109,8 +109,9 @@ sobaya/
 ├── banner.svg
 ├── .claude/
 │   ├── settings.json  # hook wiring
-│   ├── hooks/         # inject-brain, auto-index-brain
+│   ├── hooks/         # inject-brain, auto-index-brain, guard-fable-only
 │   └── skills/        # sobaya, new-app, reflect, meditate
+├── .githooks/         # commit-msg — Fable-only agent commit gate
 ├── brain/             # persistent memory vault (EN)
 │   ├── index.md       # hook-generated — never hand-edit
 │   ├── principles/    # 10 decision rules
