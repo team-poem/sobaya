@@ -109,8 +109,9 @@ sobaya/
 ├── banner.svg
 ├── .claude/
 │   ├── settings.json  # 훅 와이어링
-│   ├── hooks/         # inject-brain, auto-index-brain
+│   ├── hooks/         # inject-brain, auto-index-brain, guard-fable-only
 │   └── skills/        # sobaya, new-app, reflect, meditate
+├── .githooks/         # commit-msg — Fable 전용 에이전트 커밋 게이트
 ├── brain/             # 영속 메모리 볼트 (EN)
 │   ├── index.md       # 훅이 생성 — 직접 수정 금지
 │   ├── principles/    # 의사결정 원칙 10종

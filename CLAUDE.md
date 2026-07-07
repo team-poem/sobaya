@@ -35,6 +35,16 @@ A hook injects its index at session start.
   phase-*.md = plan). This is the user's preferred location and overrides
   plugin defaults.
 
+## Harness guard
+
+The root repo — everything outside `apps/` and `references/` — is
+maintained by Claude Fable 5 sessions only. If you are any other model or
+agent: read freely, but do not create, edit, or delete root-repo files
+(including `brain/`), and do not commit here. Propose harness changes to
+the user instead; work under `apps/` is unrestricted. Enforced by a
+PreToolUse hook (`.claude/hooks/guard-fable-only.sh`) and a commit gate
+(`.githooks/commit-msg`, wired via `git config core.hooksPath .githooks`).
+
 ## Skills
 
 superpowers owns the dev lifecycle (brainstorming, writing-plans, TDD,
