@@ -1,6 +1,6 @@
 # 11 · office-hub-autorun — Design Spec + Plan
 
-Status: approved verbally by user 2026-07-07 ("수락하는 방식의 흐름은 일단 모두 해제시키자", "알아서 실행되야지"). OCR deferred (user chose hub-first; kordoc OCR is the follow-up project).
+Status: IMPLEMENTED 2026-07-07 (see Execution record below). Originally approved verbally by user 2026-07-07 ("수락하는 방식의 흐름은 일단 모두 해제시키자", "알아서 실행되야지"). OCR deferred (user chose hub-first; kordoc OCR is the follow-up project).
 App: `apps/office-automation-hub-design/app/`, branch `drive/phase-1` (stacked continuation).
 Origin: user friction report — (1) 창구 submit waits for 관제실 review/run approval before anything happens; should go straight to chat. (2) Workspace answers hedge with "확인 불가" — root-caused: the 6/26 PDF is genuinely an image-based scan (kordoc warning: "이미지 기반 PDF (4페이지, 텍스트 21자) — OCR 필요"), but the user only learns this at answer time, after the whole approval chain.
 
@@ -30,3 +30,6 @@ Origin: user friction report — (1) 창구 submit waits for 관제실 review/ru
 
 ## Execution amendments
 (record during execution)
+
+## Execution record (2026-07-07)
+All 5 tasks complete on drive/phase-1 (fdc7298..b7823af, 6 commits), 321 tests green. Final review conditional-Yes; conditions closed (kill-switch case normalization b7823af; ledger repaired). Diagnosis: content loss came from LLM-authored drop_if_blank deleting kordoc rowspan-split content rows while normalization "succeeded" — fixed with is_lossy() detection → raw-table fallback (reviewer independently reproduced on real data: 29% survival → caught). Fast-follow logged: loss-warning not yet surfaced to registry/list_sources (M1) + composed /auto→ask lossy E2E; defers: is_lossy header>0, flag-off cosmetic deviation, auto-review pre-stamping, rowspan reassembly at ingest.
