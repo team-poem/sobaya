@@ -8,6 +8,7 @@
 - [ ] [[plans/06-office-hub-ux-renewal/overview]] — OpenAI-minimal UI/UX renewal (phases A+B done on `ux/phase-a`; phase C code appears landed, review record pending)
 - [x] [[plans/10-office-hub-drive/overview]] — 내 드라이브 + live viewer + workdoc 편집 + 내보내기 (all 3 phases done on drive/phase-1)
 - [x] [[plans/11-office-hub-autorun/overview]] — 승인 흐름 해제 + kordoc 우선 + 한계 조기표시 (완료, 321 green)
+- [ ] [[plans/12-cairn-desktop/overview]] — Tauri app: watchable Chrome driven by cairn over CDP, agent-facing HTTP API
 
 <!-- Numbers 07-09 are reserved: the second checkout at ~/file1/bench/sobaya
      grew its own plans 03-workout-app / 04-workout-auth / 05-login-and-dark-mode
