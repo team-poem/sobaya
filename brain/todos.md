@@ -21,12 +21,3 @@ priority: []
    noodle).
 6. [ ] .agents/ multi-harness indirection — only if a second harness is
    adopted (migrate-callers, then delete).
-
-## cairn-desktop
-
-8. [ ] Merge `dev/mvp` → main + tag v0.1.0 once the concurrent session's
-   work on that branch settles (final review verdict: ready to merge).
-9. [ ] Post-merge polish backlog from the final review: prune frontend
-   runs Map, basename instead of abs path for replay run names, drop dead
-   `greet` command, light-theme badge colors, redirect console.table/dir
-   in sidecar, flush stdout before process.exit.
