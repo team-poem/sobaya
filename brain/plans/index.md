@@ -8,7 +8,7 @@
 - [ ] [[plans/06-office-hub-ux-renewal/overview]] — OpenAI-minimal UI/UX renewal (phases A+B done on `ux/phase-a`; phase C code appears landed, review record pending)
 - [x] [[plans/10-office-hub-drive/overview]] — 내 드라이브 + live viewer + workdoc 편집 + 내보내기 (all 3 phases done on drive/phase-1)
 - [x] [[plans/11-office-hub-autorun/overview]] — 승인 흐름 해제 + kordoc 우선 + 한계 조기표시 (완료, 321 green)
-- [x] [[plans/12-cairn-desktop/overview]] — Tauri app: watchable Chrome driven by cairn over CDP, agent-facing HTTP API (all 15 tasks + final review done on `dev/mvp`; merge pending)
+- [x] [[plans/12-cairn-desktop/overview]] — Tauri app: watchable Chrome driven by cairn over CDP, agent-facing HTTP API (merged to main, v0.1.0; polish wave landed)
 - [ ] [[plans/13-hwp-agent-desk/overview]] — kordoc 중심 한글문서 에이전트 웹앱 (Node/TS, phase 1 완료 — 로그인/드라이브/폴더채팅/뷰어)
 
 <!-- Numbers 07-09 are reserved: the second checkout at ~/file1/bench/sobaya
