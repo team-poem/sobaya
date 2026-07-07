@@ -30,6 +30,6 @@ clone's origin still points at this template repo (push hazard).
 | mydex-was | MYDEX WAS runtime inspection scripts and notes | PowerShell | imported | local only |
 | mydex2.0 | MYDEX 2.0 rebuild | Next.js/Docker | active | nugurik/mydex2.0 |
 | pi-test-05-08 | pi harness experiment (noodle clone + 상담예약 test site) | mixed | paused | local only |
-| cairn-desktop | watchable Chrome driven by cairn over CDP + agent HTTP API | Tauri 2/Rust/TS | scaffolded | own repo (local only) |
+| cairn-desktop | watchable Chrome driven by cairn over CDP + agent HTTP API | Tauri 2/Rust/TS | active | own repo (local only) |
 | ubireport-jsp-sample | UbiReport JSP sample vendor drop | JSP | imported | local only |
 | ubireport-server | UbiReport server binaries + manuals vendor drop | binary | imported | local only |
