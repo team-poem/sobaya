@@ -1,6 +1,6 @@
 # 05 · office-hub-renewal — Design Spec
 
-Status: **phase 1 implemented (2026-07-02) — branch `renewal/phase-1` (13 commits, 156 tests green, final review: Ready to merge=Yes). Superseded by plan 06 (ux/phase-a branches off renewal/phase-1 and carries the UI work forward); phases 2-3 will not proceed under this plan.**
+Status: **phase 1 implemented (2026-07-02) — branch `renewal/phase-1` (13 commits, 156 tests green, final review: Ready to merge=Yes). Superseded by plan 06 (ux/phase-a branches off renewal/phase-1 and carries the UI work forward); phases 2-3 will not proceed under this plan. Disposition (2026-07-07 lineage audit): phase-2 templates (excel-cleanup/file-merge) RETIRED — superseded by drive workdoc chat editing (plan 10); the 지표(metrics) screen idea is CARRIED FORWARD to a future 관제실-as-monitoring plan (post plan 11, where auto-run removed the approval-console role).**
 Date: 2026-07-02
 App: `apps/office-automation-hub-design/app/` (existing repo, restructured in place)
 
