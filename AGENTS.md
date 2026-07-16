@@ -34,6 +34,11 @@ A hook injects its index at session start.
 - **Plans and specs live in `brain/plans/NN-slug/`** (overview.md = spec,
   phase-*.md = plan). This is the user's preferred location and overrides
   plugin defaults.
+- **Enforced:** flat-root nesting, project markers outside `apps/`,
+  `brain/index.md` hand-edits, and the app scaffold gate (own git repo +
+  `Implementer:` model policy in the app CLAUDE.md before real work in an
+  unregistered app) are blocked deterministically by a PreToolUse hook
+  (`.claude/hooks/guard-workspace-rules.sh`).
 
 ## Harness guard
 
