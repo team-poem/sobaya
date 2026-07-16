@@ -23,6 +23,11 @@ Creates `apps/<name>` as an independent git repository and registers it.
    directory the user already fully specified), run superpowers:brainstorming
    first. Scaffold immediately only when the user explicitly asks for just
    the scaffold.
+5. **Model policy:** ask the user which model implements this app (who
+   writes the code — e.g. `sonnet`; the orchestrator stays the session
+   model). The choice is fixed at creation and recorded in the app
+   CLAUDE.md. The workspace guard hook blocks real work in an unregistered
+   app until an `Implementer:` line exists there.
 
 ## Steps
 
@@ -48,6 +53,9 @@ Creates `apps/<name>` as an independent git repository and registers it.
    - Stack: <decided at design>
    - Run: <command>
    - Test: <command>
+
+   ## Orchestration
+   - Implementer: <model that writes the code, e.g. sonnet>
    ```
 
    Angle fields are filled at design time; none may survive past the app's
