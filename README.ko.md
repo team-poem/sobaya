@@ -18,7 +18,7 @@
 
 ---
 
-Sobaya는 [poteto/noodle](https://github.com/poteto/noodle)의 작업 방식을 Claude Code 네이티브 프리미티브 위로 옮긴 것입니다. **프레임워크가 아닙니다** — 데몬도 스케줄러도 없고, 런타임은 셸 훅 2개뿐입니다. max effort 모델(Opus 4.8 / Fable 5)이 오케스트레이션을 잘하게 만드는 규칙·스킬·영속 메모리의 집합이며, 개발 수명주기를 담당하는 [superpowers](https://github.com/obra/superpowers) 플러그인과 함께 동작합니다.
+Sobaya는 [poteto/noodle](https://github.com/poteto/noodle)의 작업 방식을 Claude Code 네이티브 프리미티브 위로 옮긴 것입니다. **프레임워크가 아닙니다** — 데몬도 스케줄러도 없고, 런타임은 셸 훅 4개뿐입니다. max effort 모델(Opus 4.8 / Fable 5)이 오케스트레이션을 잘하게 만드는 규칙·스킬·영속 메모리의 집합이며, 개발 수명주기를 담당하는 [superpowers](https://github.com/obra/superpowers) 플러그인과 함께 동작합니다.
 
 ## 시작하기
 
@@ -56,7 +56,7 @@ flowchart LR
 ## 구성 요소
 
 - **스킬 4종** — `sobaya`(오케스트레이션 플레이북), `new-app`(앱 스캐폴드), `reflect`(학습 기록), `meditate`(볼트 감사 + 스킬 정제)
-- **훅 2종** — 세션 시작 시 brain 인덱스 주입, brain 쓰기 시 인덱스 자동 재생성 (결정론적 POSIX 셸, fail-open, 원자적 쓰기)
+- **훅 4종** — 세션 시작 시 brain 인덱스 주입, brain 쓰기 시 인덱스 자동 재생성, 그리고 Fable 전용 루트와 워크스페이스 규칙(flat root, 스캐폴드 게이트)을 강제하는 PreToolUse 가드 2종 (모두 결정론적 POSIX 셸, fail-open, 원자적 쓰기)
 - **brain/ 볼트** — Obsidian 호환 영속 메모리: 원칙 10종, 지식 노트, 플랜, 백로그
 - **apps/ 구조** — 프로젝트마다 독립 git 저장소, 루트 저장소는 하네스만 추적
 
@@ -105,11 +105,11 @@ noodle은 파일 기반 작업 주문 위에서 LLM "쿡" 세션을 스케줄링
 
 ```
 sobaya/
-├── CLAUDE.md          # 하네스 계약 (EN, ~40줄)
+├── CLAUDE.md          # 하네스 계약 (EN, ~60줄)
 ├── banner.svg
 ├── .claude/
 │   ├── settings.json  # 훅 와이어링
-│   ├── hooks/         # inject-brain, auto-index-brain, guard-fable-only
+│   ├── hooks/         # inject-brain, auto-index-brain, guard-fable-only, guard-workspace-rules
 │   └── skills/        # sobaya, new-app, reflect, meditate
 ├── .githooks/         # commit-msg — Fable 전용 에이전트 커밋 게이트
 ├── brain/             # 영속 메모리 볼트 (EN)

@@ -18,7 +18,7 @@
 
 ---
 
-Sobaya ports the working methods of [poteto/noodle](https://github.com/poteto/noodle) onto native Claude Code primitives. It is **not a framework** — no daemon, no scheduler, no runtime beyond two shell hooks. It is a set of conventions, skills, and persistent memory that make max-effort models (Opus 4.8 / Fable 5) orchestrate well, composed with the [superpowers](https://github.com/obra/superpowers) plugin, which owns the dev lifecycle.
+Sobaya ports the working methods of [poteto/noodle](https://github.com/poteto/noodle) onto native Claude Code primitives. It is **not a framework** — no daemon, no scheduler, no runtime beyond four shell hooks. It is a set of conventions, skills, and persistent memory that make max-effort models (Opus 4.8 / Fable 5) orchestrate well, composed with the [superpowers](https://github.com/obra/superpowers) plugin, which owns the dev lifecycle.
 
 ## Getting started
 
@@ -56,7 +56,7 @@ flowchart LR
 ## What's inside
 
 - **4 skills** — `sobaya` (orchestration playbook), `new-app` (scaffold), `reflect` (learning capture), `meditate` (vault audit + skill refinement)
-- **2 hooks** — brain index injected at session start; index auto-rebuilt on brain writes (deterministic POSIX shell, fail-open, atomic writes)
+- **4 hooks** — brain index injected at session start; index auto-rebuilt on brain writes; two PreToolUse guards enforcing the Fable-only root and the workspace rules (flat root, scaffold gate) — all deterministic POSIX shell, fail-open, atomic writes
 - **brain/ vault** — Obsidian-compatible persistent memory: 10 principles, codebase notes, plans, backlog
 - **apps/ layout** — every project is its own git repository; the root repo tracks only the harness
 
@@ -105,11 +105,11 @@ noodle is a Go event loop that schedules LLM "cook" sessions over file-based wor
 
 ```
 sobaya/
-├── CLAUDE.md          # harness contract (EN, ~40 lines)
+├── CLAUDE.md          # harness contract (EN, ~60 lines)
 ├── banner.svg
 ├── .claude/
 │   ├── settings.json  # hook wiring
-│   ├── hooks/         # inject-brain, auto-index-brain, guard-fable-only
+│   ├── hooks/         # inject-brain, auto-index-brain, guard-fable-only, guard-workspace-rules
 │   └── skills/        # sobaya, new-app, reflect, meditate
 ├── .githooks/         # commit-msg — Fable-only agent commit gate
 ├── brain/             # persistent memory vault (EN)

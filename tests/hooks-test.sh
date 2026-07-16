@@ -187,6 +187,74 @@ check $? "guard: fails open when transcript is missing"
 guard_payload "$TMP/elsewhere.md" "$tr_opus" | CLAUDE_PROJECT_DIR="$proj" sh "$GUARD" 2>/dev/null
 check $? "guard: ignores paths outside the workspace"
 
+WGUARD="$ROOT/.claude/hooks/guard-workspace-rules.sh"
+
+# Workspace: registered app "demo", unregistered app "rogue".
+wproj="$TMP/w1"
+mkdir -p "$wproj/brain" "$wproj/apps/demo" "$wproj/apps/rogue"
+printf '# Apps\n\n| App | Git |\n|---|---|\n| demo | local |\n' > "$wproj/brain/apps.md"
+
+wpayload() { # $1 = file_path
+  printf '{"tool_name":"Write","tool_input":{"file_path":"%s","content":"x"}}' "$1"
+}
+
+# --- wguard: brain/index.md hand-edit is blocked (exit 2) ---
+wpayload "$wproj/brain/index.md" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+[ $? -eq 2 ]; check $? "wguard: blocks hand-edit of brain/index.md"
+
+# --- wguard: other brain files pass ---
+wpayload "$wproj/brain/todos.md" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+check $? "wguard: allows edits to other brain files"
+
+# --- wguard: NEW project marker at the root is blocked ---
+wpayload "$wproj/package.json" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+[ $? -eq 2 ]; check $? "wguard: blocks new project marker outside apps/"
+
+# --- wguard: EXISTING root marker is untouched (only creation policed) ---
+printf '{}\n' > "$wproj/package.json"
+wpayload "$wproj/package.json" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+check $? "wguard: allows edit of pre-existing root marker"
+rm -f "$wproj/package.json"
+
+# --- wguard: NEW marker nested in apps/<name>/app/ is blocked ---
+wpayload "$wproj/apps/demo/app/package.json" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+[ $? -eq 2 ]; check $? "wguard: blocks new marker in nested app/"
+
+# --- wguard: NEW marker nested in apps/<name>/apps/ is blocked ---
+wpayload "$wproj/apps/demo/apps/inner/package.json" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+[ $? -eq 2 ]; check $? "wguard: blocks new marker in nested apps/"
+
+# --- wguard: registered app is grandfathered ---
+wpayload "$wproj/apps/demo/main.py" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+check $? "wguard: allows work in a registered app"
+
+# --- wguard: unregistered app without .git is blocked ---
+wpayload "$wproj/apps/rogue/main.py" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+[ $? -eq 2 ]; check $? "wguard: blocks work in unregistered app without .git"
+
+# --- wguard: scaffold files are always writable ---
+wpayload "$wproj/apps/rogue/CLAUDE.md" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+check $? "wguard: allows scaffold files in unregistered app"
+
+# --- wguard: unregistered app with .git but no Implementer: policy is blocked ---
+mkdir -p "$wproj/apps/rogue/.git"
+printf '# Rogue\n' > "$wproj/apps/rogue/CLAUDE.md"
+wpayload "$wproj/apps/rogue/main.py" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+[ $? -eq 2 ]; check $? "wguard: blocks unregistered app lacking Implementer policy"
+
+# --- wguard: unregistered app with .git + Implementer: passes ---
+printf '# Rogue\n\n## Orchestration\nImplementer: claude-sonnet-5\n' > "$wproj/apps/rogue/CLAUDE.md"
+wpayload "$wproj/apps/rogue/main.py" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+check $? "wguard: allows scaffolded + policied unregistered app"
+
+# --- wguard: malformed input fails open ---
+printf 'not json' | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+check $? "wguard: fails open on malformed input"
+
+# --- wguard: path outside the workspace is ignored ---
+wpayload "$TMP/elsewhere/package.json" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
+check $? "wguard: ignores paths outside the workspace"
+
 # --- commit gate: non-Fable agent trailer rejected ---
 msg="$TMP/msg1"
 printf 'feat: x\n\nCo-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>\n' > "$msg"
