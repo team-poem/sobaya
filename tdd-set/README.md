@@ -19,38 +19,26 @@
 | `skills/tdd/SKILL.md` | 1~3단계 Phase 0 + 루프 가드(테스트 변조 금지, 한 줄 보고). CLAUDE.md에 없는 것만 |
 | `skills/gopher/SKILL.md` | 9단계. Go 리팩터 체크리스트. 다른 언어면 같은 형식으로 하나 더 만들면 됨 |
 | `hooks/commit-gate.sh` | 9단계 강제. `git commit` 전에 CLAUDE.md의 Format·Lint 명령을 돌려 실패 시 차단. 줄이 없고 go.mod가 있으면 gofmt/go vet 기본값 |
-| `commands/` | 단계별 슬래시 명령. `/plan` = Phase 0, `/go` = 사이클 하나(CLAUDE.md의 "go"와 동일), `/gate` = 게이트만, `/loop [n]` = 전체 자동 실행 후 게이트. Kent Beck은 평문 "go"만 썼고 슬래시 명령은 우리 추가 |
+| `commands/` | 단계별 슬래시 명령. `/sobaya-plan` = Phase 0, `/go` = 사이클 하나(CLAUDE.md의 "go"와 동일), `/gate` = 게이트만, `/sobaya-loop [n]` = 전체 자동 실행 후 게이트. Kent Beck은 평문 "go"만 썼고 슬래시 명령은 우리 추가 |
+| `bin/install.sh` | 0단계. 앱에 tdd-set 설치(위 '설치'). 별도 스캐폴드 단계 없음 |
 | `bin/probe.sh` | 3~4단계. 후보 테스트 하나를 임시 파일로 패키지에 넣고 돌린 뒤 삭제. RED(실패·미빌드)면 plan.md에 적고, GREEN이면 이미 있는 행위라 버림. Go 전용 |
-| `bin/loop.sh` | 6·7·10·11단계. 미체크 항목이 남아 있는 동안 반복, 커밋 없는 반복 3회면 정체로 중단, 끝나면 gate 실행 |
+| `bin/loop.sh` | 6·7·10·11단계. "go"만 돌림. 회차가 항목을 추가하면(물어볼 사람이 없으니) 중단, 커밋 없는 반복 3회면 정체로 중단, 끝나면 gate 실행 |
 | `bin/gate.sh` | 6·12단계. 루프 완료 판정 = plan.md 100% 체크 · 스위트 green · 기존 테스트 무변조 · 체크 항목의 테스트 이름 대조. 사람이 쓴 테스트가 곧 spec이라 별도 판정자 없음 |
 
-## 설치 (프로젝트마다)
+## 설치 (앱마다, 새것이든 기존이든)
 ```sh
-P=apps/<name>   # run from the sobaya root
-mkdir -p $P/.claude/skills
-cp -r tdd-set/skills/tdd tdd-set/skills/gopher $P/.claude/skills/
-cp -r tdd-set/commands $P/.claude/commands      # /plan /go /gate /loop
-cp tdd-set/CLAUDE.md $P/CLAUDE.md      # 이미 있으면 내용을 이어 붙임
-# $P/CLAUDE.md 에 명령줄 3개를 적는다 (Kent Beck의 agent.md 자리):
-#   - Test: `go test ./...`
-#   - Format: `gofmt -l .`
-#   - Lint: `go vet ./...`
-#   - Bench: `go test -bench=. -benchmem ./...`   (선택)
-cp tdd-set/spec-template.md $P/spec.md
-cp tdd-set/plan-template.md $P/plan.md
+tdd-set/bin/install.sh apps/<name>     # sobaya 루트에서. 멱등 — 있는 파일은 건드리지 않음
 ```
-`$P/.claude/settings.json`에 훅 추가:
-```json
-{"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"$CLAUDE_PROJECT_DIR/../../tdd-set/hooks/commit-gate.sh"}]}]}}
-```
+하는 일: 디렉터리·git init(없을 때만) → 앱 CLAUDE.md 생성(명령줄 4개) 또는 유지 → Kent Beck 원문 이어 붙임(한 번만) → spec/plan 템플릿(없을 때만) → `tdd`·`gopher` 스킬, `/sobaya-plan` `/go` `/gate` `/sobaya-loop` 명령 복사 → `.claude/settings.json`에 커밋 훅 병합.
+끝나면 앱 CLAUDE.md의 명령줄을 채우고 `brain/apps.md`에 한 줄 등록합니다.
 
 ## 실행
 세션 안에서 단계별로:
 ```
-/plan        spec.md → plan.md (probe로 RED 확인된 항목만), 승인 대기
+/sobaya-plan    초안: 분할 → 케이스 열거 → probe RED만 plan.md에 → "검토·추가 끝나셨으면 이대로 진행할까요?" 한 번 묻고 대기
 /go          항목 하나: 테스트 그대로 옮김 → red → green → 커밋 → refactor → 커밋
 /gate        게이트만
-/loop 30     남은 항목 전부 자동 (최대 30회) 후 게이트
+/sobaya-loop 30     남은 항목 전부 자동 (최대 30회) 후 게이트
 ```
 셸에서 직접:
 ```sh

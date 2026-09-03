@@ -26,7 +26,7 @@ Sobaya(蕎麦屋, 소바 가게)는 **실패하는 테스트가 곧 spec**인 �
 
 ```mermaid
 flowchart LR
-    S["spec.md<br>사람: goal · must · must not"] --> P["/plan<br>케이스 열거 → 하나씩 probe로 red 확인 → plan.md에 코드로"]
+    S["spec.md<br>사람: goal · must · must not"] --> P["/sobaya-plan<br>케이스 열거 → 하나씩 probe로 red 확인 → plan.md에 코드로"]
     P -- 승인 --> G["/go × N<br>테스트 그대로 옮김 → red → green → 커밋<br>green에서 refactor → 커밋"]
     G --> T["/gate<br>100% 체크 · 스위트 green<br>테스트 무변조 · 이름 존재"]
     T --> R["review<br>반박자 서브에이전트"]
@@ -37,14 +37,14 @@ flowchart LR
 | 단계 | 누가 | 일어나는 일 |
 |---|---|---|
 | **Spec** | 사람 | 앱 루트 `spec.md`: goal, must, must not. 에이전트는 읽기만 하고 절대 수정하지 않습니다. |
-| **Plan** | `/plan` (`tdd` 스킬 Phase 0) | 큰 기능을 작은 기능으로 쪼개고 테스트 케이스를 최대한 열거합니다. 후보마다 `probe.sh`를 돌립니다: 패키지에 임시 파일로 넣고, 실행하고, 삭제. **RED**가 찍힌 것만 `plan.md`에 체크박스 + 완전한 테스트 함수로 적습니다. 코드는 문서에 있고 스위트엔 없습니다. 사람이 승인합니다. |
+| **Plan** | 사람, `/sobaya-plan`이 초안 | 에이전트가 기능을 쪼개고 케이스를 최대한 열거해 하나씩 probe(패키지에 임시 파일로 넣고, 실행하고, 삭제)한 뒤 **RED**인 것만 `plan.md`에 체크박스 + 완전한 테스트 함수로 적습니다. 그리고 한 번 묻습니다: *검토·추가 끝나셨으면 이대로 진행할까요?* 사람은 `plan.md`를 직접 고치고, 케이스를 더하고, 약한 것을 뺍니다. 검토했는지 검증하는 장치는 없습니다. 사람을 믿고, 루프는 그 테스트만큼만 좋습니다. |
 | **Cycle** | `/go` (Kent Beck `CLAUDE.md`) | 다음 미체크 항목을 집습니다. 테스트를 **그대로** 스위트에 옮깁니다. 전체 스위트: red를 기대. 최소 코드로 green. 행위 변경을 커밋(테스트 + 코드 + 체크). 그다음 green 상태에서 한 번에 하나씩 리팩터(Go는 `gopher`), 구조 변경은 별도 커밋. 한 줄 보고, 종료. |
-| **Loop** | `/loop` (`loop.sh`) | 미체크 항목이 없어질 때까지 `claude -p "go"` 반복. 커밋 없는 사이클 3회면 중단. 미커밋 잔여물은 stash에 보관, 잃지 않음. |
+| **Loop** | `/sobaya-loop` (`loop.sh`) | "go"만 돌리고 절대 계획하지 않음. 미체크 항목이 없어질 때까지 `claude -p "go"` 반복, 회차가 항목을 추가하면(결함 흐름) 루프 안에서는 물어볼 사람이 없어 중단, 커밋 없는 사이클 3회면 중단. 잔여물은 stash에 보관. |
 | **Gate** | `/gate` (`gate.sh`) | [게이트가 강제하는 것](#게이트가-강제하는-것) 참고. PASS 아니면 FAIL, 중간 없음. |
 | **Review** | Sobaya 반박자 디스패치 | 구현에 참여하지 않은 독립 서브에이전트에게 "반박하라"고 지시. |
 | **Learn** | `reflect` / `meditate` | 세션 학습 → `brain/`, 누적 교훈 → 원칙·스킬 수정. |
 
-루프 도중 발견한 결함도 Kent Beck 규칙을 플랜을 통해 따릅니다: API 수준 실패 테스트와 최소 재현 테스트를 probe로 확인해 `plan.md` 끝에 추가하고 커밋하면, 다음 사이클들이 집어갑니다.
+루프 도중 발견한 결함도 Kent Beck 규칙을 플랜을 통해 따릅니다: 에이전트가 API 수준 실패 테스트와 최소 재현 테스트를 probe로 확인해 `plan.md` 끝에 추가하고 커밋하면, 루프 안에서는 물어볼 사람이 없으니 멈춥니다. 사람이 보고 다시 돌립니다.
 
 ## 시작하기
 
@@ -54,8 +54,8 @@ cd sobaya && claude
 
 | 하고 싶은 일 | 이렇게 |
 |---|---|
-| **새 앱** | `new-app`을 요청합니다. `apps/<이름>`을 독립 git 저장소로 만들고 tdd-set(Kent Beck `CLAUDE.md`, `spec.md`·`plan.md` 템플릿, `tdd`·`gopher` 스킬, `/plan` `/go` `/gate` `/loop` 명령, 커밋 훅)을 설치하고 앱을 등록합니다. |
-| **기능 하나** | `spec.md`를 채웁니다. `/plan`을 돌리고 목록을 승인합니다. 세션 안에서 `/go`를 사이클마다, 또는 `/loop 30`으로 플랜 전체를, 그다음 `/gate`. |
+| **앱, 새것이든 기존이든** | `tdd-set/bin/install.sh apps/<이름>` — 필요하면 git init, Kent Beck `CLAUDE.md` 이어 붙임, `spec.md`·`plan.md` 템플릿, `tdd`·`gopher` 스킬, `/sobaya-plan` `/go` `/gate` `/sobaya-loop` 명령, 커밋 훅. 멱등. 그다음 `brain/apps.md`에 한 줄 등록. |
+| **기능 하나** | `spec.md`를 채웁니다. `/sobaya-plan`을 돌리고 초안을 읽고, `plan.md`에 케이스를 직접 더하고 빼고, 예라고 답합니다. 그다음 세션 안에서 `/go`를 사이클마다, 또는 `/sobaya-loop 30`으로 플랜 전체를, 그다음 `/gate`. |
 | **버그 하나** | 재현하는 실패 테스트를 probe로 확인해 `plan.md`에 추가하고 `/go`. |
 | **마무리** | `reflect`가 세션의 학습을 기록하고, 쌓이면 `meditate`가 볼트를 정리합니다. |
 
@@ -87,11 +87,11 @@ cd sobaya && claude
 - `CLAUDE.md` — Kent Beck의 TDD + Tidy First 규칙 원문 ([출처](https://github.com/KentBeck/BPlusTree3/blob/main/rust/docs/CLAUDE.md), 커밋 `e1f539e`)
 - `spec-template.md`, `plan-template.md` — 사람이 쓰는 문서 둘
 - `skills/tdd` — CLAUDE.md에 없는 Phase 0(probe 후 기록)과 루프 가드; `skills/gopher` — Go 리팩터 체크리스트, 테스트가 참조하는 이름은 절대 바꾸지 않음
-- `commands/` — `/plan` `/go` `/gate` `/loop`
-- `bin/probe.sh`, `bin/loop.sh`, `bin/gate.sh`, `hooks/commit-gate.sh`
+- `commands/` — `/sobaya-plan` `/go` `/gate` `/sobaya-loop`
+- `bin/install.sh`, `bin/probe.sh`, `bin/loop.sh`, `bin/gate.sh`, `hooks/commit-gate.sh`
 
 **워크스페이스** — 주방
-- **스킬 4종** — `sobaya`(오케스트레이션), `new-app`(스캐폴드 + tdd-set 설치), `reflect`, `meditate`
+- **스킬 3종** — `sobaya`(오케스트레이션), `reflect`, `meditate`
 - **훅 4종** — 세션 시작 시 brain 인덱스 주입, brain 쓰기 시 인덱스 재생성, PreToolUse 가드 2종(Fable 전용 루트, 워크스페이스 규칙) — 결정론적 POSIX 셸, fail-open
 - **brain/** — Obsidian 호환 영속 메모리: 원칙, 지식 노트, 앱 간 플랜, 백로그
 - **apps/** — 프로젝트마다 독립 git 저장소, 루트 저장소는 하네스만 추적
@@ -135,7 +135,7 @@ sobaya/
 ├── .claude/
 │   ├── settings.json  # 훅 와이어링
 │   ├── hooks/         # inject-brain, auto-index-brain, guard-fable-only, guard-workspace-rules
-│   └── skills/        # sobaya, new-app, reflect, meditate, tdd + gopher (tdd-set/ 링크)
+│   └── skills/        # sobaya, reflect, meditate, tdd + gopher (tdd-set/ 링크)
 ├── .githooks/         # commit-msg — Fable 전용 에이전트 커밋 게이트
 ├── tdd-set/           # 수명주기: Kent Beck CLAUDE.md, 템플릿, 스킬, 명령, bin/, hooks/
 ├── brain/             # 영속 메모리 볼트 (EN)

@@ -4,9 +4,9 @@
 #   1. brain/index.md is hook-generated — block hand edits.
 #   2. Flat root: block NEW project markers nested in apps/<name>/app{,s}/.
 #   3. Block NEW project markers outside apps/ and references/.
-#   4. App scaffold gate: real work in an app not registered in brain/apps.md
-#      requires the app's own git repo and a CLAUDE.md "Implementer:" model
-#      policy (Skill(new-app) produces both).
+#   4. App gate: real work in an app not registered in brain/apps.md requires
+#      the app's own git repo and a CLAUDE.md "- Test:" line — i.e. tdd-set
+#      installed (tdd-set/bin/install.sh produces both).
 # Registered apps are grandfathered; only marker CREATION is policed (2, 3),
 # so pre-rule nesting (bdad-mentor-match, office-automation-hub-design) and
 # Next.js app/ route files stay untouched.
@@ -68,7 +68,7 @@ case "$fp" in
     # Rule 3 — root harness territory: no new project markers.
     if [ "$is_marker" = 1 ] && [ ! -e "$fp" ]; then
       block "projects live only under apps/<name> (CLAUDE.md 'Workflow: Apps')." \
-        "Use Skill(new-app) to scaffold an app instead of creating $base here."
+        "Run tdd-set/bin/install.sh apps/<name> instead of creating $base here."
     fi
     exit 0
     ;;
@@ -90,7 +90,7 @@ if [ "$is_marker" = 1 ] && [ ! -e "$fp" ]; then
   esac
 fi
 
-# Rule 4 — scaffold gate. Registered apps are grandfathered.
+# Rule 4 — app gate. Registered apps are grandfathered.
 grep -qF "| $name " "$ROOT/brain/apps.md" 2>/dev/null && exit 0
 
 # Scaffold files may always be written — they are how an app becomes compliant.
@@ -100,10 +100,10 @@ esac
 
 [ -e "$appdir/.git" ] || block \
   "apps/$name is not a git repository — every app is its own repo (CLAUDE.md 'Workflow: Apps')." \
-  "Scaffold first via Skill(new-app): git init, CLAUDE.md with an 'Implementer:' model policy, then register in brain/apps.md."
+  "Run tdd-set/bin/install.sh apps/$name (git init + tdd-set), then register the app in brain/apps.md."
 
-grep -qi 'implementer[[:space:]]*:' "$appdir/CLAUDE.md" 2>/dev/null || block \
-  "apps/$name declares no model policy — the implementer model is chosen at app creation (CLAUDE.md 'Workflow')." \
-  "Add an 'Implementer: <model>' line (under '## Orchestration') to apps/$name/CLAUDE.md, then register the app in brain/apps.md."
+grep -qE '^- Test: ' "$appdir/CLAUDE.md" 2>/dev/null || block \
+  "apps/$name declares no test command — tdd-set is not installed (CLAUDE.md 'Skills')." \
+  "Run tdd-set/bin/install.sh apps/$name and fill the '- Test:' line in apps/$name/CLAUDE.md, then register the app in brain/apps.md."
 
 exit 0

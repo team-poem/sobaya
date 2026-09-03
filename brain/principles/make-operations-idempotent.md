@@ -9,8 +9,8 @@ different outcome, every interruption becomes a debugging session.
 **In practice:**
 - The index hook rebuilds from disk state (never appends) and exits without
   writing when nothing changed.
-- Scaffolds (new-app) refuse existing targets instead of half-applying over
-  them.
+- `tdd-set/bin/install.sh` creates only what is missing and never rewrites an
+  existing file, so re-running it is safe.
 - Resuming a plan means re-reading its checkboxes and continuing; re-running
   a completed step must be a no-op.
 

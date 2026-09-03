@@ -17,6 +17,9 @@ A hook injects its index at session start.
 - **Structure:** One topic per file. `brain/index.md` is rebuilt by a hook —
   never hand-edit it. Plan dirs maintain `brain/plans/index.md` by convention.
 - **Maintain:** Delete outdated notes. Move completed plans to `brain/archive/plans/`.
+- **Per-clone:** `brain/apps.md` is gitignored (each checkout grows its own
+  `apps/`); create it from `brain/apps.template.md`. App design docs never go
+  in `brain/` — they live in the app repo.
 
 ## Workflow
 
@@ -38,9 +41,9 @@ A hook injects its index at session start.
   and gate read them there. `brain/plans/NN-slug/` holds only cross-app or
   harness plans.
 - **Enforced:** flat-root nesting, project markers outside `apps/`,
-  `brain/index.md` hand-edits, and the app scaffold gate (own git repo +
-  `Implementer:` model policy in the app CLAUDE.md before real work in an
-  unregistered app) are blocked deterministically by a PreToolUse hook
+  `brain/index.md` hand-edits, and the app gate (own git repo + a `- Test:`
+  line in the app CLAUDE.md, i.e. `tdd-set/bin/install.sh` was run, before
+  real work in an unregistered app) are blocked deterministically by a PreToolUse hook
   (`.claude/hooks/guard-workspace-rules.sh`).
 
 ## Harness guard
@@ -63,9 +66,11 @@ code) and loop guards; `gopher` is the Go refactor checklist;
 `tdd-set/bin/loop.sh` repeats `claude -p "go"` until `plan.md` is fully
 checked, then `tdd-set/bin/gate.sh` passes only when every entry is
 checked, suite green, no existing test modified, each checked entry's test
-present in the suite. The human-written tests are the spec. Sobaya skills
-own the workspace: `sobaya` (orchestration), `new-app` (scaffold — installs tdd-set into the app),
-`reflect` (capture learnings), `meditate` (vault audit + skill refinement).
+present in the suite. The human-written tests are the spec.
+`tdd-set/bin/install.sh apps/<name>` puts all of it into a new or existing
+app; there is no separate scaffold step. Sobaya skills own the workspace:
+`sobaya` (orchestration), `reflect` (capture learnings), `meditate` (vault
+audit + skill refinement).
 
 ## Language
 

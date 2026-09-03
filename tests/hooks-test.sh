@@ -236,16 +236,16 @@ wpayload "$wproj/apps/rogue/main.py" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 
 wpayload "$wproj/apps/rogue/CLAUDE.md" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
 check $? "wguard: allows scaffold files in unregistered app"
 
-# --- wguard: unregistered app with .git but no Implementer: policy is blocked ---
+# --- wguard: unregistered app with .git but no Test: line (tdd-set not installed) is blocked ---
 mkdir -p "$wproj/apps/rogue/.git"
 printf '# Rogue\n' > "$wproj/apps/rogue/CLAUDE.md"
 wpayload "$wproj/apps/rogue/main.py" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
-[ $? -eq 2 ]; check $? "wguard: blocks unregistered app lacking Implementer policy"
+[ $? -eq 2 ]; check $? "wguard: blocks unregistered app lacking a Test: line"
 
-# --- wguard: unregistered app with .git + Implementer: passes ---
-printf '# Rogue\n\n## Orchestration\nImplementer: claude-sonnet-5\n' > "$wproj/apps/rogue/CLAUDE.md"
+# --- wguard: unregistered app with .git + Test: line passes ---
+printf '# Rogue\n\n## App facts\n- Test: `go test ./...`\n' > "$wproj/apps/rogue/CLAUDE.md"
 wpayload "$wproj/apps/rogue/main.py" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
-check $? "wguard: allows scaffolded + policied unregistered app"
+check $? "wguard: allows git-initialized app with tdd-set installed"
 
 # --- wguard: malformed input fails open ---
 printf 'not json' | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null

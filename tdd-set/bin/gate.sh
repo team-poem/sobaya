@@ -4,7 +4,7 @@
 # are the spec; nothing else is judged.
 # usage: bin/gate.sh [start_commit]
 set -u
-start=${1:-$(cat .tdd-loop-start 2>/dev/null)}
+start=${1:-$(cat .git/sobaya-loop-start 2>/dev/null)}
 [ -n "$start" ] || { echo "no start commit"; exit 1; }
 fail=0
 test_globs=('*_test.go' '*_test.py' '*.test.*' '*.spec.*')

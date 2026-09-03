@@ -26,7 +26,7 @@ It is **not a framework** and uses **no plugins** — git, shell, `claude -p`, a
 
 ```mermaid
 flowchart LR
-    S["spec.md<br>human: goal · must · must not"] --> P["/plan<br>enumerate cases → probe each red → plan.md as code"]
+    S["spec.md<br>human: goal · must · must not"] --> P["/sobaya-plan<br>enumerate cases → probe each red → plan.md as code"]
     P -- approve --> G["/go × N<br>copy test verbatim → red → green → commit<br>refactor while green → commit"]
     G --> T["/gate<br>100% checked · suite green<br>tests untouched · names present"]
     T --> R["review<br>refuter subagent"]
@@ -37,14 +37,14 @@ flowchart LR
 | Stage | Who | What happens |
 |---|---|---|
 | **Spec** | Human | `spec.md` in the app root: goal, must, must-not. Agents read it and never edit it. |
-| **Plan** | `/plan` (the `tdd` skill, Phase 0) | Split the feature into small features and enumerate as many test cases as possible. Each candidate is run through `probe.sh`: dropped into the package as a temporary file, executed, deleted. Only tests that print **RED** are written into `plan.md` — as a checkbox plus the complete test function. The code lives in the doc, not in the suite. Human approves. |
+| **Plan** | Human, `/sobaya-plan` drafts | The agent splits the feature, enumerates as many cases as it can, probes each (dropped into the package as a temporary file, executed, deleted) and writes only those that print **RED** into `plan.md` as a checkbox plus the complete test function. Then it asks once: *reviewed and added yours — proceed?* The human edits `plan.md` directly, adds cases, removes weak ones. Nothing verifies that review; the human is trusted, and the loop is exactly as good as their tests. |
 | **Cycle** | `/go` (Kent Beck's `CLAUDE.md`) | Take the next unchecked entry. Copy its test **verbatim** into the suite. Full suite: expect red. Minimum code to green. Commit the behavioral change (test + code + checked box). Then, still green, refactor one step at a time (`gopher` for Go) and commit structural changes separately. Report one line, stop. |
-| **Loop** | `/loop` (`loop.sh`) | Repeats `claude -p "go"` until no unchecked entry remains. Stops after three cycles without a commit. Uncommitted leftovers are stashed, never lost. |
+| **Loop** | `/sobaya-loop` (`loop.sh`) | Only ever runs "go", never plans. Repeats `claude -p "go"` until no unchecked entry remains; halts if an iteration adds entries (defect flow) because nobody inside the loop can be asked; stops after three cycles without a commit. Leftovers are stashed, never lost. |
 | **Gate** | `/gate` (`gate.sh`) | See [What the gate enforces](#what-the-gate-enforces). PASS or FAIL, nothing in between. |
 | **Review** | Sobaya refuter dispatch | An independent subagent told to refute the work — never the one that implemented it. |
 | **Learn** | `reflect` / `meditate` | Session learnings → `brain/`; accumulated lessons → principles and skill edits. |
 
-A defect found mid-loop follows Kent Beck's rule through the plan: probe an API-level failing test and the smallest reproducing test, append both to `plan.md`, commit, and let the next cycles take them.
+A defect found mid-loop follows Kent Beck's rule through the plan: the agent probes an API-level failing test and the smallest reproducing test, appends both to `plan.md`, commits, and the loop halts because nobody inside it can be asked. The human looks and re-runs.
 
 ## Getting started
 
@@ -54,8 +54,8 @@ cd sobaya && claude
 
 | You want | Do this |
 |---|---|
-| **A new app** | Ask for `new-app`. It scaffolds `apps/<name>` as its own git repo, installs tdd-set (Kent Beck's `CLAUDE.md`, `spec.md` and `plan.md` templates, the `tdd` and `gopher` skills, the `/plan` `/go` `/gate` `/loop` commands, the commit hook) and registers the app. |
-| **A feature** | Fill `spec.md`. Run `/plan`, approve the list. Then `/go` per cycle in the session, or `/loop 30` for the whole plan, then `/gate`. |
+| **Any app, new or existing** | `tdd-set/bin/install.sh apps/<name>` — git init if needed, Kent Beck's `CLAUDE.md` appended, `spec.md` and `plan.md` templates, the `tdd` and `gopher` skills, the `/sobaya-plan` `/go` `/gate` `/sobaya-loop` commands, the commit hook. Idempotent. Then add a row to `brain/apps.md`. |
+| **A feature** | Fill `spec.md`. Run `/sobaya-plan`, read the draft, add and remove cases in `plan.md` yourself, answer yes. Then `/go` per cycle in the session, or `/sobaya-loop 30` for the whole plan, then `/gate`. |
 | **A bug** | Probe a failing test that reproduces it, append it to `plan.md`, `/go`. |
 | **To wrap up** | `reflect` captures what the session learned; `meditate` periodically curates the vault. |
 
@@ -87,11 +87,11 @@ The commit hook (`commit-gate.sh`) blocks `git commit` when `Format:` prints any
 - `CLAUDE.md` — Kent Beck's TDD + Tidy First rules, verbatim ([source](https://github.com/KentBeck/BPlusTree3/blob/main/rust/docs/CLAUDE.md), commit `e1f539e`)
 - `spec-template.md`, `plan-template.md` — the two human documents
 - `skills/tdd` — Phase 0 (probe-then-record) and the loop guards CLAUDE.md lacks; `skills/gopher` — Go refactor checklist, never renames what a test references
-- `commands/` — `/plan` `/go` `/gate` `/loop`
-- `bin/probe.sh`, `bin/loop.sh`, `bin/gate.sh`, `hooks/commit-gate.sh`
+- `commands/` — `/sobaya-plan` `/go` `/gate` `/sobaya-loop`
+- `bin/install.sh`, `bin/probe.sh`, `bin/loop.sh`, `bin/gate.sh`, `hooks/commit-gate.sh`
 
 **Workspace** — the kitchen
-- **4 skills** — `sobaya` (orchestration), `new-app` (scaffold + tdd-set install), `reflect`, `meditate`
+- **3 skills** — `sobaya` (orchestration), `reflect`, `meditate`
 - **4 hooks** — brain index injected at session start; index rebuilt on brain writes; two PreToolUse guards (Fable-only root, workspace rules) — deterministic POSIX shell, fail-open
 - **brain/** — Obsidian-compatible persistent memory: principles, codebase notes, cross-app plans, backlog
 - **apps/** — every project is its own git repository; the root repo tracks only the harness
@@ -135,7 +135,7 @@ sobaya/
 ├── .claude/
 │   ├── settings.json  # hook wiring
 │   ├── hooks/         # inject-brain, auto-index-brain, guard-fable-only, guard-workspace-rules
-│   └── skills/        # sobaya, new-app, reflect, meditate, tdd + gopher (links into tdd-set/)
+│   └── skills/        # sobaya, reflect, meditate, tdd + gopher (links into tdd-set/)
 ├── .githooks/         # commit-msg — Fable-only agent commit gate
 ├── tdd-set/           # the lifecycle: Kent Beck CLAUDE.md, templates, skills, commands, bin/, hooks/
 ├── brain/             # persistent memory vault (EN)
