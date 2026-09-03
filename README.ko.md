@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="banner.svg" alt="Sobaya" width="100%">
+<img src="logo.svg" alt="Sobaya" width="180">
 
 ### Sobaya
 
