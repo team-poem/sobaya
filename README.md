@@ -10,7 +10,7 @@ Failing tests first, then the agent.
 
 </div>
 
-`sobaya` is an agentic-engineering workspace for Claude Code and Codex. The human writes the spec and every failing test; a loop turns them green one test at a time under TDD + Tidy First rules; a gate refuses anything that touched the tests. No plugins, no daemon — git, shell, `claude -p`, and markdown.
+`sobaya` is an agentic engineering workspace. The human writes the spec and every failing test. A loop turns them green one test at a time under TDD + Tidy First rules. A gate refuses anything that touched the tests. No plugins, no daemon. Just git, shell, `claude -p`, and markdown.
 
 ## Features
 
@@ -19,8 +19,8 @@ Failing tests first, then the agent.
 - Behavioral and structural changes never share a commit
 - Deterministic gate: plan 100% checked, suite green, no existing test line touched, every checked entry present in the suite
 - Command lines declared once in the app `AGENTS.md` (`Test`, `Format`, `Lint`, `Bench`) and enforced by the gate and a commit hook
-- One contract file for both agents: `AGENTS.md`, with `CLAUDE.md` pointing at it; one skills directory
-- Persistent memory in `brain/`, injected at session start; fail-open shell hooks; one writer per app
+- One contract file for every agent, `AGENTS.md`, with `CLAUDE.md` pointing at it. One skills directory
+- Persistent memory in `brain/`, injected at session start. Shell hooks that fail open. One writer per app
 
 ## The loop
 
@@ -34,11 +34,11 @@ flowchart LR
     F -. next session .-> S
 ```
 
-- **Spec** — the human fills `spec.md`. Agents read it, never edit it.
-- **Plan** — `/sobaya-plan` drafts `plan.md`: split the feature, enumerate as many cases as possible, probe each one, keep only those that print RED. It asks once — *reviewed and added yours, proceed?* — and the human edits the file directly. Nothing verifies the review; the loop is exactly as good as the human's tests.
-- **Cycle** — `/go` takes the next unchecked entry and runs one Red → Green → Refactor cycle. `/sobaya-loop` repeats it until the plan is done or stalls.
-- **Gate** — `/gate` is PASS or FAIL, nothing in between. A defect found mid-loop is appended to `plan.md` as two probed tests and the loop halts for the human.
-- **Review, reflect** — an independent subagent refutes the work; learnings land in `brain/` for the next session.
+- **Spec.** The human fills `spec.md`. Agents read it, never edit it.
+- **Plan.** `/sobaya-plan` drafts `plan.md`: split the feature, enumerate as many cases as possible, probe each one, keep only those that print RED. It asks once, *reviewed and added yours, proceed?*, and the human edits the file directly. Nothing verifies the review. The loop is exactly as good as the human's tests.
+- **Cycle.** `/go` takes the next unchecked entry and runs one Red → Green → Refactor cycle. `/sobaya-loop` repeats it until the plan is done or stalls.
+- **Gate.** `/gate` is PASS or FAIL, nothing in between. A defect found during the loop is appended to `plan.md` as two probed tests and the loop halts for the human.
+- **Review, reflect.** An independent subagent refutes the work. Learnings land in `brain/` for the next session.
 
 ## Installation
 
@@ -52,7 +52,7 @@ Works on a new or an existing app, and is idempotent. Details in the [tdd-set re
 
 - Session: `cd sobaya && claude` (or Codex). Fill `spec.md`, run `/sobaya-plan`, answer yes, then `/go` per cycle or `/sobaya-loop 30`, then `/gate`. See the [usage guide](docs/guide.md).
 - Shell: `../../tdd-set/bin/loop.sh 30` and `../../tdd-set/bin/gate.sh` from the app root. See the [tdd-set reference](tdd-set/README.md).
-- Another stack: add `skills/<stack>` and swap the four command lines in the app `AGENTS.md`; `probe.sh` is Go-only today.
+- Another stack: add `skills/<stack>` and swap the four command lines in the app `AGENTS.md`. `probe.sh` is Go only today.
 
 ## What the gate enforces
 
@@ -67,12 +67,12 @@ The commit hook blocks `git commit` when `Format:` prints anything or `Lint:` fa
 
 ## Documentation
 
-- [Usage guide](docs/guide.md) (Korean) — how a session actually flows
-- [tdd-set reference](tdd-set/README.md) (Korean) — every file, script, and command
-- [AGENTS.md](AGENTS.md) — the harness contract both agents read
-- [From noodle to Sobaya](docs/from-noodle.md) — where the workspace conventions come from
+- [Usage guide](docs/guide.md) (Korean): how a session actually flows
+- [tdd-set reference](tdd-set/README.md) (Korean): every file, script, and command
+- [AGENTS.md](AGENTS.md): the harness contract every agent reads
+- [From noodle to Sobaya](docs/from-noodle.md): where the workspace conventions come from
 
 ## Attribution
 
-- **Kent Beck** — `tdd-set/AGENTS.md` is his BPlusTree3 `rust/docs/CLAUDE.md` verbatim (commit `e1f539e`); the plan-as-checklist idea comes from his TCRSkill `plan.md`; the command lines in the app `AGENTS.md` follow his `agent.md`
-- **noodle** — brain vault, reflect/meditate, deterministic hooks, one-writer-per-app. [Mapping](docs/from-noodle.md)
+- **Kent Beck.** `tdd-set/AGENTS.md` is his BPlusTree3 `rust/docs/CLAUDE.md` verbatim (commit `e1f539e`). The plan as a checklist comes from his TCRSkill `plan.md`. The command lines in the app `AGENTS.md` follow his `agent.md`.
+- **noodle.** Brain vault, reflect and meditate, deterministic hooks, one writer per app. [Mapping](docs/from-noodle.md)
