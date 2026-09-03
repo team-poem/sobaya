@@ -28,13 +28,13 @@
 
   <!-- two plates under the bowl: red, then green -->
   <g>
-    <ellipse cx="74" cy="212" rx="40" ry="11" fill="#e5484d"/>
-    <ellipse cx="74" cy="208" rx="40" ry="11" fill="#f26b6f"/>
-    <ellipse cx="74" cy="208" rx="22" ry="5" fill="#e5484d"/>
+    <ellipse cx="74" cy="212" rx="40" ry="11" fill="#f19a9d"/>
+    <ellipse cx="74" cy="208" rx="40" ry="11" fill="#f7bfc1"/>
+    <ellipse cx="74" cy="208" rx="22" ry="5" fill="#f19a9d"/>
   </g>
   <g>
-    <ellipse cx="166" cy="212" rx="40" ry="11" fill="#2ea043"/>
-    <ellipse cx="166" cy="208" rx="40" ry="11" fill="#3fb950"/>
-    <ellipse cx="166" cy="208" rx="22" ry="5" fill="#2ea043"/>
+    <ellipse cx="166" cy="212" rx="40" ry="11" fill="#7fd394"/>
+    <ellipse cx="166" cy="208" rx="40" ry="11" fill="#b3e6bf"/>
+    <ellipse cx="166" cy="208" rx="22" ry="5" fill="#7fd394"/>
   </g>
 </svg>
