@@ -22,7 +22,7 @@ changes plan.md.
 6. State: prefer values over pointers unless mutation is needed; no package-level mutable vars.
 7. Concurrency added? Every goroutine has an exit path and a `context.Context`.
 8. Exported surface: nothing exported that only this package uses.
-9. Touched a hot path? Run the CLAUDE.md `Bench:` command before and after; put both numbers in
+9. Touched a hot path? Run the AGENTS.md `Bench:` command before and after; put both numbers in
    the `refactor:` commit message. A regression is not a refactor — revert it.
 
 ## Commit

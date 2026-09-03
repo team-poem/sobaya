@@ -41,7 +41,7 @@ For each candidate ask: **"Would this matter in a different task?"**
    increment the counter. IDs are permanent; never renumber.
 
 **Memory split:** workspace/app knowledge → `brain/`. User preferences and
-cross-project facts → Codex auto-memory. Never duplicate one fact into
+cross-project facts → the agent's own auto-memory. Never duplicate one fact into
 both.
 
 ## 4. Report

@@ -1,14 +1,14 @@
 ---
 name: tdd
 description: >-
-  Plan phase and loop guards on top of CLAUDE.md (Kent Beck's TDD + Tidy First rules, verbatim).
+  Plan phase and loop guards on top of the app AGENTS.md (the TDD + Tidy First rules).
   Use when the user asks to plan a feature test-first, says "tdd", or before the first "go".
-  The Red/Green/Refactor cycle itself lives in CLAUDE.md; this skill only adds what it lacks.
+  The Red/Green/Refactor cycle itself lives in AGENTS.md; this skill only adds what it lacks.
 ---
 
 # TDD (plan.md driven)
 
-`CLAUDE.md` holds the cycle rules: "go" = next unchecked test in `plan.md`, Red → Green →
+`AGENTS.md` holds the cycle rules: "go" = next unchecked test in `plan.md`, Red → Green →
 Refactor (Tidy First), commit discipline. Follow it exactly. This skill adds only what it lacks.
 
 ## Phase 0 — Plan (once per feature, before the first "go")
@@ -54,7 +54,7 @@ stop and ask the human to fill it first.
 
 ## Defect found during a "go"
 
-CLAUDE.md's rule applies (API-level failing test first, then the smallest test that reproduces
+AGENTS.md's defect rule applies (API-level failing test first, then the smallest test that reproduces
 the problem), through the plan: probe each of the two tests with `probe.sh`, **append** them
 as new unchecked entries at the end of `plan.md` (never edit or reorder existing entries),
 commit that `plan.md` change on its own, and stop. Inside `loop.sh` nobody can answer, so the

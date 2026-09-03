@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# PreToolUse hook (Bash): before `git commit`, run the hygiene commands the app CLAUDE.md
-# declares — the same spot Kent Beck kept `cargo fmt` / `cargo test` in agent.md:
+# PreToolUse hook (Bash): before `git commit`, run the hygiene commands the app AGENTS.md declares:
 #   - Format: `gofmt -l .`      (must print nothing)
 #   - Lint:   `go vet ./...`    (must exit 0)
 # Any failing command blocks the commit (exit 2). No lines declared → Go defaults if go.mod exists.
@@ -9,10 +8,10 @@ grep -qE '(^|[;&| ])git( -C [^ ]+)? commit' <<<"$cmd" || exit 0
 # `git -C <dir> commit` from the Sobaya root: gate that app, not the root
 dir=$(sed -nE 's/.*git -C ([^ ]+) .*/\1/p' <<<"$cmd" | head -1)
 [ -n "$dir" ] && cd "$dir" 2>/dev/null
-[ -f CLAUDE.md ] || exit 0
+[ -f AGENTS.md ] || exit 0
 
-fmt_cmd=$(sed -nE 's/^- Format: `?([^`]+)`?.*/\1/p' CLAUDE.md | head -1)
-lint_cmd=$(sed -nE 's/^- Lint: `?([^`]+)`?.*/\1/p' CLAUDE.md | head -1)
+fmt_cmd=$(sed -nE 's/^- Format: `?([^`]+)`?.*/\1/p' AGENTS.md | head -1)
+lint_cmd=$(sed -nE 's/^- Lint: `?([^`]+)`?.*/\1/p' AGENTS.md | head -1)
 if [ -z "$fmt_cmd$lint_cmd" ]; then
   [ -f go.mod ] || exit 0
   fmt_cmd='gofmt -l .'; lint_cmd='go vet ./...'

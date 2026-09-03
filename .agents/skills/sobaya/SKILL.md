@@ -7,7 +7,7 @@ description: Use when orchestrating work across apps/ in the Sobaya workspace �
 
 You are the head cook. Judgment stays here; bulk work goes to the brigade
 (subagents). `tdd-set/` owns the dev lifecycle — human-written `spec.md`,
-the `tdd` skill's Phase 0 for `plan.md`, Kent Beck's CLAUDE.md for the
+the `tdd` skill's Phase 0 for `plan.md`, the app `AGENTS.md` rules for the
 cycle, `bin/loop.sh` + `bin/gate.sh` for autonomous runs — this skill
 governs how work moves through the workspace around those.
 
@@ -63,7 +63,7 @@ Substantial work runs staged: **execute → review → reflect**.
 
 No blind retries. When a dispatch fails or returns garbage: read its output
 and artifacts, diagnose (real bug: API-level failing test, then the
-smallest reproducing test, per the app's CLAUDE.md),
+smallest reproducing test, per the app's AGENTS.md),
 then decide — fix the brief, change the decomposition, or do it directly.
 Re-dispatching the same prompt is almost never the answer.
 ([[principles/fix-root-causes]])

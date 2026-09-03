@@ -1,6 +1,6 @@
 #!/bin/sh
 # PreToolUse(Write|Edit|MultiEdit|NotebookEdit) hook: the root harness repo
-# is maintained by Fable sessions only (CLAUDE.md "Harness guard"). Block
+# is maintained by Fable sessions only (AGENTS.md "Harness guard"). Block
 # file mutations inside the root repo when the session model is not Fable;
 # apps/ and references/ are other repos and stay unrestricted.
 #
@@ -53,7 +53,7 @@ esac
 cat >&2 <<EOF
 sobaya harness guard: blocked — this session runs on "$model", but the root
 harness repo (everything outside apps/ and references/) is maintained by
-Claude Fable 5 sessions only. See CLAUDE.md "Harness guard".
+Claude Fable 5 sessions only. See AGENTS.md "Harness guard".
 Target: $fp
 Work under apps/ is unrestricted. For harness changes, describe the change
 to the user and let a Fable session apply it. Do not retry or work around

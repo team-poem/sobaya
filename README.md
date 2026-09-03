@@ -7,7 +7,7 @@
 <br>
 
 *Failing tests first, then the agent.*<br>
-*An agentic-engineering workspace built on Kent Beck's TDD: the human writes the spec and every failing test,*<br>
+*An agentic-engineering workspace built on TDD: the human writes the spec and every failing test,*<br>
 *the agent loop turns them green one at a time, and a gate refuses anything that touched the tests.*
 
 <br>
@@ -18,7 +18,7 @@
 
 ---
 
-Sobaya (蕎麦屋, a soba shop) is a workspace where the **failing tests are the spec**. Before any implementation exists, every test case is written as code, proven red, and recorded in `plan.md`. An autonomous loop then runs Kent Beck's TDD rules — his `CLAUDE.md`, verbatim — one test per cycle: copy it into the suite, watch it fail, write the minimum, refactor while green, commit. When the plan is fully checked, a shell gate declares the feature done only if the suite is green and no existing test line was modified. Around that loop, Sobaya adds the kitchen: persistent memory (`brain/`), deterministic hooks, and subagent discipline.
+Sobaya (蕎麦屋, a soba shop) is a workspace where the **failing tests are the spec**. Before any implementation exists, every test case is written as code, proven red, and recorded in `plan.md`. An autonomous loop then runs the TDD rules in the app's `AGENTS.md`, one test per cycle: copy it into the suite, watch it fail, write the minimum, refactor while green, commit. When the plan is fully checked, a shell gate declares the feature done only if the suite is green and no existing test line was modified. Around that loop, Sobaya adds the kitchen: persistent memory (`brain/`), deterministic hooks, and subagent discipline.
 
 It is **not a framework** and uses **no plugins** — git, shell, `claude -p`, and markdown.
 
@@ -38,13 +38,13 @@ flowchart LR
 |---|---|---|
 | **Spec** | Human | `spec.md` in the app root: goal, must, must-not. Agents read it and never edit it. |
 | **Plan** | Human, `/sobaya-plan` drafts | The agent splits the feature, enumerates as many cases as it can, probes each (dropped into the package as a temporary file, executed, deleted) and writes only those that print **RED** into `plan.md` as a checkbox plus the complete test function. Then it asks once: *reviewed and added yours — proceed?* The human edits `plan.md` directly, adds cases, removes weak ones. Nothing verifies that review; the human is trusted, and the loop is exactly as good as their tests. |
-| **Cycle** | `/go` (Kent Beck's `CLAUDE.md`) | Take the next unchecked entry. Copy its test **verbatim** into the suite. Full suite: expect red. Minimum code to green. Commit the behavioral change (test + code + checked box). Then, still green, refactor one step at a time (`gopher` for Go) and commit structural changes separately. Report one line, stop. |
+| **Cycle** | `/go` (the app `AGENTS.md` rules) | Take the next unchecked entry. Copy its test **verbatim** into the suite. Full suite: expect red. Minimum code to green. Commit the behavioral change (test + code + checked box). Then, still green, refactor one step at a time (`gopher` for Go) and commit structural changes separately. Report one line, stop. |
 | **Loop** | `/sobaya-loop` (`loop.sh`) | Only ever runs "go", never plans. Repeats `claude -p "go"` until no unchecked entry remains; halts if an iteration adds entries (defect flow) because nobody inside the loop can be asked; stops after three cycles without a commit. Leftovers are stashed, never lost. |
 | **Gate** | `/gate` (`gate.sh`) | See [What the gate enforces](#what-the-gate-enforces). PASS or FAIL, nothing in between. |
 | **Review** | Sobaya refuter dispatch | An independent subagent told to refute the work — never the one that implemented it. |
 | **Learn** | `reflect` / `meditate` | Session learnings → `brain/`; accumulated lessons → principles and skill edits. |
 
-A defect found mid-loop follows Kent Beck's rule through the plan: the agent probes an API-level failing test and the smallest reproducing test, appends both to `plan.md`, commits, and the loop halts because nobody inside it can be asked. The human looks and re-runs.
+A defect found mid-loop follows the defect rule through the plan: the agent probes an API-level failing test and the smallest reproducing test, appends both to `plan.md`, commits, and the loop halts because nobody inside it can be asked. The human looks and re-runs.
 
 ## Getting started
 
@@ -54,12 +54,12 @@ cd sobaya && claude
 
 | You want | Do this |
 |---|---|
-| **Any app, new or existing** | `tdd-set/bin/install.sh apps/<name>` — git init if needed, Kent Beck's `CLAUDE.md` appended, `spec.md` and `plan.md` templates, the `tdd` and `gopher` skills, the `/sobaya-plan` `/go` `/gate` `/sobaya-loop` commands, the commit hook. Idempotent. Then add a row to `brain/apps.md`. |
+| **Any app, new or existing** | `tdd-set/bin/install.sh apps/<name>` — git init if needed, the TDD rules appended to `AGENTS.md`, `spec.md` and `plan.md` templates, the `tdd` and `gopher` skills, the `/sobaya-plan` `/go` `/gate` `/sobaya-loop` commands, the commit hook. Idempotent. Then add a row to `brain/apps.md`. |
 | **A feature** | Fill `spec.md`. Run `/sobaya-plan`, read the draft, add and remove cases in `plan.md` yourself, answer yes. Then `/go` per cycle in the session, or `/sobaya-loop 30` for the whole plan, then `/gate`. |
 | **A bug** | Probe a failing test that reproduces it, append it to `plan.md`, `/go`. |
 | **To wrap up** | `reflect` captures what the session learned; `meditate` periodically curates the vault. |
 
-The app's `CLAUDE.md` declares the command lines the harness runs — the spot Kent Beck used for `cargo fmt` and `cargo test` in his `agent.md`:
+The app's `AGENTS.md` declares the command lines the harness runs:
 
 ```markdown
 - Test: `go test ./...`                      ← gate
@@ -84,7 +84,7 @@ The commit hook (`commit-gate.sh`) blocks `git commit` when `Format:` prints any
 ## What's inside
 
 **tdd-set/** — the lifecycle
-- `CLAUDE.md` — Kent Beck's TDD + Tidy First rules, verbatim ([source](https://github.com/KentBeck/BPlusTree3/blob/main/rust/docs/CLAUDE.md), commit `e1f539e`)
+- `AGENTS.md` — the TDD + Tidy First rules, appended into every app's `AGENTS.md` (origin under Attribution)
 - `spec-template.md`, `plan-template.md` — the two human documents
 - `skills/tdd` — Phase 0 (probe-then-record) and the loop guards CLAUDE.md lacks; `skills/gopher` — Go refactor checklist, never renames what a test references
 - `commands/` — `/sobaya-plan` `/go` `/gate` `/sobaya-loop`
@@ -130,14 +130,14 @@ The kitchen conventions come from [poteto/noodle](https://github.com/poteto/nood
 
 ```
 sobaya/
-├── CLAUDE.md          # harness contract (EN)
+├── AGENTS.md          # harness contract (EN); CLAUDE.md just points here
 ├── banner.svg
 ├── .claude/
 │   ├── settings.json  # hook wiring
 │   ├── hooks/         # inject-brain, auto-index-brain, guard-fable-only, guard-workspace-rules
-│   └── skills/        # sobaya, reflect, meditate, tdd + gopher (links into tdd-set/)
+│   └── skills/        # → link to .agents/skills (sobaya, reflect, meditate, tdd + gopher)
 ├── .githooks/         # commit-msg — Fable-only agent commit gate
-├── tdd-set/           # the lifecycle: Kent Beck CLAUDE.md, templates, skills, commands, bin/, hooks/
+├── tdd-set/           # the lifecycle: AGENTS.md rules, templates, skills, commands, bin/, hooks/
 ├── brain/             # persistent memory vault (EN)
 │   ├── index.md       # hook-generated — never hand-edit
 │   ├── principles/    # decision rules
@@ -153,7 +153,7 @@ sobaya/
 
 ## Attribution
 
-- **Kent Beck** — `tdd-set/CLAUDE.md` is his BPlusTree3 `rust/docs/CLAUDE.md` verbatim (commit `e1f539e`); the plan-as-checklist idea comes from his TCRSkill `plan.md`; the command lines in the app `CLAUDE.md` follow his `agent.md`
+- **Kent Beck** — `tdd-set/AGENTS.md` is his BPlusTree3 `rust/docs/CLAUDE.md` verbatim (commit `e1f539e`); the plan-as-checklist idea comes from his TCRSkill `plan.md`; the command lines in the app `AGENTS.md` follow his `agent.md`
 - **noodle** (analyzed at commit `82d2921`) — brain vault structure, the reflect/meditate loop, deterministic hooks, and its Go mechanics adopted as conventions (atomic writes, one writer per target, worktree isolation, diagnose-don't-retry). Working clone: `references/noodle/`
 
 Usage guide (Korean): [docs/guide.md](docs/guide.md) · tdd-set reference: [tdd-set/README.md](tdd-set/README.md)

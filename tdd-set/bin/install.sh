@@ -10,8 +10,8 @@ name=$(basename "$app")
 mkdir -p "$app"
 [ -d "$app/.git" ] || git -C "$app" init -q -b main
 
-if [ ! -f "$app/CLAUDE.md" ]; then
-  cat > "$app/CLAUDE.md" <<EOF
+if [ ! -f "$app/AGENTS.md" ]; then
+  cat > "$app/AGENTS.md" <<EOF
 # $name
 
 <One line: what this app is.>
@@ -25,8 +25,9 @@ if [ ! -f "$app/CLAUDE.md" ]; then
 - Bench: \`go test -bench=. -benchmem ./...\`
 EOF
 fi
-# Kent Beck's rules, appended once (verbatim file; "Tidy First" is its marker)
-grep -q 'Tidy First' "$app/CLAUDE.md" || { printf '\n'; cat "$here/CLAUDE.md"; } >> "$app/CLAUDE.md"
+# the TDD rules, appended once ("Tidy First" is their marker); CLAUDE.md only points at AGENTS.md
+grep -q 'Tidy First' "$app/AGENTS.md" || { printf '\n'; cat "$here/AGENTS.md"; } >> "$app/AGENTS.md"
+[ -f "$app/CLAUDE.md" ] || printf 'Read and follow `AGENTS.md`.\n' > "$app/CLAUDE.md"
 
 [ -f "$app/spec.md" ] || cp "$here/spec-template.md" "$app/spec.md"
 [ -f "$app/plan.md" ] || cp "$here/plan-template.md" "$app/plan.md"
@@ -48,5 +49,5 @@ with open(p, "w") as f:
 PY
 
 echo "tdd-set installed in $app"
-grep -qE '^- Test: `[^<]' "$app/CLAUDE.md" || echo "next: fill the Test/Format/Lint/Bench lines in $app/CLAUDE.md"
+grep -qE '^- Test: `[^<]' "$app/AGENTS.md" || echo "next: fill the Test/Format/Lint/Bench lines in $app/AGENTS.md"
 echo "next: add a row for $name to brain/apps.md, fill spec.md, then /sobaya-plan"

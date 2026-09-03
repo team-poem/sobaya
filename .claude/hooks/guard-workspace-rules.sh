@@ -1,11 +1,11 @@
 #!/bin/sh
 # PreToolUse(Write|Edit|MultiEdit|NotebookEdit) hook: deterministic gates for
-# the CLAUDE.md "Brain"/"Workflow" rules that a doc alone cannot guarantee:
+# the AGENTS.md "Brain"/"Workflow" rules that a doc alone cannot guarantee:
 #   1. brain/index.md is hook-generated — block hand edits.
 #   2. Flat root: block NEW project markers nested in apps/<name>/app{,s}/.
 #   3. Block NEW project markers outside apps/ and references/.
 #   4. App gate: real work in an app not registered in brain/apps.md requires
-#      the app's own git repo and a CLAUDE.md "- Test:" line — i.e. tdd-set
+#      the app's own git repo and an AGENTS.md "- Test:" line — i.e. tdd-set
 #      installed (tdd-set/bin/install.sh produces both).
 # Registered apps are grandfathered; only marker CREATION is policed (2, 3),
 # so pre-rule nesting (bdad-mentor-match, office-automation-hub-design) and
@@ -58,7 +58,7 @@ esac
 
 # Rule 1 — brain/index.md is machine-owned.
 [ "$fp" = "$ROOT/brain/index.md" ] && block \
-  "brain/index.md is rebuilt by a hook (auto-index-brain.sh); never hand-edit it (CLAUDE.md 'Brain')." \
+  "brain/index.md is rebuilt by a hook (auto-index-brain.sh); never hand-edit it (AGENTS.md 'Brain')." \
   "Edit the individual brain notes instead — the index regenerates on write."
 
 case "$fp" in
@@ -67,7 +67,7 @@ case "$fp" in
   *)
     # Rule 3 — root harness territory: no new project markers.
     if [ "$is_marker" = 1 ] && [ ! -e "$fp" ]; then
-      block "projects live only under apps/<name> (CLAUDE.md 'Workflow: Apps')." \
+      block "projects live only under apps/<name> (AGENTS.md 'Workflow: Apps')." \
         "Run tdd-set/bin/install.sh apps/<name> instead of creating $base here."
     fi
     exit 0
@@ -84,7 +84,7 @@ appdir="$ROOT/apps/$name"
 if [ "$is_marker" = 1 ] && [ ! -e "$fp" ]; then
   case "$inapp" in
     app/*|apps/*)
-      block "flat root — apps/<name> IS the project root; never nest a project or workspace inside it (CLAUDE.md 'Workflow: Flat root')." \
+      block "flat root — apps/<name> IS the project root; never nest a project or workspace inside it (AGENTS.md 'Workflow: Flat root')." \
         "Existing nested repos are grandfathered; new nesting is not. Put sources directly in apps/$name or scaffold a sibling app."
       ;;
   esac
@@ -95,15 +95,15 @@ grep -qF "| $name " "$ROOT/brain/apps.md" 2>/dev/null && exit 0
 
 # Scaffold files may always be written — they are how an app becomes compliant.
 case "$inapp" in
-  CLAUDE.md|README*|.gitignore|LICENSE*) exit 0 ;;
+  AGENTS.md|CLAUDE.md|README*|.gitignore|LICENSE*) exit 0 ;;
 esac
 
 [ -e "$appdir/.git" ] || block \
-  "apps/$name is not a git repository — every app is its own repo (CLAUDE.md 'Workflow: Apps')." \
+  "apps/$name is not a git repository — every app is its own repo (AGENTS.md 'Workflow: Apps')." \
   "Run tdd-set/bin/install.sh apps/$name (git init + tdd-set), then register the app in brain/apps.md."
 
-grep -qE '^- Test: ' "$appdir/CLAUDE.md" 2>/dev/null || block \
-  "apps/$name declares no test command — tdd-set is not installed (CLAUDE.md 'Skills')." \
-  "Run tdd-set/bin/install.sh apps/$name and fill the '- Test:' line in apps/$name/CLAUDE.md, then register the app in brain/apps.md."
+grep -qE '^- Test: ' "$appdir/AGENTS.md" 2>/dev/null || block \
+  "apps/$name declares no test command — tdd-set is not installed (AGENTS.md 'Skills')." \
+  "Run tdd-set/bin/install.sh apps/$name and fill the '- Test:' line in apps/$name/AGENTS.md, then register the app in brain/apps.md."
 
 exit 0

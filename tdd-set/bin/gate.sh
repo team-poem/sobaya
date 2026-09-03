@@ -13,8 +13,8 @@ if grep -q '^- \[ \]' plan.md; then
   echo "FAIL unchecked entries:"; grep '^- \[ \]' plan.md; fail=1
 fi
 
-# test command: the app CLAUDE.md "- Test: `...`" line (Kent Beck kept it in agent.md, not plan.md)
-test_cmd=$(sed -nE 's/^- Test: `?([^`]+)`?.*/\1/p' CLAUDE.md 2>/dev/null | head -1)
+# test command: the app AGENTS.md "- Test: `...`" line
+test_cmd=$(sed -nE 's/^- Test: `?([^`]+)`?.*/\1/p' AGENTS.md 2>/dev/null | head -1)
 [ -n "$test_cmd" ] || test_cmd="go test ./..."
 echo "running: $test_cmd"
 if ! eval "$test_cmd"; then echo "FAIL tests red"; fail=1; fi
@@ -38,8 +38,8 @@ done < <(git diff "$start"..HEAD -- plan.md | sed -nE 's/^\+- \[x\] ([A-Za-z0-9_
 
 echo "plan: $(grep -c '^- \[x\]' plan.md) checked ($newly_checked this run), commits since start: $(git rev-list --count "$start"..HEAD)"
 
-# benchmarks: informational only (no baseline to fail against); declared as "- Bench: `...`" in CLAUDE.md
-bench_cmd=$(sed -nE 's/^- Bench: `?([^`]+)`?.*/\1/p' CLAUDE.md 2>/dev/null | head -1)
+# benchmarks: informational only (no baseline to fail against); declared as "- Bench: `...`" in AGENTS.md
+bench_cmd=$(sed -nE 's/^- Bench: `?([^`]+)`?.*/\1/p' AGENTS.md 2>/dev/null | head -1)
 if [ -n "$bench_cmd" ]; then
   echo "bench: $bench_cmd"; eval "$bench_cmd" 2>&1 | grep -E '^(Benchmark|ok|FAIL|PASS)' || true
 fi

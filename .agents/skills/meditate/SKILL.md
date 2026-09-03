@@ -47,7 +47,7 @@ Dispatch a second general-purpose agent:
 
 ```
 Read the Sobaya brain vault at <absolute path>/brain and the skills in
-.Codex/skills/.
+.agents/skills/.
 1. Patterns: lessons appearing in 2+ notes that no principle captures →
    propose a principle (name, rule, why, evidence wikilinks). Candidates
    must be independent, evidenced by 2+ notes, and actionable.

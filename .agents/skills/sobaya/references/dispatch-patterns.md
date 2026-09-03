@@ -22,11 +22,11 @@ general-purpose agent. One unit of work per dispatch.
 ```
 Work in apps/<name> (a standalone git repo at apps/<name>).
 Task: <the change, concretely — behavior, not vibes>.
-Constraints: <stack, conventions; read apps/<name>/CLAUDE.md first>.
+Constraints: <stack, conventions; read apps/<name>/AGENTS.md first>.
 Git: always `git -C <absolute path>`; never bare-`cd` into another repo —
 the shell cwd persists between calls.
 Do NOT touch: <files/areas owned by other agents or out of scope>.
-Process: the app's CLAUDE.md (Kent Beck TDD) — next unchecked test in
+Process: the app's AGENTS.md (TDD rules) — next unchecked test in
 plan.md copied verbatim into the suite, red, minimal code, green, check it
 off, commit (behavioral). Then refactor while green and commit structural
 changes separately (`refactor:`). Never modify an existing test.

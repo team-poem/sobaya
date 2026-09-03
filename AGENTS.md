@@ -4,8 +4,9 @@ Failing-test-first agentic engineering workspace: the human writes the spec
 and every failing test, the loop turns them green one at a time, the gate
 refuses anything that touched the tests. Projects live in
 `apps/<name>` — each an independent git repository. This root repo tracks
-only the harness: `AGENTS.md`/`CLAUDE.md` (mirrors), `.codex/`, `.claude/`,
-`.agents/` (shared skills), `brain/`, `docs/`, `tests/`, the READMEs.
+only the harness: `AGENTS.md` (`CLAUDE.md` just points here), `.agents/skills/`
+(`.claude/skills` is a link to it), `.claude/hooks/` (`.claude/settings.json` and
+`.codex/hooks.json` wire the same scripts), `brain/`, `docs/`, `tests/`, the READMEs.
 
 ## Brain
 
@@ -42,7 +43,7 @@ A hook injects its index at session start.
   harness plans.
 - **Enforced:** flat-root nesting, project markers outside `apps/`,
   `brain/index.md` hand-edits, and the app gate (own git repo + a `- Test:`
-  line in the app CLAUDE.md, i.e. `tdd-set/bin/install.sh` was run, before
+  line in the app AGENTS.md, i.e. `tdd-set/bin/install.sh` was run, before
   real work in an unregistered app) are blocked deterministically by a PreToolUse hook
   (`.claude/hooks/guard-workspace-rules.sh`).
 
@@ -58,8 +59,9 @@ PreToolUse hook (`.claude/hooks/guard-fable-only.sh`) and a commit gate
 
 ## Skills
 
-`tdd-set/` owns the dev lifecycle — no external plugins. Kent Beck's
-CLAUDE.md (verbatim) runs the Red → Green → Refactor cycle; the `tdd` skill
+`tdd-set/` owns the dev lifecycle — no external plugins. `tdd-set/AGENTS.md`
+(the TDD + Tidy First rules, appended into every app's `AGENTS.md`) runs the
+Red → Green → Refactor cycle; the `tdd` skill
 adds Phase 0 (split the feature, enumerate as many test cases as possible,
 probe each one red with `tdd-set/bin/probe.sh`, record it in `plan.md` as
 code) and loop guards; `gopher` is the Go refactor checklist;
@@ -74,6 +76,8 @@ audit + skill refinement).
 
 ## Language
 
-Agent-facing text (this file, skills, brain) is English. README.md is
+Agent-facing text (this file, skills, brain) is English. One copy of everything:
+Claude reads it through `CLAUDE.md` → `AGENTS.md` and `.claude/skills` → `.agents/skills`;
+Codex reads `AGENTS.md` and `.agents/skills` directly. README.md is
 English (main) with a Korean mirror at README.ko.md — keep both in sync
 when either changes. Other human-facing docs (docs/) are Korean.

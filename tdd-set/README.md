@@ -12,14 +12,14 @@
 ## 구성
 | 파일 | 역할 |
 |---|---|
-| 앱 `CLAUDE.md`의 `- Test:` / `- Format:` / `- Lint:` / `- Bench:` 줄 | 명령줄의 유일한 출처. gate가 Test(판정)와 Bench(출력만)를, 커밋 훅이 Format·Lint를 읽음. Kent Beck이 agent.md에 `cargo fmt`·`cargo test`·`cargo bench`를 둔 자리 |
-| `CLAUDE.md` | 8단계. **Kent Beck 원문 그대로** (BPlusTree3 `rust/docs/CLAUDE.md`, commit e1f539e, 2025-06-08). "go" = plan.md 다음 테스트, Red→Green→Refactor, Tidy First, 커밋 규율 |
+| 앱 `AGENTS.md`의 `- Test:` / `- Format:` / `- Lint:` / `- Bench:` 줄 | 명령줄의 유일한 출처. gate가 Test(판정)와 Bench(출력만)를, 커밋 훅이 Format·Lint를 읽음 |
+| `AGENTS.md` | 8단계. TDD + Tidy First 규칙. 앱 `AGENTS.md`에 그대로 이어 붙음(출처: BPlusTree3 `rust/docs/CLAUDE.md`, commit e1f539e). "go" = plan.md 다음 테스트, Red→Green→Refactor, Tidy First, 커밋 규율 |
 | `spec-template.md` | 5단계. 사람이 쓰는 목표 문서(Goal·Must·Must not). Phase 0이 테스트를 뽑는 근거. 루프는 읽기만 |
 | `plan-template.md` | 2~4단계. 작은 기능별 실패 테스트 **코드**를 문서에 먼저 적어두는 목록. 항목 = `- [ ] TestName — 증명 내용` + 코드 블록 |
-| `skills/tdd/SKILL.md` | 1~3단계 Phase 0 + 루프 가드(테스트 변조 금지, 한 줄 보고). CLAUDE.md에 없는 것만 |
+| `skills/tdd/SKILL.md` | 1~3단계 Phase 0 + 루프 가드(테스트 변조 금지, 한 줄 보고). AGENTS.md에 없는 것만 |
 | `skills/gopher/SKILL.md` | 9단계. Go 리팩터 체크리스트. 다른 언어면 같은 형식으로 하나 더 만들면 됨 |
 | `hooks/commit-gate.sh` | 9단계 강제. `git commit` 전에 CLAUDE.md의 Format·Lint 명령을 돌려 실패 시 차단. 줄이 없고 go.mod가 있으면 gofmt/go vet 기본값 |
-| `commands/` | 단계별 슬래시 명령. `/sobaya-plan` = Phase 0, `/go` = 사이클 하나(CLAUDE.md의 "go"와 동일), `/gate` = 게이트만, `/sobaya-loop [n]` = 전체 자동 실행 후 게이트. Kent Beck은 평문 "go"만 썼고 슬래시 명령은 우리 추가 |
+| `commands/` | 단계별 슬래시 명령. `/sobaya-plan` = Phase 0, `/go` = 사이클 하나(AGENTS.md의 "go"와 동일), `/gate` = 게이트만, `/sobaya-loop [n]` = 전체 자동 실행 후 게이트. 슬래시 명령은 우리 추가 |
 | `bin/install.sh` | 0단계. 앱에 tdd-set 설치(위 '설치'). 별도 스캐폴드 단계 없음 |
 | `bin/probe.sh` | 3~4단계. 후보 테스트 하나를 임시 파일로 패키지에 넣고 돌린 뒤 삭제. RED(실패·미빌드)면 plan.md에 적고, GREEN이면 이미 있는 행위라 버림. Go 전용 |
 | `bin/loop.sh` | 6·7·10·11단계. "go"만 돌림. 회차가 항목을 추가하면(물어볼 사람이 없으니) 중단, 커밋 없는 반복 3회면 정체로 중단, 끝나면 gate 실행 |
@@ -29,8 +29,8 @@
 ```sh
 tdd-set/bin/install.sh apps/<name>     # sobaya 루트에서. 멱등 — 있는 파일은 건드리지 않음
 ```
-하는 일: 디렉터리·git init(없을 때만) → 앱 CLAUDE.md 생성(명령줄 4개) 또는 유지 → Kent Beck 원문 이어 붙임(한 번만) → spec/plan 템플릿(없을 때만) → `tdd`·`gopher` 스킬, `/sobaya-plan` `/go` `/gate` `/sobaya-loop` 명령 복사 → `.claude/settings.json`에 커밋 훅 병합.
-끝나면 앱 CLAUDE.md의 명령줄을 채우고 `brain/apps.md`에 한 줄 등록합니다.
+하는 일: 디렉터리·git init(없을 때만) → 앱 AGENTS.md 생성(명령줄 4개) 또는 유지 → TDD 규칙 이어 붙임(한 번만) → CLAUDE.md 포인터 → spec/plan 템플릿(없을 때만) → `tdd`·`gopher` 스킬, `/sobaya-plan` `/go` `/gate` `/sobaya-loop` 명령 복사 → `.claude/settings.json`에 커밋 훅 병합.
+끝나면 앱 AGENTS.md의 명령줄을 채우고 `brain/apps.md`에 한 줄 등록합니다.
 
 ## 실행
 세션 안에서 단계별로:

@@ -17,6 +17,6 @@ work goes to the brigade, and lessons get encoded into structure so the
 harness itself improves over time.
 
 Working methods are borrowed from noodle ([[codebase/noodle-reference]]).
-The dev lifecycle is `tdd-set/` — Kent Beck's TDD CLAUDE.md verbatim plus a
-shell loop and gate; no external plugins. Sobaya adds only the workspace
+The dev lifecycle is `tdd-set/` — the TDD rules appended into every app's
+AGENTS.md plus a shell loop and gate; no external plugins. Sobaya adds only the workspace
 layer around it.

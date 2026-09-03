@@ -238,12 +238,12 @@ check $? "wguard: allows scaffold files in unregistered app"
 
 # --- wguard: unregistered app with .git but no Test: line (tdd-set not installed) is blocked ---
 mkdir -p "$wproj/apps/rogue/.git"
-printf '# Rogue\n' > "$wproj/apps/rogue/CLAUDE.md"
+printf '# Rogue\n' > "$wproj/apps/rogue/AGENTS.md"
 wpayload "$wproj/apps/rogue/main.py" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
 [ $? -eq 2 ]; check $? "wguard: blocks unregistered app lacking a Test: line"
 
 # --- wguard: unregistered app with .git + Test: line passes ---
-printf '# Rogue\n\n## App facts\n- Test: `go test ./...`\n' > "$wproj/apps/rogue/CLAUDE.md"
+printf '# Rogue\n\n## App facts\n- Test: `go test ./...`\n' > "$wproj/apps/rogue/AGENTS.md"
 wpayload "$wproj/apps/rogue/main.py" | CLAUDE_PROJECT_DIR="$wproj" sh "$WGUARD" 2>/dev/null
 check $? "wguard: allows git-initialized app with tdd-set installed"
 
