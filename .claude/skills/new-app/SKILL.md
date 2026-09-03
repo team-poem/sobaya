@@ -70,6 +70,7 @@ Creates `apps/<name>` as an independent git repository and registers it.
    cp tdd-set/plan-template.md apps/<name>/plan.md
    mkdir -p apps/<name>/.claude/skills
    cp -r tdd-set/skills/tdd tdd-set/skills/gopher apps/<name>/.claude/skills/
+   cp -r tdd-set/commands apps/<name>/.claude/commands
    ```
 
    Add the commit gate hook to `apps/<name>/.claude/settings.json` (snippet in
