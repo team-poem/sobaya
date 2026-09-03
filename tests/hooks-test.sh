@@ -279,6 +279,31 @@ printf 'chore: manual tweak\n' > "$msg"
 sh "$GITGATE" "$msg" 2>/dev/null
 check $? "gate: allows human commit without trailer"
 
+# --- tdd-set gate: Node tests appended to one shared file pass the test-line check ---
+GATE="$ROOT/tdd-set/bin/gate.sh"
+ag="$TMP/appendgate"; mkdir -p "$ag/tests"
+( cd "$ag" && git init -q && git config user.email t@t && git config user.name t
+  printf '{"name":"ag","type":"module"}\n' > package.json
+  printf '# ag\n\n## App facts\n- Test: `true`\n' > AGENTS.md
+  printf '# p\n\n- [ ] addAdds — 1+2=3\n- [ ] addZero — 0+5=5\n' > failed-test.md
+  printf 'import { test } from "node:test"\ntest("oldOne: existed before the loop", () => {})\n' > tests/old.test.js
+  git add -A && git commit -qm start
+  printf '// file: tests/add.test.js\nimport { test } from "node:test"\n' > tests/add.test.js
+  printf '\ntest("addAdds: 1+2=3", () => {})\n' >> tests/add.test.js
+  sed 's/- \[ \] addAdds/- [x] addAdds/' failed-test.md > f && mv f failed-test.md
+  git add -A && git commit -qm one
+  printf '\ntest("addZero: 0+5=5", () => {})\n' >> tests/add.test.js
+  sed 's/- \[ \] addZero/- [x] addZero/' failed-test.md > f && mv f failed-test.md
+  git add -A && git commit -qm two ) >/dev/null 2>&1
+agstart=$(git -C "$ag" rev-list --max-parents=0 HEAD)
+bash "$GATE" "$ag" "$agstart" >/dev/null 2>&1
+check $? "tdd-set gate: header + appended Node entries pass (no changed lines, names matched)"
+
+# --- tdd-set gate: editing a test line that existed before the loop is rejected ---
+( cd "$ag" && sed 's/existed before/was edited during/' tests/old.test.js > f && mv f tests/old.test.js && git commit -qam edit ) >/dev/null 2>&1
+bash "$GATE" "$ag" "$agstart" >/dev/null 2>&1
+[ $? -ne 0 ]; check $? "tdd-set gate: rejects a modified test line"
+
 echo
 if [ "$fail" -eq 0 ]; then
   echo "ALL PASS"

@@ -6,8 +6,13 @@ watches it fail, implements the minimum, refactors, checks the box. The gate ver
 that the test function named in every checked entry was added to the suite.
 
 Entry format: `- [ ] TestName — one line: what it proves` (name the behavior), then a fenced code
-block. Go: the complete test function. Node: a complete test file whose test title starts with
-the entry name, e.g. `it("addAdds: 1 + 2 = 3", ...)`.
+block holding exactly what the loop appends to the suite.
+
+- Go: the complete test function. The loop appends it to the package's `_test.go` file.
+- Node: one `test(...)` block whose title starts with the entry name. Each `## Small feature`
+  section opens with a **header block**: a `// file:` line naming the test file (relative to the
+  app root), the imports, and the shared constants. The loop creates that file from the header the
+  first time and appends each entry block to its end. The header is never repeated per entry.
 
 ## Small feature 1: <name>
 
@@ -39,6 +44,30 @@ func TestAdd_ZeroIsIdentity(t *testing.T) {
 - [ ] Test... — <empty / duplicate / error path / ordering>.
 ```go
 ...
+```
+
+## Small feature 3 (Node example): <name>
+
+```ts
+// file: tests/add.test.ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { add } from '../src/add.js'
+const BIG = 1_000_000
+```
+
+- [ ] addAdds — 1 + 2 = 3.
+```ts
+test('addAdds: 1 + 2 = 3', () => {
+  assert.equal(add(1, 2), 3)
+})
+```
+
+- [ ] addZeroIsIdentity — adding 0 returns the other operand.
+```ts
+test('addZeroIsIdentity: 0 + BIG = BIG', () => {
+  assert.equal(add(0, BIG), BIG)
+})
 ```
 
 ## Notes

@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
 # Probe one candidate test: drop it into the package as a temporary file, run it, report,
 # delete it. Phase 0 writes an entry into failed-test.md only after this prints RED.
-# usage: tdd-set/bin/probe.sh apps/<name>/<dir> <snippet-file>   (or - for stdin)
-# Go:   <dir> is the package dir; snippet = the test func only (package/import added here)
-# Node: <dir> is where the test file should live; snippet = a complete test file (imports included)
-#       vitest when package.json depends on it, else `node --test`
+# usage: tdd-set/bin/probe.sh apps/<name>/<dir> <snippet-file|-> [header-file]
+# Go:   <dir> is the package dir; snippet = the test func only (package/import added here).
+#       No header file.
+# Node: <dir> is where the test file lives; snippet = one test(...) block, exactly as it will be
+#       appended to the suite. [header-file] holds the section's header block from failed-test.md
+#       (the `// file:` line, imports, shared constants); the probe runs header + snippet as one
+#       temporary file. Without a header file the snippet must be a complete test file.
+#       vitest when package.json depends on it, else `node --test`.
 # exit 0 = RED (test fails or does not build), 1 = GREEN (already passes), 2 = usage error
 set -u
-dir=${1:-}; src=${2:-}
-[ -d "$dir" ] && [ -n "$src" ] || { echo "usage: probe.sh <dir> <snippet-file|->"; exit 2; }
+dir=${1:-}; src=${2:-}; hdr=${3:-}
+[ -d "$dir" ] && [ -n "$src" ] || { echo "usage: probe.sh <dir> <snippet-file|-> [header-file]"; exit 2; }
 [ "$src" = "-" ] && snippet=$(cat) || snippet=$(cat "$src")
+[ -z "$hdr" ] || [ -f "$hdr" ] || { echo "header file not found: $hdr"; exit 2; }
 
 # find the module / package root above <dir>
 root=$dir; while [ "$root" != "/" ] && [ "$root" != "." ] && [ ! -f "$root/go.mod" ] && [ ! -f "$root/package.json" ]; do root=$(dirname "$root"); done
@@ -34,7 +39,8 @@ elif [ -f "$root/package.json" ]; then
   probe="$dir/zz_probe.test.$ext"
   [ -e "$probe" ] && { echo "$probe already exists; remove it first"; exit 2; }
   trap 'rm -f "$probe"' EXIT
-  printf '%s\n' "$snippet" > "$probe"
+  if [ -n "$hdr" ]; then { cat "$hdr"; printf '\n%s\n' "$snippet"; } > "$probe"
+  else printf '%s\n' "$snippet" > "$probe"; fi
   if grep -q '"vitest"' "$root/package.json"; then
     out=$(cd "$root" && npx vitest run "${rel:+$rel/}zz_probe.test.$ext" 2>&1); rc=$?
   else

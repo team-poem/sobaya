@@ -33,10 +33,18 @@ stop and ask the human to fill it first.
 2. For every small feature, enumerate test cases. **More is better.** Cover: the simplest case,
    the degenerate/empty case, boundaries, duplicates, error paths, ordering. Stop only when you
    cannot name another case.
-3. **Probe each case before writing it down.** Write the complete test function, run
-   `tdd-set/bin/probe.sh apps/<name>/<package-dir> -` with it on stdin:
-   - `RED` → append the entry to `failed-test.md` (format in `failed-test-template.md`): a checkbox line
-     `- [ ] TestName — what it proves`, then the test function in a fenced code block.
+3. **Probe each case before writing it down.**
+   - Go: write the complete test function and run
+     `tdd-set/bin/probe.sh apps/<name>/<package-dir> -` with it on stdin.
+   - Node: per small feature, first write the section's **header block** (a `// file:` line naming
+     the test file relative to the app root, the imports, the shared constants) to a temp file
+     outside the app, e.g. `${TMPDIR:-/tmp}/sobaya-header.ts`. Then write each case as one
+     `test(...)` block whose title starts with the entry name and run
+     `tdd-set/bin/probe.sh apps/<name>/<test-dir> - ${TMPDIR:-/tmp}/sobaya-header.ts`
+     with the block on stdin. The probe runs header + block as one temporary file.
+   - `RED` → record it in `failed-test.md` (format in `failed-test-template.md`): the section's
+     header block once at the top of the section, then per entry a checkbox line
+     `- [ ] TestName — what it proves` and the block in a fenced code block.
    - `GREEN` → the behavior already exists; do not add it. Say so.
    The probe writes and deletes its own temporary file; never put the test in the suite
    yourself. Order entries simplest first.
@@ -48,8 +56,14 @@ stop and ask the human to fill it first.
 
 ## "go" — one entry per cycle
 
-- Take the next unchecked entry. Copy its code block **verbatim** into the suite. Do not
-  rename, reword, or weaken it. If the test cannot compile or is wrong, stop and say so.
+- Take the next unchecked entry and put its code block into the suite **verbatim, by appending
+  only**. Do not rename, reword, or weaken it. If the test cannot compile or is wrong, stop and
+  say so.
+  - Go: append the function to the package's `_test.go` file (create it with the `package` line
+    and `import "testing"` if absent).
+  - Node: the target file is the `// file:` line of the entry's section header. If the file does
+    not exist, create it from the header block exactly. Then append a blank line and the entry
+    block at the end. Never edit lines already in the file; the gate rejects any changed line.
 - Run the full suite. Expect the new test red. If it is green already, write no code:
   check the box, commit, and report that the entry needed no change.
 - Red → minimal code → full suite green. Commit this **behavioral** change: test + code +

@@ -9,9 +9,10 @@ description: >-
 
 Run only when the full suite is green. Behavior must not change; if a test goes red, revert that step.
 
-**Never rename, move, or change the signature of anything a test imports or calls.** The tests
-are the spec and the gate rejects any edit to them; a name the tests use is fixed until a human
-changes failed-test.md.
+**Never rename, move, or change the signature of anything a test imports or calls.** This
+includes every name in a section's header block in `failed-test.md` (imports, shared constants):
+that block is the head of the test file. The tests are the spec and the gate rejects any edit
+to them; a name the tests use is fixed until a human changes failed-test.md.
 
 ## Checklist (stop at the first that applies, fix, rerun tests, continue)
 1. The app's `Lint:` command is clean (eslint) and `Format:` prints nothing (prettier, if the app has it).

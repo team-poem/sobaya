@@ -6,7 +6,7 @@ The dev lifecycle of Sobaya. No plugins. Only `git`, shell, and what Claude Code
 
 ```
 Human:  write apps/<name>/spec.md (Goal, Must, Must not) → write failed-test.md (each case probed RED with probe.sh, then recorded as code, as many as possible) → commit
-Loop:   bin/loop.sh apps/<name> → every iteration runs `claude -p "/go <name>"` → copy the next failed-test.md entry's test verbatim into the suite → red → green → check → commit (behavioral) → refactor with the app's Skills → commit (structural, separate)
+Loop:   bin/loop.sh apps/<name> → every iteration runs `claude -p "/go <name>"` → append the next failed-test.md entry's test verbatim to the suite (Go: the package's _test.go; Node: the file named by the section header, created from it if absent) → red → green → check → commit (behavioral) → refactor with the app's Skills → commit (structural, separate)
 Gate:   bin/gate.sh apps/<name> → every entry checked · suite green · no existing test line touched · the test named by every checked entry exists in the suite
 ```
 
@@ -19,13 +19,13 @@ Everything runs from the sobaya root with the app named. A session opened inside
 | The app's `AGENTS.md` lines `- Test:` / `- Format:` / `- Lint:` / `- Bench:` / `- Skills:` | The only source of command lines. The gate runs Test (verdict) and Bench (printed only); the commit hook runs Format and Lint. `Skills:` names the stack skills this app uses for refactoring (e.g. `gopher`) |
 | `AGENTS.md` | Step 8. The TDD + Tidy First rules. `/go` reads this file and applies it to the named app (origin: BPlusTree3 `rust/docs/CLAUDE.md`, commit e1f539e). "go" = the next test in failed-test.md, Red → Green → Refactor, Tidy First, commit discipline |
 | `spec-template.md` | Step 5. The human's goal document (Goal, Must, Must not). Phase 0 enumerates tests from it. The loop only reads it |
-| `failed-test-template.md` | Steps 2 to 4. Failing tests written as **code** in the document before any implementation. Entry = `- [ ] TestName — what it proves` + code block |
+| `failed-test-template.md` | Steps 2 to 4. Failing tests written as **code** in the document before any implementation. Entry = `- [ ] TestName — what it proves` + code block. Go: a test function. Node: one `test(...)` block; each section opens with a header block (`// file:` line, imports, shared constants) that becomes the head of that test file |
 | `skills/tdd/SKILL.md` | Steps 1 to 3 (Phase 0) plus loop guards (no test tampering, one line report). Only what AGENTS.md lacks |
 | `skills/<stack>/SKILL.md` | Step 9. Refactor checklist per stack. Today `gopher` (Go) and `nodejs` (JS/TS). An app picks one or more on its `Skills:` line. Add another stack in the same shape |
 | `hooks/commit-gate.sh` | Step 9, enforced. Before `git commit`, runs the app's Format and Lint lines and blocks on failure. Handles `git -C apps/<name> commit` and `cd apps/<name> && git commit`. No lines and a go.mod present → gofmt and go vet defaults |
 | `commands/` | One slash command per stage, all taking the app name. `/sobaya-plan` = Phase 0, `/go` = one cycle (the same "go" as in AGENTS.md), `/gate` = gate only, `/sobaya-loop` = the whole plan, then the gate |
 | `bin/install.sh` | Step 0. Creates the three app files (see Install). There is no separate scaffold step |
-| `bin/probe.sh` | Steps 3 to 4. Drops one candidate test into the package as a temporary file, runs it, deletes it. RED (fails or does not build) → record it in failed-test.md; GREEN → the behavior already exists, drop it. Go (`go test -run`) and Node (vitest or `node --test`; the snippet is a complete test file) |
+| `bin/probe.sh` | Steps 3 to 4. Drops one candidate test into the package as a temporary file, runs it, deletes it. RED (fails or does not build) → record it in failed-test.md; GREEN → the behavior already exists, drop it. Go (`go test -run`, snippet = the function) and Node (vitest or `node --test`, snippet = one `test(...)` block, header block via the third argument) |
 | `bin/loop.sh` | Steps 6, 7, 10, 11. Only ever runs "go". Halts when an iteration adds entries (nobody inside the loop can be asked), stops after three iterations without a commit, then runs the gate |
 | `bin/gate.sh` | Steps 6 and 12. PASS = failed-test.md 100% checked · suite green · no existing test line touched · every checked entry's test name found in the suite. The human's tests are the spec, so nothing else is judged |
 

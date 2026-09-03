@@ -14,7 +14,7 @@ Failing tests first, then the agent.
 
 ## Features
 
-- Failing tests are the spec: every case is written as code and proven red before any implementation exists
+- Failing tests are the spec: every case is written as code and proven red before any implementation exists. Node cases share one file per small feature, so imports and constants live in a header block, not in every entry
 - One test per cycle: copy it into the suite, watch it fail, write the minimum, refactor while green, commit
 - Behavioral and structural changes never share a commit
 - Deterministic gate: plan 100% checked, suite green, no existing test line touched, every checked entry present in the suite
@@ -36,7 +36,7 @@ flowchart LR
 
 - **Spec.** The human fills `spec.md`. Agents read it, never edit it.
 - **Plan.** `/sobaya-plan <name>` drafts `apps/<name>/failed-test.md`: split the feature, enumerate as many cases as possible, probe each one, keep only those that print RED. It asks once, *reviewed and added yours, proceed?*, and the human edits the file directly. Nothing verifies the review. The loop is exactly as good as the human's tests.
-- **Cycle.** `/go <name>` takes the next unchecked entry and runs one Red → Green → Refactor cycle, refactoring with the skills the app's `Skills:` line names. `/sobaya-loop <name>` repeats it until the plan is done or stalls.
+- **Cycle.** `/go <name>` takes the next unchecked entry, appends its test to the suite (Go: the package test file; Node: the file the section header names), and runs one Red → Green → Refactor cycle, refactoring with the skills the app's `Skills:` line names. `/sobaya-loop <name>` repeats it until the plan is done or stalls.
 - **Gate.** `/gate <name>` is PASS or FAIL, nothing in between. A defect found during the loop is appended to `failed-test.md` as two probed tests and the loop halts for the human.
 - **Review, reflect.** An independent subagent refutes the work. Learnings land in `brain/` for the next session.
 
