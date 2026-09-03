@@ -1,31 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 240 214" width="240" height="214" role="img" aria-label="Sobaya">
-  <defs>
-    <linearGradient id="strand" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#e5484d"/>
-      <stop offset="0.45" stop-color="#e5484d"/>
-      <stop offset="0.6" stop-color="#3fb950"/>
-      <stop offset="1" stop-color="#3fb950"/>
-    </linearGradient>
-  </defs>
-
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 240 224" width="240" height="224" role="img" aria-label="Sobaya">
   <!-- bowl -->
-  <path d="M38 132 Q120 250 202 132 Z" fill="#2b2d42"/>
-  <ellipse cx="120" cy="132" rx="84" ry="16" fill="#3d405f"/>
-  <ellipse cx="120" cy="132" rx="84" ry="16" fill="none" stroke="#f3ede2" stroke-width="5"/>
-  <!-- foot -->
-  <rect x="92" y="186" width="56" height="10" rx="5" fill="#2b2d42"/>
+  <path d="M38 122 Q120 240 202 122 Z" fill="#2b2d42"/>
+  <ellipse cx="120" cy="122" rx="84" ry="16" fill="#3d405f"/>
+  <ellipse cx="120" cy="122" rx="84" ry="16" fill="none" stroke="#f3ede2" stroke-width="5"/>
+  <rect x="92" y="176" width="56" height="10" rx="5" fill="#2b2d42"/>
 
   <!-- noodles resting in the bowl -->
-  <path d="M60 134 q20 10 40 0 q20 -10 40 0 q20 10 40 0" fill="none" stroke="#f3ede2" stroke-width="7" stroke-linecap="round"/>
+  <path d="M60 124 q20 10 40 0 q20 -10 40 0 q20 10 40 0" fill="none" stroke="#f3ede2" stroke-width="7" stroke-linecap="round"/>
 
-  <!-- chopsticks -->
   <g stroke="#c98a3a" stroke-width="7" stroke-linecap="round">
-    <line x1="176" y1="22" x2="132" y2="122"/>
-    <line x1="196" y1="30" x2="146" y2="124"/>
+    <line x1="166" y1="18" x2="126" y2="114"/>
+    <line x1="186" y1="26" x2="140" y2="116"/>
   </g>
 
-  <!-- one strand lifted from the bowl: red where it starts, green where it ends -->
-  <path d="M74 118 L108 156 L184 60" fill="none" stroke="url(#strand)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="74" cy="118" r="10" fill="#e5484d"/>
-  <circle cx="184" cy="60" r="10" fill="#3fb950"/>
+  <!-- two plates under the bowl: red, then green -->
+  <g>
+    <ellipse cx="74" cy="212" rx="40" ry="11" fill="#e5484d"/>
+    <ellipse cx="74" cy="208" rx="40" ry="11" fill="#f26b6f"/>
+    <ellipse cx="74" cy="208" rx="22" ry="5" fill="#e5484d"/>
+  </g>
+  <g>
+    <ellipse cx="166" cy="212" rx="40" ry="11" fill="#2ea043"/>
+    <ellipse cx="166" cy="208" rx="40" ry="11" fill="#3fb950"/>
+    <ellipse cx="166" cy="208" rx="22" ry="5" fill="#2ea043"/>
+  </g>
 </svg>
