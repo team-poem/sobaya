@@ -299,6 +299,16 @@ agstart=$(git -C "$ag" rev-list --max-parents=0 HEAD)
 bash "$GATE" "$ag" "$agstart" >/dev/null 2>&1
 check $? "tdd-set gate: header + appended Node entries pass (no changed lines, names matched)"
 
+# --- tdd-set gate: editing a helper in the test dir during the loop is rejected ---
+( cd "$ag" && printf 'export const startServer = () => ({ post: () => ({ status: 400 }) })\n' > tests/helper.mjs && git add -A && git commit -qm helper-before-loop ) >/dev/null 2>&1
+agstart2=$(git -C "$ag" rev-parse HEAD)
+( cd "$ag" && printf 'export const startServer = () => ({ post: () => ({ status: 200 }) })\n' > tests/helper.mjs && git commit -qam helper-edited ) >/dev/null 2>&1
+bash "$GATE" "$ag" "$agstart2" >/dev/null 2>&1
+[ $? -ne 0 ]; check $? "tdd-set gate: rejects a modified helper in the test dir"
+( cd "$ag" && git revert --no-edit HEAD >/dev/null 2>&1 )
+bash "$GATE" "$ag" "$agstart2" >/dev/null 2>&1
+check $? "tdd-set gate: helper untouched again passes"
+
 # --- tdd-set gate: editing a test line that existed before the loop is rejected ---
 ( cd "$ag" && sed 's/existed before/was edited during/' tests/old.test.js > f && mv f tests/old.test.js && git commit -qam edit ) >/dev/null 2>&1
 bash "$GATE" "$ag" "$agstart" >/dev/null 2>&1

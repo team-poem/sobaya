@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Final gate for one app. PASS = every failed-test.md entry checked, suite green, no existing test line
-# touched, every checked entry's test function present in the suite. The human's tests are the
+# Final gate for one app. PASS = every failed-test.md entry checked, suite green, no existing line in a
+# test file or test directory (helpers, fixtures) touched, every checked entry's test function present. The human's tests are the
 # spec; nothing else is judged.
 # usage: tdd-set/bin/gate.sh apps/<name> [start_commit]
 set -u
@@ -9,7 +9,8 @@ cd "$app" || exit 1
 start=${2:-$(cat .git/sobaya-loop-start 2>/dev/null)}
 [ -n "$start" ] || { echo "no start commit"; exit 1; }
 fail=0
-test_globs=('*_test.go' '*_test.py' '*.test.*' '*.spec.*')
+# test files plus everything a test dir holds (helpers, fixtures): frozen during the loop, additions only
+test_globs=('*_test.go' '*_test.py' '*.test.*' '*.spec.*' 'conftest.py' 'tests/*' 'test/*' '__tests__/*' '*/tests/*' '*/test/*' '*/__tests__/*')
 
 if grep -q '^- \[ \]' failed-test.md; then
   echo "FAIL unchecked entries:"; grep '^- \[ \]' failed-test.md; fail=1

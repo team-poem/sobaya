@@ -85,6 +85,7 @@ loop halts there; the human looks at the new entries and re-runs the loop to pro
 
 - Never take a "go" on entries the human has not been shown (Phase 0's question, or the
   defect halt above).
-- Never modify or delete an existing test. The gate rejects any removed or changed test line.
+- Never modify or delete an existing test, helper, or fixture. The gate rejects any removed or
+  changed line in a test file or under the test directory; a helper is frozen with the tests.
 - Never check a box whose test function is not in the suite. The gate matches names.
 - If tests cannot run in this environment, say so. Do not claim green without a green run.

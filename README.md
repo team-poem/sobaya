@@ -60,7 +60,7 @@ Creates the three files an app carries: `AGENTS.md` (command lines + `Skills:`),
 |---|---|
 | Plan complete | any `- [ ]` remains in `failed-test.md` |
 | Suite green | the `Test:` command exits non-zero |
-| Tests untouched | any line in a test file was removed or modified since the loop started |
+| Tests untouched | any line in a test file, or anything under a test directory (helpers, fixtures), was removed or modified since the loop started |
 | Names present | an entry was checked but no test function with that name was added |
 
 The commit hook blocks `git commit` when `Format:` prints anything or `Lint:` fails.
