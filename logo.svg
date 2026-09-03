@@ -8,9 +8,22 @@
   <!-- noodles resting in the bowl -->
   <path d="M60 124 q20 10 40 0 q20 -10 40 0 q20 10 40 0" fill="none" stroke="#f3ede2" stroke-width="7" stroke-linecap="round"/>
 
+  <!-- one strand climbs out of the bowl and coils around the chopsticks -->
+  <g fill="none" stroke="#f3ede2" stroke-width="7" stroke-linecap="round">
+    <path d="M104 127 C 112 112, 118 106, 122.0 106.0"/>
+    <path d="M124.0 101.98 A15 5 0 0 1 154.0 101.98" transform="rotate(-22.6 139.0 101.98)"/>
+<path d="M129.6 89.89 A15 5 0 0 1 159.6 89.89" transform="rotate(-22.6 144.6 89.89)"/>
+<path d="M135.2 77.8 A15 5 0 0 1 165.2 77.8" transform="rotate(-22.6 150.2 77.8)"/>
+  </g>
   <g stroke="#c98a3a" stroke-width="7" stroke-linecap="round">
     <line x1="166" y1="18" x2="126" y2="114"/>
     <line x1="186" y1="26" x2="140" y2="116"/>
+  </g>
+  <g fill="none" stroke="#f3ede2" stroke-width="7" stroke-linecap="round">
+    <path d="M154.0 101.98 A15 5 0 0 1 124.0 101.98" transform="rotate(-22.6 139.0 101.98)"/>
+<path d="M159.6 89.89 A15 5 0 0 1 129.6 89.89" transform="rotate(-22.6 144.6 89.89)"/>
+<path d="M165.2 77.8 A15 5 0 0 1 135.2 77.8" transform="rotate(-22.6 150.2 77.8)"/>
+    <path d="M165.2 77.8 C 175.2 71.8, 176 62, 170 48"/>
   </g>
 
   <!-- two plates under the bowl: red, then green -->
