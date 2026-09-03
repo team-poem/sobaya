@@ -1,6 +1,8 @@
 # Sobaya
 
-Orchestration workspace for multi-project agent work. Projects live in
+Failing-test-first agentic engineering workspace: the human writes the spec
+and every failing test, the loop turns them green one at a time, the gate
+refuses anything that touched the tests. Projects live in
 `apps/<name>` — each an independent git repository. This root repo tracks
 only the harness: `CLAUDE.md`/`AGENTS.md` (mirrors), `.claude/`, `.codex/`,
 `.agents/` (shared skills), `brain/`, `docs/`, `tests/`, the READMEs.
