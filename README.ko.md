@@ -46,7 +46,7 @@ flowchart LR
 tdd-set/bin/install.sh apps/<name>
 ```
 
-앱이 갖는 파일 셋을 만듭니다: `AGENTS.md`(명령줄 + `Skills:`), `spec.md`, `plan.md`. 새 앱이든 기존 앱이든 되고, 멱등입니다. 나머지는 전부 루트에 있습니다. 자세한 내용은 [tdd-set 레퍼런스](tdd-set/README.md#설치-앱마다-새것이든-기존이든).
+앱이 갖는 파일 셋을 만듭니다: `AGENTS.md`(명령줄 + `Skills:`), `spec.md`, `plan.md`. 새 앱이든 기존 앱이든 되고, 멱등입니다. 나머지는 전부 루트에 있습니다. 자세한 내용은 [tdd-set 레퍼런스](tdd-set/README.md#install-per-app-new-or-existing).
 
 ## 사용
 

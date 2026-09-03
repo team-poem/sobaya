@@ -46,7 +46,7 @@ flowchart LR
 tdd-set/bin/install.sh apps/<name>
 ```
 
-Creates the three files an app carries: `AGENTS.md` (command lines + `Skills:`), `spec.md`, `plan.md`. Works on a new or an existing app, and is idempotent. Everything else stays in the root. Details in the [tdd-set reference](tdd-set/README.md#설치-앱마다-새것이든-기존이든).
+Creates the three files an app carries: `AGENTS.md` (command lines + `Skills:`), `spec.md`, `plan.md`. Works on a new or an existing app, and is idempotent. Everything else stays in the root. Details in the [tdd-set reference](tdd-set/README.md#install-per-app-new-or-existing).
 
 ## Usage
 
@@ -68,7 +68,7 @@ The commit hook blocks `git commit` when `Format:` prints anything or `Lint:` fa
 ## Documentation
 
 - [Usage guide](docs/guide.md) (Korean): how a session actually flows
-- [tdd-set reference](tdd-set/README.md) (Korean): every file, script, and command
+- [tdd-set reference](tdd-set/README.md): every file, script, and command
 - [AGENTS.md](AGENTS.md): the harness contract every agent reads
 - [From noodle to Sobaya](docs/from-noodle.md): where the workspace conventions come from
 
