@@ -8,10 +8,6 @@ that the test function named in every checked entry was added to the suite.
 Entry format: `- [ ] TestName — one line: what it proves` (name the behavior), then a fenced code
 block holding exactly what the loop appends to the suite.
 
-Every entry follows the four rules in `tdd-set/skills/tdd/SKILL.md`: isolated (own fixture,
-any order), shared setup only in the section header, evident data in the body, readable and
-specific over short.
-
 - Go: the complete test function. The loop appends it to the package's `_test.go` file.
 - Node: one `test(...)` block whose title starts with the entry name. Each `## Small feature`
   section opens with a **header block**: a `// file:` line naming the test file (relative to the

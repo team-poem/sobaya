@@ -18,30 +18,6 @@ whose title starts with the identifier (`it("loginRejectsEmptyEmail: ...")`) —
 `tdd-set/AGENTS.md` holds the cycle rules: "go" = next unchecked test in `failed-test.md`, Red → Green →
 Refactor (Tidy First), commit discipline. Follow it exactly. This skill adds only what it lacks.
 
-## What a test looks like — four rules
-
-Every entry in `failed-test.md`, and every test already in the app, follows these. They come
-from Kent Beck (Test Desiderata, "Composable Tests", the xUnit patterns in *TDD by Example*).
-
-1. **Isolated.** Each test builds its own fixture from scratch and leaves nothing behind. The
-   suite gives the same result in any order. A test never reads what another test wrote.
-2. **Shared setup only as the section header.** What several tests need (imports, constants,
-   one setup call such as starting a server in a temp copy of the data) lives in the section's
-   header block, and nowhere else. Tests that need a different fixture go in a different
-   section, hence a different file. Whatever leaves the test body must stay readable at a
-   glance: if the reader has to open a helper to know what the test asserts, it is in the
-   wrong place.
-3. **Evident data.** The expected value, the actual value, and how they relate appear in the
-   test body itself. Never computed in a helper, never hidden behind a name.
-4. **Readable and specific over short.** When these rules pull against each other, keep the
-   test readable (the reader sees why it was written) and specific (when it fails, the cause is
-   obvious), even if it gets longer. Say which way you leaned in the entry's one-line description.
-
-**Existing apps: audit before adding.** If the app already has tests, check every one of them
-against the four rules before Phase 0 writes a single new entry. Every violation is fixed, no
-exceptions: a structural `refactor:` commit that the human reviews like any test change, made
-before the loop's start commit so the gate's frozen-tests check begins after it.
-
 ## Phase 0 — Plan (once per feature, before the first "go")
 
 Steps 1–5 of the process (big feature → small features → test cases → failing tests → spec)
@@ -52,8 +28,6 @@ review happened — the human is trusted; the whole loop is only as good as thei
 `spec.md` is the human-written goal: read it, never edit it. If it is still the template,
 stop and ask the human to fill it first.
 
-0. If the app already has tests, run the audit above and fix what fails it. Show the human
-   the list of violations and the fixes; commit them before anything else.
 1. Restate the big feature in one line and split it into small features. Each small feature is
    one unit of behavior a reader can name.
 2. For every small feature, enumerate test cases. **More is better.** Cover: the simplest case,
@@ -70,8 +44,7 @@ stop and ask the human to fill it first.
      with the block on stdin. The probe runs header + block as one temporary file.
    - `RED` → record it in `failed-test.md` (format in `failed-test-template.md`): the section's
      header block once at the top of the section, then per entry a checkbox line
-     `- [ ] TestName — what it proves` and the block in a fenced code block. Check the entry
-     against the four rules above before recording it.
+     `- [ ] TestName — what it proves` and the block in a fenced code block.
    - `GREEN` → the behavior already exists; do not add it. Say so.
    The probe writes and deletes its own temporary file; never put the test in the suite
    yourself. Order entries simplest first.
@@ -80,12 +53,6 @@ stop and ask the human to fill it first.
    probe any entry they added or changed (so it is still a verified failing test) and ask the
    same question again. Proceed only on an explicit yes.
 5. Write no implementation code in Phase 0.
-6. **Green baseline tests steer the loop.** If you install characterization tests for existing
-   behavior before the loop (they probe GREEN, so they go straight into the suite, not into
-   `failed-test.md`), their fixtures must already satisfy every `Must` in `spec.md` — e.g. send
-   every field the new rule will require. A baseline that violates the new rule forces "go" to
-   narrow the implementation until the baseline stays green, and the gate cannot tell.
-   (rubi, 2026-09-03: a fixture missing one cell's sentence made the server skip cells with no key.)
 
 ## "go" — one entry per cycle
 
