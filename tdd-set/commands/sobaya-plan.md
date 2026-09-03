@@ -2,6 +2,9 @@
 description: Phase 0 for one app — draft apps/<name>/failed-test.md (split, cases, each probed red), then ask once
 ---
 App: `apps/$ARGUMENTS`. Run the `tdd` skill's Phase 0 for the feature in `apps/$ARGUMENTS/spec.md`.
+If the app already has tests, first audit them against the skill's four rules (isolated, setup
+only in the section header, evident data, readable and specific over short); list every
+violation with its fix, get the human's yes, commit the fixes as `refactor:` before anything else.
 Draft `apps/$ARGUMENTS/failed-test.md`: split into small features, enumerate as many cases as you can,
 probe each and record only RED results. Go: `tdd-set/bin/probe.sh apps/$ARGUMENTS/<package-dir> -`.
 Node: one header block per small feature (`// file:` line, imports, shared constants) written to

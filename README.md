@@ -14,7 +14,7 @@ Failing tests first, then the agent.
 
 ## Features
 
-- Failing tests are the spec: every case is written as code and proven red before any implementation exists. Node cases share one file per small feature, so imports and constants live in a header block, not in every entry
+- Failing tests are the spec: every case is written as code and proven red before any implementation exists, and every test obeys four rules: isolated, shared setup only in the section header, evident data in the body, readable and specific over short. An app's existing tests are audited against them first
 - One test per cycle: copy it into the suite, watch it fail, write the minimum, refactor while green, commit
 - Behavioral and structural changes never share a commit
 - Deterministic gate: plan 100% checked, suite green, no existing test line touched, every checked entry present in the suite
