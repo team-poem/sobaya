@@ -20,6 +20,7 @@
 - [[apps]]
 
 ## Codebase
+- [[codebase/cdp-chrome-gotchas]]
 - [[codebase/claude-config-load-timing]]
 - [[codebase/gitignore-anchoring]]
 - [[codebase/noodle-reference]]
@@ -36,3 +37,6 @@
 
 ## Archive
 - [[archive/completed_todos]]
+
+## Other
+- [[apps.template]]
