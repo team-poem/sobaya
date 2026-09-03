@@ -12,13 +12,13 @@
 
 <br>
 
-[Getting started](#getting-started) · [How a session flows](#how-a-session-flows) · [What's inside](#whats-inside) · [How superpowers fits](#how-superpowers-fits) · [From noodle to Sobaya](#from-noodle-to-sobaya)
+[Getting started](#getting-started) · [How a session flows](#how-a-session-flows) · [What's inside](#whats-inside) · [How tdd-set fits](#how-tdd-set-fits) · [From noodle to Sobaya](#from-noodle-to-sobaya)
 
 </div>
 
 ---
 
-Sobaya ports the working methods of [poteto/noodle](https://github.com/poteto/noodle) onto native Claude Code primitives. It is **not a framework** — no daemon, no scheduler, no runtime beyond four shell hooks. It is a set of conventions, skills, and persistent memory that make max-effort models (Opus 4.8 / Fable 5) orchestrate well, composed with the [superpowers](https://github.com/obra/superpowers) plugin, which owns the dev lifecycle.
+Sobaya ports the working methods of [poteto/noodle](https://github.com/poteto/noodle) onto native Claude Code primitives. It is **not a framework** — no daemon, no scheduler, no runtime beyond four shell hooks. It is a set of conventions, skills, and persistent memory that make max-effort models (Opus 4.8 / Fable 5) orchestrate well. The dev lifecycle is `tdd-set/` — Kent Beck's TDD rules plus a shell loop and gate, no external plugins.
 
 ## Getting started
 
@@ -56,24 +56,26 @@ flowchart LR
 ## What's inside
 
 - **4 skills** — `sobaya` (orchestration playbook), `new-app` (scaffold), `reflect` (learning capture), `meditate` (vault audit + skill refinement)
+- **tdd-set/** — the dev lifecycle: Kent Beck's TDD CLAUDE.md (verbatim), `tdd` + `gopher` skills, spec/plan templates, `loop.sh` + `gate.sh`, Go commit hook
 - **4 hooks** — brain index injected at session start; index auto-rebuilt on brain writes; two PreToolUse guards enforcing the Fable-only root and the workspace rules (flat root, scaffold gate) — all deterministic POSIX shell, fail-open, atomic writes
 - **brain/ vault** — Obsidian-compatible persistent memory: 10 principles, codebase notes, plans, backlog
 - **apps/ layout** — every project is its own git repository; the root repo tracks only the harness
 
-## How superpowers fits
+## How tdd-set fits
 
-superpowers owns the dev lifecycle; Sobaya owns the workspace around it. The seams are explicit so the two never compete for the same trigger:
+`tdd-set/` owns the dev lifecycle; Sobaya owns the workspace around it. No external plugins:
 
 | Phase | Owner | What happens |
 |---|---|---|
-| Design | superpowers:brainstorming | Mandatory gate before creative work — `new-app` defers to it for any new product |
-| Spec & plan | superpowers:writing-plans | Output lands in `brain/plans/NN-slug/` (overview.md = spec, phase-*.md = plan) — Sobaya's location preference, honored by the plugin |
-| Implement | superpowers:subagent-driven-development or executing-plans, with TDD | Sobaya's `sobaya` skill governs the dispatches themselves: briefs, isolation, concurrency, failure handling |
-| Debug | superpowers:systematic-debugging | Used by cooks and the orchestrator alike |
-| Review | superpowers code review + Sobaya refuter dispatches | An independent agent told to refute the work — never the implementer |
+| Spec | Human | `spec.md` in the app root: goal, must, must-not — the brief Phase 0 enumerates tests from. Agents read it, never edit it |
+| Plan | `tdd` skill, Phase 0 | Split the feature into small features, enumerate as many test cases as possible, probe each one with `bin/probe.sh` and write only those that print RED into `plan.md` as a **complete failing test** (code lives in the doc, not the suite) — approval before any code |
+| Implement | Kent Beck's CLAUDE.md (verbatim) | "go" = copy the next entry's test verbatim into the suite: Red → Green → Refactor (Tidy First) → check off → commit. `bin/loop.sh` repeats `claude -p "go"` until the plan is done or stalls 3 times |
+| Refactor | `gopher` skill + commit hook | Go checklist while green; `gofmt` / `go vet` failures block `git commit` |
+| Gate | `bin/gate.sh` | PASS = every entry checked, suite green, no existing test line touched, each checked entry's test present in the suite. The human-written tests are the spec, so nothing else is judged |
+| Review | Sobaya refuter dispatches | An independent agent told to refute the work — never the implementer |
 | Learn | Sobaya `reflect` / `meditate` | Session learnings → brain; accumulated lessons → principles and skill edits |
 
-A typical feature run: brainstorm the design (gate) → spec + plan in `brain/plans/` → dispatch cooks per the plan → refuter review → reflect. **The lifecycle is superpowers'; the kitchen discipline is Sobaya's.**
+A typical feature run: write `spec.md` → Phase 0 fills `plan.md` → loop → gate → refuter review → reflect. **The lifecycle is tdd-set's; the kitchen discipline is Sobaya's.**
 
 ## From noodle to Sobaya
 
@@ -110,13 +112,14 @@ sobaya/
 ├── .claude/
 │   ├── settings.json  # hook wiring
 │   ├── hooks/         # inject-brain, auto-index-brain, guard-fable-only, guard-workspace-rules
-│   └── skills/        # sobaya, new-app, reflect, meditate
+│   └── skills/        # sobaya, new-app, reflect, meditate, tdd → gopher → (links into tdd-set/)
 ├── .githooks/         # commit-msg — Fable-only agent commit gate
+├── tdd-set/           # dev lifecycle: Kent Beck CLAUDE.md, skills, templates, bin/loop.sh, bin/gate.sh, hooks/
 ├── brain/             # persistent memory vault (EN)
 │   ├── index.md       # hook-generated — never hand-edit
 │   ├── principles/    # 10 decision rules
 │   ├── codebase/      # knowledge & gotcha notes
-│   ├── plans/         # NN-slug/ (overview = spec, phase-* = plan)
+│   ├── plans/         # NN-slug/ cross-app or harness plans only (app spec/plan live in the app root)
 │   ├── todos.md       # permanent-ID backlog
 │   └── archive/
 ├── apps/              # projects — each its own git repo (gitignored here)
@@ -128,6 +131,6 @@ sobaya/
 ## Attribution
 
 - **noodle** (analyzed at commit `82d2921`) — brain vault structure, the reflect/meditate loop, deterministic hooks, and its Go mechanics adopted as conventions (atomic writes, one writer per target, worktree isolation, diagnose-don't-retry). Working clone: `references/noodle/`
-- **superpowers** — the entire dev lifecycle (brainstorming → plans → TDD → debugging → review) follows superpowers skills; Sobaya deliberately adds only what it doesn't provide
+- **Kent Beck** — `tdd-set/CLAUDE.md` is his BPlusTree3 `rust/docs/CLAUDE.md` verbatim (commit `e1f539e`); the plan-checklist idea comes from his TCRSkill `plan.md`
 
 Usage guide (Korean): [docs/guide.md](docs/guide.md) · Design spec: [brain/archive/plans/01-sobaya-harness/overview.md](brain/archive/plans/01-sobaya-harness/overview.md)

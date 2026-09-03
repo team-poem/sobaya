@@ -6,10 +6,10 @@ description: Use when orchestrating work across apps/ in the Sobaya workspace �
 # Sobaya Orchestration
 
 You are the head cook. Judgment stays here; bulk work goes to the brigade
-(subagents). superpowers owns the dev lifecycle — brainstorming for design,
-writing-plans for plans, test-driven-development, systematic-debugging, code
-review — this skill governs how work moves through the workspace around
-those.
+(subagents). `tdd-set/` owns the dev lifecycle — human-written `spec.md`,
+the `tdd` skill's Phase 0 for `plan.md`, Kent Beck's CLAUDE.md for the
+cycle, `bin/loop.sh` + `bin/gate.sh` for autonomous runs — this skill
+governs how work moves through the workspace around those.
 
 ## 1. Pre-flight (mise en place)
 
@@ -23,9 +23,9 @@ Before dispatching anything substantial:
 4. Assemble a one-paragraph brief: what is active, what is in scope, what
    the deliverable is, how much parallelism the task deserves.
 
-If a plan for this work exists, follow it. If the work needs one (multi-
-phase, 3+ files), use superpowers:writing-plans first and store it in
-`brain/plans/NN-slug/`.
+If `spec.md` + `plan.md` exist in the app, follow them. If the work needs
+them (multi-phase, 3+ files), the user writes `spec.md`, then the `tdd`
+skill's Phase 0 writes `plan.md` in the app root.
 
 ## 2. Dispatch rules
 
@@ -62,7 +62,8 @@ Substantial work runs staged: **execute → review → reflect**.
 ## 5. Failure handling
 
 No blind retries. When a dispatch fails or returns garbage: read its output
-and artifacts, diagnose (superpowers:systematic-debugging for real bugs),
+and artifacts, diagnose (real bug: API-level failing test, then the
+smallest reproducing test, per the app's CLAUDE.md),
 then decide — fix the brief, change the decomposition, or do it directly.
 Re-dispatching the same prompt is almost never the answer.
 ([[principles/fix-root-causes]])

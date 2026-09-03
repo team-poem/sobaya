@@ -12,8 +12,5 @@ apps/*
 # OS junk
 .DS_Store
 
-# Visual companion (brainstorming) artifacts
-.superpowers/
-
 # Obsidian per-user vault state (brain/ is Obsidian-compatible; state stays local)
 /.obsidian/

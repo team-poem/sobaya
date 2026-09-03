@@ -8,7 +8,7 @@ reveals the essential structure and usually shrinks the addition.
 
 **In practice:**
 - Before adding a skill, rule, or hook, check whether an existing one (here
-  or in superpowers) already covers it — extend or delete rather than
+  or in tdd-set/) already covers it — extend or delete rather than
   duplicate.
 - Plans sequence removals before constructions.
 - A redundant mechanism is a defect even when harmless — Sobaya omits

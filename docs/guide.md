@@ -8,10 +8,10 @@ README가 "무엇"이라면 이 문서는 "어떻게"입니다. 세션에서 실
 
 ## 시나리오 1 — 새 앱 만들기
 
-1. "todo 앱 하나 만들자" → 새 제품 설계이므로 superpowers **brainstorming**이 먼저 디자인을 잡습니다.
-2. 디자인 승인 후 **new-app** 스킬: `apps/todo-app` 생성, `git init -b main`, 앱 CLAUDE.md·README 작성, `brain/apps.md` 등록.
-3. 스펙과 플랜은 `brain/plans/02-todo-app/`에 (overview.md + phase-*.md).
-4. 구현은 **sobaya** 스킬의 디스패치 규칙대로 서브에이전트가 수행합니다.
+1. "todo 앱 하나 만들자" → **new-app** 스킬: `apps/todo-app` 생성, `git init -b main`, 앱 CLAUDE.md(명령줄 4개 + Kent Beck TDD 규칙 원문)·README·spec/plan 템플릿 설치, `brain/apps.md` 등록.
+2. 사용자가 앱 루트 `spec.md`(Goal·Must·Must not)를 채웁니다. 에이전트가 대신 쓰지 않습니다. 이게 끝나기 전엔 구현 시작 금지.
+3. **tdd** 스킬 Phase 0: 큰 기능을 작은 기능으로 쪼개고, 작은 기능마다 테스트 케이스를 최대한 열거하고, 케이스 하나씩 `tdd-set/bin/probe.sh`로 돌려 RED임을 확인한 것만 앱 루트 `plan.md`에 **완전한 실패 테스트 코드**로 적습니다(항목 = 체크박스 한 줄 + 코드 블록). GREEN이 나오면 이미 있는 행위이므로 적지 않습니다. 코드는 문서에만 있고 스위트엔 아직 없습니다. 승인 전엔 구현을 쓰지 않습니다.
+4. 구현: 앱 안에서 `tdd-set/bin/loop.sh` — "go" 한 번에 항목 하나: 문서의 테스트 코드를 그대로 스위트에 옮기고 Red → Green → 체크 → 커밋(행위 변경), 그다음 green 상태에서 Refactor → 별도 커밋(구조 변경). 커밋 없는 반복 3회면 정체로 멈춥니다. 끝나면 `gate.sh`가 검사합니다: 전부 체크·스위트 green·기존 테스트 무변조·체크 항목의 테스트가 스위트에 존재. 사람이 쓴 테스트가 곧 spec이라 그 이상은 판정하지 않습니다. 세션 안에서 서브에이전트로 돌릴 땐 **sobaya** 디스패치 규칙대로.
 
 ## 시나리오 2 — 기존 앱에 기능 추가
 
@@ -31,7 +31,7 @@ README가 "무엇"이라면 이 문서는 "어떻게"입니다. 세션에서 실
 
 ## 시나리오 4 — 실패한 위임 작업
 
-맹목 재시도 금지. 출력과 산출물을 읽고 → 진단(진짜 버그면 superpowers systematic-debugging) → 브리프 수정 / 분해 변경 / 직접 수행 중 결정합니다.
+맹목 재시도 금지. 출력과 산출물을 읽고 → 진단(진짜 버그면 CLAUDE.md 결함 규칙: API 수준 실패 테스트 → 최소 재현 테스트 → 둘 다 green) → 브리프 수정 / 분해 변경 / 직접 수행 중 결정합니다.
 
 ## brain 운영 규칙
 

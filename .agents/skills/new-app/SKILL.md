@@ -19,10 +19,8 @@ Creates `apps/<name>` as an independent git repository and registers it.
    `.git` go directly in it — never a nested wrapper (`apps/<name>/app/`)
    and never another workspace clone (`apps/<name>/apps/`). When importing
    an existing project, flatten it into `apps/<name>` at import time.
-4. **Design gate:** if this is a new product/feature being designed (not a
-   directory the user already fully specified), run superpowers:brainstorming
-   first. Scaffold immediately only when the user explicitly asks for just
-   the scaffold.
+4. **Spec gate:** scaffolding installs an empty `spec.md`; no implementation
+   starts until the user has filled it. Do not draft `spec.md` for the user.
 
 ## Steps
 
@@ -47,26 +45,43 @@ Creates `apps/<name>` as an independent git repository and registers it.
    ## App facts
    - Stack: <decided at design>
    - Run: <command>
-   - Test: <command>
+   - Test: `<command>`     (the gate runs this)
+   - Format: `<command>`   (commit hook: must print nothing, e.g. gofmt -l .)
+   - Lint: `<command>`     (commit hook: must exit 0, e.g. go vet ./...)
+   - Bench: `<command>`    (gate prints it; gopher compares before/after on hot paths, e.g. go test -bench=. -benchmem ./...)
    ```
 
    Angle fields are filled at design time; none may survive past the app's
    first implementation commit.
 
-3. Write `apps/<name>/README.md` — Korean, one paragraph: 이 앱이 무엇을
+3. Install tdd-set into the app:
+
+   ```sh
+   cat tdd-set/CLAUDE.md >> apps/<name>/AGENTS.md
+   cp tdd-set/spec-template.md apps/<name>/spec.md
+   cp tdd-set/plan-template.md apps/<name>/plan.md
+   mkdir -p apps/<name>/.claude/skills
+   cp -r tdd-set/skills/tdd tdd-set/skills/gopher apps/<name>/.claude/skills/
+   ```
+
+   Add the commit gate hook to `apps/<name>/.claude/settings.json` (snippet in
+   `tdd-set/README.md`); it runs the Format/Lint lines above before every commit.
+
+4. Write `apps/<name>/README.md` — Korean, one paragraph: 이 앱이 무엇을
    하는지, 어떤 스택인지.
 
-4. First commit inside the app:
+5. First commit inside the app:
 
    ```sh
    git -C apps/<name> add -A
    git -C apps/<name> commit -m "chore: scaffold <name>"
    ```
 
-5. Register the app — append one row to the table in `brain/apps.md`:
+6. Register the app — append one row to the table in `brain/apps.md`:
    `| <name> | <purpose> | <stack or –> | scaffolded |`
 
-6. Suggest (don't force) a first-milestone plan under `brain/plans/`.
+7. Suggest (don't force) filling `spec.md`, then the `tdd` skill's Phase 0
+   to write `plan.md`.
 
 ## Report
 

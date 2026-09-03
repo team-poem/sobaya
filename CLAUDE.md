@@ -31,9 +31,10 @@ A hook injects its index at session start.
   checkout. Parallel mutation requires worktree isolation.
 - **No blind retries:** When delegated work fails, read its output and
   diagnose before re-dispatching.
-- **Plans and specs live in `brain/plans/NN-slug/`** (overview.md = spec,
-  phase-*.md = plan). This is the user's preferred location and overrides
-  plugin defaults.
+- **Spec and plan live in the app root** as `spec.md` (human-written goal,
+  never edited by agents) and `plan.md` (failing tests: checkbox + code block each) — the loop
+  and gate read them there. `brain/plans/NN-slug/` holds only cross-app or
+  harness plans.
 - **Enforced:** flat-root nesting, project markers outside `apps/`,
   `brain/index.md` hand-edits, and the app scaffold gate (own git repo +
   `Implementer:` model policy in the app CLAUDE.md before real work in an
@@ -52,10 +53,17 @@ PreToolUse hook (`.claude/hooks/guard-fable-only.sh`) and a commit gate
 
 ## Skills
 
-superpowers owns the dev lifecycle (brainstorming, writing-plans, TDD,
-systematic-debugging, code review). Sobaya skills own the workspace:
-`sobaya` (orchestration), `new-app` (scaffold), `reflect` (capture
-learnings), `meditate` (vault audit + skill refinement).
+`tdd-set/` owns the dev lifecycle — no external plugins. Kent Beck's
+CLAUDE.md (verbatim) runs the Red → Green → Refactor cycle; the `tdd` skill
+adds Phase 0 (split the feature, enumerate as many test cases as possible,
+probe each one red with `tdd-set/bin/probe.sh`, record it in `plan.md` as
+code) and loop guards; `gopher` is the Go refactor checklist;
+`tdd-set/bin/loop.sh` repeats `claude -p "go"` until `plan.md` is fully
+checked, then `tdd-set/bin/gate.sh` passes only when every entry is
+checked, suite green, no existing test modified, each checked entry's test
+present in the suite. The human-written tests are the spec. Sobaya skills
+own the workspace: `sobaya` (orchestration), `new-app` (scaffold — installs tdd-set into the app),
+`reflect` (capture learnings), `meditate` (vault audit + skill refinement).
 
 ## Language
 

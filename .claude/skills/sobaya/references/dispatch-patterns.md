@@ -26,8 +26,10 @@ Constraints: <stack, conventions; read apps/<name>/CLAUDE.md first>.
 Git: always `git -C <absolute path>`; never bare-`cd` into another repo —
 the shell cwd persists between calls.
 Do NOT touch: <files/areas owned by other agents or out of scope>.
-Process: follow superpowers:test-driven-development — failing test, minimal
-code, pass. Commit per logical change with conventional messages.
+Process: the app's CLAUDE.md (Kent Beck TDD) — next unchecked test in
+plan.md copied verbatim into the suite, red, minimal code, green, check it
+off, commit (behavioral). Then refactor while green and commit structural
+changes separately (`refactor:`). Never modify an existing test.
 Report: append progress to <brain/plans/NN-slug/reports/task-N.md> as you
 finish each part (do not wait until the end), then return: what changed,
 what you verified (commands + output), what remains.

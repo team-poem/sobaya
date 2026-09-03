@@ -20,7 +20,7 @@ Source: https://github.com/poteto/noodle — analyzed at commit `82d2921`
 
 **Deliberately dropped:** Go runtime/event loop, autonomous scheduling, web
 UI, `.agents/` multi-harness indirection, NDJSON event sourcing, block-sleep
-hook (harness-native now), ~21 skills (superpowers covers the dev lifecycle;
+hook (harness-native now), ~21 skills (tdd-set/ covers the dev lifecycle;
 others are noodle-CLI-specific).
 
 **Where to look when porting more:** `.agents/skills/` (skill bodies),

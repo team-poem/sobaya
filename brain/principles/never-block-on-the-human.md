@@ -7,7 +7,7 @@ let the human course-correct afterward. Code is cheap; waiting is expensive.
 are answerable from the plan, the brain, or the code.
 
 **Boundary:** This governs *execution*, not *design*. Design-approval gates
-(superpowers brainstorming, spec review) still apply — this principle starts
+(human-written spec.md, plan.md approval before code) still apply — this principle starts
 after approval, and stops for destructive or scope-changing decisions, which
 always go to the human.
 
