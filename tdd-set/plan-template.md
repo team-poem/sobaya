@@ -5,8 +5,9 @@ Each was probed with `bin/probe.sh` and printed RED before it was added here. Th
 watches it fail, implements the minimum, refactors, checks the box. The gate verifies
 that the test function named in every checked entry was added to the suite.
 
-Entry format: `- [ ] TestName — one line: what it proves` (name the behavior, as CLAUDE.md asks)
-followed by a fenced code block with the complete test function.
+Entry format: `- [ ] TestName — one line: what it proves` (name the behavior), then a fenced code
+block. Go: the complete test function. Node: a complete test file whose test title starts with
+the entry name, e.g. `it("addAdds: 1 + 2 = 3", ...)`.
 
 ## Small feature 1: <name>
 

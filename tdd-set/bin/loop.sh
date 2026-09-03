@@ -18,7 +18,7 @@ else
   abs=$(cd "$app" && pwd)   # the agent sometimes writes absolute paths; allow both forms
   flags=(--permission-mode acceptEdits --allowedTools "Bash(gofmt:*)" "Bash(tdd-set/bin/probe.sh:*)")
   for a in "$app" "$abs"; do
-    flags+=("Bash(go -C $a:*)")
+    flags+=("Bash(go -C $a:*)" "Bash(cd $a && npm:*)" "Bash(cd $a && npx:*)" "Bash(cd $a && node:*)")
     for sub in add commit diff status log show; do flags+=("Bash(git -C $a $sub:*)"); done
   done
 fi

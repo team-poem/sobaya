@@ -11,6 +11,19 @@ mkdir -p "$app"
 [ -d "$app/.git" ] || git -C "$app" init -q -b main
 
 if [ ! -f "$app/AGENTS.md" ]; then
+  if [ -f "$app/package.json" ]; then
+    lines='- Test: `npm test`
+- Lint: `npm run lint`
+- Skills: nodejs'
+    grep -q '"prettier"' "$app/package.json" && lines="$lines
+- Format: \`npx prettier --check .\`"
+  else
+    lines='- Test: `go test ./...`
+- Format: `gofmt -l .`
+- Lint: `go vet ./...`
+- Bench: `go test -bench=. -benchmem ./...`
+- Skills: gopher'
+  fi
   cat > "$app/AGENTS.md" <<AGENTS
 # $name
 
@@ -18,11 +31,7 @@ if [ ! -f "$app/AGENTS.md" ]; then
 
 ## App facts
 - Run: \`<command>\`
-- Test: \`go test ./...\`
-- Format: \`gofmt -l .\`
-- Lint: \`go vet ./...\`
-- Bench: \`go test -bench=. -benchmem ./...\`
-- Skills: gopher
+$lines
 
 The workspace harness and the TDD rules live in the sobaya root: \`../../AGENTS.md\` and
 \`../../tdd-set/AGENTS.md\`. Work on this app from the sobaya root (\`/go $name\`).

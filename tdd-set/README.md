@@ -21,11 +21,11 @@ Everything runs from the sobaya root with the app named. A session opened inside
 | `spec-template.md` | Step 5. The human's goal document (Goal, Must, Must not). Phase 0 enumerates tests from it. The loop only reads it |
 | `plan-template.md` | Steps 2 to 4. Failing tests written as **code** in the document before any implementation. Entry = `- [ ] TestName — what it proves` + code block |
 | `skills/tdd/SKILL.md` | Steps 1 to 3 (Phase 0) plus loop guards (no test tampering, one line report). Only what AGENTS.md lacks |
-| `skills/<stack>/SKILL.md` | Step 9. Refactor checklist per stack. Today `gopher` (Go). An app picks one or more on its `Skills:` line. Add another stack in the same shape |
+| `skills/<stack>/SKILL.md` | Step 9. Refactor checklist per stack. Today `gopher` (Go) and `nodejs` (JS/TS). An app picks one or more on its `Skills:` line. Add another stack in the same shape |
 | `hooks/commit-gate.sh` | Step 9, enforced. Before `git commit`, runs the app's Format and Lint lines and blocks on failure. Handles `git -C apps/<name> commit` and `cd apps/<name> && git commit`. No lines and a go.mod present → gofmt and go vet defaults |
 | `commands/` | One slash command per stage, all taking the app name. `/sobaya-plan` = Phase 0, `/go` = one cycle (the same "go" as in AGENTS.md), `/gate` = gate only, `/sobaya-loop` = the whole plan, then the gate |
 | `bin/install.sh` | Step 0. Creates the three app files (see Install). There is no separate scaffold step |
-| `bin/probe.sh` | Steps 3 to 4. Drops one candidate test into the package as a temporary file, runs it, deletes it. RED (fails or does not build) → record it in plan.md; GREEN → the behavior already exists, drop it. Go only |
+| `bin/probe.sh` | Steps 3 to 4. Drops one candidate test into the package as a temporary file, runs it, deletes it. RED (fails or does not build) → record it in plan.md; GREEN → the behavior already exists, drop it. Go (`go test -run`) and Node (vitest or `node --test`; the snippet is a complete test file) |
 | `bin/loop.sh` | Steps 6, 7, 10, 11. Only ever runs "go". Halts when an iteration adds entries (nobody inside the loop can be asked), stops after three iterations without a commit, then runs the gate |
 | `bin/gate.sh` | Steps 6 and 12. PASS = plan.md 100% checked · suite green · no existing test line touched · every checked entry's test name found in the suite. The human's tests are the spec, so nothing else is judged |
 

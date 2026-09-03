@@ -9,7 +9,9 @@ description: >-
 # TDD (plan.md driven)
 
 Everything runs from the sobaya root with the app named: `/sobaya-plan <name>`, `/go <name>`.
-All paths below are `apps/<name>/...`; use `git -C apps/<name>` and `go -C apps/<name>`, never `cd`.
+All paths below are `apps/<name>/...`; use `git -C apps/<name>`, `go -C apps/<name>`, or for Node
+`cd apps/<name> && npm|npx ...` as one command. Entry names are identifiers: Go `TestX`, Node a test
+whose title starts with the identifier (`it("loginRejectsEmptyEmail: ...")`) — the gate matches on it.
 
 `tdd-set/AGENTS.md` holds the cycle rules: "go" = next unchecked test in `plan.md`, Red → Green →
 Refactor (Tidy First), commit discipline. Follow it exactly. This skill adds only what it lacks.
