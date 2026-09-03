@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Run one app's TDD loop from the sobaya root until its plan.md has no unchecked boxes, then gate.
+# Run one app's TDD loop from the sobaya root until its failed-test.md has no unchecked boxes, then gate.
 # usage: tdd-set/bin/loop.sh apps/<name> [max_iterations]
 #
-# The loop only ever runs "/go <name>". It never plans. Whether the human reviewed plan.md is
+# The loop only ever runs "/go <name>". It never plans. Whether the human reviewed failed-test.md is
 # not verified; the human is trusted. It halts if an iteration adds entries (defect flow),
 # because nobody inside the loop can be asked; the human looks and re-runs.
 set -u
@@ -23,20 +23,20 @@ else
   done
 fi
 
-[ -f "$app/plan.md" ] || { echo "no $app/plan.md"; exit 1; }
+[ -f "$app/failed-test.md" ] || { echo "no $app/failed-test.md"; exit 1; }
 [ -f "$app/spec.md" ] || { echo "no $app/spec.md"; exit 1; }
 [ -d "$app/.git" ] || { echo "$app is not a git repository"; exit 1; }
 g diff --quiet || { echo "$app working tree dirty; commit first"; exit 1; }
-grep -qE '<name>|<feature>|^\.\.\.$' "$app/plan.md" && { echo "plan.md still has template placeholders; Phase 0 is not finished"; exit 1; }
+grep -qE '<name>|<feature>|^\.\.\.$' "$app/failed-test.md" && { echo "failed-test.md still has template placeholders; Phase 0 is not finished"; exit 1; }
 grep -qE '<what must be true|<requirement 1>' "$app/spec.md" && { echo "spec.md is still the template; the human fills it first"; exit 1; }
 
-entries() { grep -cE '^- \[[ x]\] ' "$app/plan.md"; }
+entries() { grep -cE '^- \[[ x]\] ' "$app/failed-test.md"; }
 start=$(g rev-parse HEAD)
 echo "$start" > "$app/.git/sobaya-loop-start"
 stalls=0
 
 for ((i = 1; i <= max; i++)); do
-  grep -q '^- \[ \]' "$app/plan.md" || break
+  grep -q '^- \[ \]' "$app/failed-test.md" || break
   before=$(g rev-parse HEAD); n_before=$(entries)
   echo "=== $name iteration $i ==="
   claude -p "/go $name" "${flags[@]}" </dev/null || echo "claude exited non-zero"
@@ -45,7 +45,7 @@ for ((i = 1; i <= max; i++)); do
     g stash push -u -m "sobaya-loop iteration $i leftovers"
   fi
   if [ "$(entries)" -gt "$n_before" ]; then
-    echo "iteration $i added entries to plan.md (defect flow); halting — look at them, then re-run the loop"
+    echo "iteration $i added entries to failed-test.md (defect flow); halting — look at them, then re-run the loop"
     break
   fi
   if [ "$(g rev-parse HEAD)" = "$before" ]; then

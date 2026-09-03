@@ -38,7 +38,7 @@ A hook injects its index at session start.
 - **No blind retries:** When delegated work fails, read its output and
   diagnose before re-dispatching.
 - **Spec and plan live in the app root** as `spec.md` (human-written goal,
-  never edited by agents) and `plan.md` (failing tests: checkbox + code block each) — the loop
+  never edited by agents) and `failed-test.md` (failing tests: checkbox + code block each) — the loop
   and gate read them there. `brain/plans/NN-slug/` holds only cross-app or
   harness plans.
 - **Enforced:** flat-root nesting, project markers outside `apps/`,
@@ -63,9 +63,9 @@ PreToolUse hook (`.claude/hooks/guard-fable-only.sh`) and a commit gate
 (the TDD + Tidy First rules, appended into every app's `AGENTS.md`) runs the
 Red → Green → Refactor cycle; the `tdd` skill
 adds Phase 0 (split the feature, enumerate as many test cases as possible,
-probe each one red with `tdd-set/bin/probe.sh`, record it in `plan.md` as
+probe each one red with `tdd-set/bin/probe.sh`, record it in `failed-test.md` as
 code) and loop guards; `gopher` is the Go refactor checklist;
-`tdd-set/bin/loop.sh` repeats `claude -p "go"` until `plan.md` is fully
+`tdd-set/bin/loop.sh` repeats `claude -p "go"` until `failed-test.md` is fully
 checked, then `tdd-set/bin/gate.sh` passes only when every entry is
 checked, suite green, no existing test modified, each checked entry's test
 present in the suite. The human-written tests are the spec.
@@ -73,7 +73,7 @@ Everything runs from this root with the app named — `/sobaya-plan <name>`,
 `/go <name>`, `/gate <name>`, `/sobaya-loop <name>` — because a session opened
 inside an app inherits only CLAUDE.md, not skills, commands, or hooks. An app
 carries three files: `AGENTS.md` (its command lines and a `Skills:` line naming
-the stack skills it uses, e.g. `gopher`), `spec.md`, `plan.md`.
+the stack skills it uses, e.g. `gopher`), `spec.md`, `failed-test.md`.
 `tdd-set/bin/install.sh apps/<name>` creates them; there is no scaffold step. Sobaya skills own the workspace:
 `sobaya` (orchestration), `reflect` (capture learnings), `meditate` (vault
 audit + skill refinement).

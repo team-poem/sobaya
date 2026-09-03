@@ -11,7 +11,7 @@ Run only when the full suite is green. Behavior must not change; if a test goes 
 
 **Never rename, move, or change the signature of anything a test references.** The tests are
 the spec and the gate rejects any edit to them; a name the tests use is fixed until a human
-changes plan.md.
+changes failed-test.md.
 
 ## Checklist (stop at the first that applies, fix, rerun tests, continue)
 1. `gofmt -l .` empty, `go vet ./...` clean.

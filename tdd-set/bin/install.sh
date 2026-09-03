@@ -40,7 +40,7 @@ fi
 if [ ! -f "$app/CLAUDE.md" ]; then printf 'Read and follow `AGENTS.md`.\n' > "$app/CLAUDE.md"
 elif ! grep -q 'AGENTS.md' "$app/CLAUDE.md"; then printf '\nRead and follow `AGENTS.md` as well.\n' >> "$app/CLAUDE.md"; fi
 [ -f "$app/spec.md" ] || cp "$here/spec-template.md" "$app/spec.md"
-[ -f "$app/plan.md" ] || cp "$here/plan-template.md" "$app/plan.md"
+[ -f "$app/failed-test.md" ] || cp "$here/failed-test-template.md" "$app/failed-test.md"
 
-echo "$app ready: AGENTS.md (command lines + Skills), spec.md, plan.md"
+echo "$app ready: AGENTS.md (command lines + Skills), spec.md, failed-test.md"
 echo "next: fill $app/AGENTS.md lines and spec.md, add a row to brain/apps.md, then /sobaya-plan $name"

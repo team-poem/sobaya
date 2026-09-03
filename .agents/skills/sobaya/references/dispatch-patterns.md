@@ -27,7 +27,7 @@ Git: always `git -C <absolute path>`; never bare-`cd` into another repo —
 the shell cwd persists between calls.
 Do NOT touch: <files/areas owned by other agents or out of scope>.
 Process: the app's AGENTS.md (TDD rules) — next unchecked test in
-plan.md copied verbatim into the suite, red, minimal code, green, check it
+failed-test.md copied verbatim into the suite, red, minimal code, green, check it
 off, commit (behavioral). Then refactor while green and commit structural
 changes separately (`refactor:`). Never modify an existing test.
 Report: append progress to <brain/plans/NN-slug/reports/task-N.md> as you

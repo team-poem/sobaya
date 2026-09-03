@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Probe one candidate test: drop it into the package as a temporary file, run it, report,
-# delete it. Phase 0 writes an entry into plan.md only after this prints RED.
+# delete it. Phase 0 writes an entry into failed-test.md only after this prints RED.
 # usage: tdd-set/bin/probe.sh apps/<name>/<dir> <snippet-file>   (or - for stdin)
 # Go:   <dir> is the package dir; snippet = the test func only (package/import added here)
 # Node: <dir> is where the test file should live; snippet = a complete test file (imports included)
@@ -47,7 +47,7 @@ else
 fi
 
 if [ $rc -eq 0 ]; then
-  echo "GREEN  $name  (already passes — do not add to plan.md)"; exit 1
+  echo "GREEN  $name  (already passes — do not add to failed-test.md)"; exit 1
 elif grep -qE "$build_re" <<<"$out"; then
   echo "RED    $name  (does not build: $(grep -m1 -E "$build_re" <<<"$out" | sed 's/^ *//' | cut -c1-100))"
 else

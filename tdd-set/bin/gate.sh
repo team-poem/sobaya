@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Final gate for one app. PASS = every plan.md entry checked, suite green, no existing test line
+# Final gate for one app. PASS = every failed-test.md entry checked, suite green, no existing test line
 # touched, every checked entry's test function present in the suite. The human's tests are the
 # spec; nothing else is judged.
 # usage: tdd-set/bin/gate.sh apps/<name> [start_commit]
@@ -11,8 +11,8 @@ start=${2:-$(cat .git/sobaya-loop-start 2>/dev/null)}
 fail=0
 test_globs=('*_test.go' '*_test.py' '*.test.*' '*.spec.*')
 
-if grep -q '^- \[ \]' plan.md; then
-  echo "FAIL unchecked entries:"; grep '^- \[ \]' plan.md; fail=1
+if grep -q '^- \[ \]' failed-test.md; then
+  echo "FAIL unchecked entries:"; grep '^- \[ \]' failed-test.md; fail=1
 fi
 
 # test command: the app AGENTS.md "- Test: `...`" line
@@ -36,9 +36,9 @@ while read -r name; do
   if ! grep -qE "(func |def |it\(|test\()['\"]?$name\b" <<<"$added"; then
     echo "FAIL entry checked but test not added to suite: $name"; fail=1
   fi
-done < <(git diff "$start"..HEAD -- plan.md | sed -nE 's/^\+- \[x\] ([A-Za-z0-9_]+).*/\1/p')
+done < <(git diff "$start"..HEAD -- failed-test.md | sed -nE 's/^\+- \[x\] ([A-Za-z0-9_]+).*/\1/p')
 
-echo "plan: $(grep -c '^- \[x\]' plan.md) checked ($newly_checked this run), commits since start: $(git rev-list --count "$start"..HEAD)"
+echo "plan: $(grep -c '^- \[x\]' failed-test.md) checked ($newly_checked this run), commits since start: $(git rev-list --count "$start"..HEAD)"
 
 # benchmarks: informational only (no baseline to fail against); declared as "- Bench: `...`" in AGENTS.md
 bench_cmd=$(sed -nE 's/^- Bench: `?([^`]+)`?.*/\1/p' AGENTS.md 2>/dev/null | head -1)

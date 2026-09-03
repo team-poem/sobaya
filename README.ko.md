@@ -19,14 +19,14 @@
 - 행위 변경과 구조 변경은 같은 커밋에 두지 않음
 - 결정론적 게이트: 플랜 100% 체크, 스위트 green, 기존 테스트 줄 무변조, 체크한 항목의 테스트 존재
 - 명령줄은 앱 `AGENTS.md`에 한 번만 선언(`Test`, `Format`, `Lint`, `Bench`), 게이트와 커밋 훅이 강제. `Skills:` 줄로 그 앱이 쓰는 스택 스킬을 고름
-- 하네스는 루트에 하나: 계약, 스킬, 명령, 훅, TDD 규칙. 앱은 `AGENTS.md`·`spec.md`·`plan.md`만 갖고, 루트에서 이름으로 작업
+- 하네스는 루트에 하나: 계약, 스킬, 명령, 훅, TDD 규칙. 앱은 `AGENTS.md`·`spec.md`·`failed-test.md`만 갖고, 루트에서 이름으로 작업
 - `brain/` 영속 메모리를 세션 시작 시 주입, fail-open 셸 훅, 앱당 작성자 1명
 
 ## 루프
 
 ```mermaid
 flowchart LR
-    S["apps/name/spec.md<br>사람: goal · must · must not"] --> P["/sobaya-plan name<br>케이스 열거 → 하나씩 probe로 red 확인 → plan.md에 코드로"]
+    S["apps/name/spec.md<br>사람: goal · must · must not"] --> P["/sobaya-plan name<br>케이스 열거 → 하나씩 probe로 red 확인 → failed-test.md에 코드로"]
     P -- 예 --> G["/go name × N<br>테스트 그대로 옮김 → red → green → 커밋<br>green에서 refactor → 커밋"]
     G --> T["/gate name<br>100% 체크 · 스위트 green<br>테스트 무변조 · 이름 존재"]
     T --> R["review<br>반박자 서브에이전트"]
@@ -35,9 +35,9 @@ flowchart LR
 ```
 
 - **Spec.** 사람이 `spec.md`를 채웁니다. 에이전트는 읽기만 하고 수정하지 않습니다.
-- **Plan.** `/sobaya-plan <name>`이 `apps/<name>/plan.md` 초안을 만듭니다: 기능을 쪼개고, 케이스를 최대한 열거하고, 하나씩 probe해서 RED인 것만 남깁니다. 그리고 한 번 묻습니다. *검토·추가 끝나셨으면 이대로 진행할까요?* 사람은 파일을 직접 고칩니다. 검토 여부를 검증하는 장치는 없고, 루프는 사람의 테스트만큼만 좋습니다.
+- **Plan.** `/sobaya-plan <name>`이 `apps/<name>/failed-test.md` 초안을 만듭니다: 기능을 쪼개고, 케이스를 최대한 열거하고, 하나씩 probe해서 RED인 것만 남깁니다. 그리고 한 번 묻습니다. *검토·추가 끝나셨으면 이대로 진행할까요?* 사람은 파일을 직접 고칩니다. 검토 여부를 검증하는 장치는 없고, 루프는 사람의 테스트만큼만 좋습니다.
 - **Cycle.** `/go <name>`이 다음 미체크 항목을 집어 Red → Green → Refactor 한 사이클을 돕니다. 리팩터는 앱 `Skills:` 줄이 고른 스킬로. `/sobaya-loop <name>`은 플랜이 끝나거나 정체할 때까지 반복합니다.
-- **Gate.** `/gate <name>`은 PASS 아니면 FAIL입니다. 루프 도중 발견한 결함은 probe한 테스트 두 개로 `plan.md`에 추가되고 루프는 사람을 위해 멈춥니다.
+- **Gate.** `/gate <name>`은 PASS 아니면 FAIL입니다. 루프 도중 발견한 결함은 probe한 테스트 두 개로 `failed-test.md`에 추가되고 루프는 사람을 위해 멈춥니다.
 - **Review, reflect.** 독립 서브에이전트가 반박하고, 배운 것은 `brain/`에 남아 다음 세션이 읽습니다.
 
 ## 설치
@@ -46,7 +46,7 @@ flowchart LR
 tdd-set/bin/install.sh apps/<name>
 ```
 
-앱이 갖는 파일 셋을 만듭니다: `AGENTS.md`(명령줄 + `Skills:`), `spec.md`, `plan.md`. 새 앱이든 기존 앱이든 되고, 멱등입니다. 나머지는 전부 루트에 있습니다. 자세한 내용은 [tdd-set 레퍼런스](tdd-set/README.md#install-per-app-new-or-existing).
+앱이 갖는 파일 셋을 만듭니다: `AGENTS.md`(명령줄 + `Skills:`), `spec.md`, `failed-test.md`. 새 앱이든 기존 앱이든 되고, 멱등입니다. 나머지는 전부 루트에 있습니다. 자세한 내용은 [tdd-set 레퍼런스](tdd-set/README.md#install-per-app-new-or-existing).
 
 ## 사용
 
@@ -58,7 +58,7 @@ tdd-set/bin/install.sh apps/<name>
 
 | 검사 | FAIL 조건 |
 |---|---|
-| 플랜 완료 | `plan.md`에 `- [ ]`가 남아 있음 |
+| 플랜 완료 | `failed-test.md`에 `- [ ]`가 남아 있음 |
 | 스위트 green | `Test:` 명령이 0이 아닌 코드로 종료 |
 | 테스트 무변조 | 루프 시작 이후 테스트 파일에서 삭제되거나 수정된 줄이 있음 |
 | 이름 존재 | 체크된 항목의 이름을 가진 테스트 함수가 추가되지 않음 |
@@ -74,5 +74,5 @@ tdd-set/bin/install.sh apps/<name>
 
 ## 출처
 
-- **Kent Beck.** `tdd-set/AGENTS.md`는 그의 BPlusTree3 `rust/docs/CLAUDE.md` 원문(커밋 `e1f539e`). 플랜 체크리스트는 그의 TCRSkill `plan.md`에서. 앱 `AGENTS.md`의 명령줄은 그의 `agent.md`를 따름.
+- **Kent Beck.** `tdd-set/AGENTS.md`는 그의 BPlusTree3 `rust/docs/CLAUDE.md` 원문(커밋 `e1f539e`). 플랜 체크리스트는 그의 TCRSkill `failed-test.md`에서. 앱 `AGENTS.md`의 명령줄은 그의 `agent.md`를 따름.
 - **noodle.** brain 볼트, reflect/meditate, 결정론적 훅, 앱당 작성자 1명. [대응표](docs/from-noodle.ko.md)

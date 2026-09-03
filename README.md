@@ -19,14 +19,14 @@ Failing tests first, then the agent.
 - Behavioral and structural changes never share a commit
 - Deterministic gate: plan 100% checked, suite green, no existing test line touched, every checked entry present in the suite
 - Command lines declared once in the app `AGENTS.md` (`Test`, `Format`, `Lint`, `Bench`) and enforced by the gate and a commit hook. A `Skills:` line picks the stack skills that app uses
-- One harness in the root: contract, skills, commands, hooks, TDD rules. Apps carry only `AGENTS.md`, `spec.md`, `plan.md` and are worked on from the root, by name
+- One harness in the root: contract, skills, commands, hooks, TDD rules. Apps carry only `AGENTS.md`, `spec.md`, `failed-test.md` and are worked on from the root, by name
 - Persistent memory in `brain/`, injected at session start. Shell hooks that fail open. One writer per app
 
 ## The loop
 
 ```mermaid
 flowchart LR
-    S["apps/name/spec.md<br>human: goal · must · must not"] --> P["/sobaya-plan name<br>enumerate cases → probe each red → plan.md as code"]
+    S["apps/name/spec.md<br>human: goal · must · must not"] --> P["/sobaya-plan name<br>enumerate cases → probe each red → failed-test.md as code"]
     P -- yes --> G["/go name × N<br>copy test verbatim → red → green → commit<br>refactor while green → commit"]
     G --> T["/gate name<br>100% checked · suite green<br>tests untouched · names present"]
     T --> R["review<br>refuter subagent"]
@@ -35,9 +35,9 @@ flowchart LR
 ```
 
 - **Spec.** The human fills `spec.md`. Agents read it, never edit it.
-- **Plan.** `/sobaya-plan <name>` drafts `apps/<name>/plan.md`: split the feature, enumerate as many cases as possible, probe each one, keep only those that print RED. It asks once, *reviewed and added yours, proceed?*, and the human edits the file directly. Nothing verifies the review. The loop is exactly as good as the human's tests.
+- **Plan.** `/sobaya-plan <name>` drafts `apps/<name>/failed-test.md`: split the feature, enumerate as many cases as possible, probe each one, keep only those that print RED. It asks once, *reviewed and added yours, proceed?*, and the human edits the file directly. Nothing verifies the review. The loop is exactly as good as the human's tests.
 - **Cycle.** `/go <name>` takes the next unchecked entry and runs one Red → Green → Refactor cycle, refactoring with the skills the app's `Skills:` line names. `/sobaya-loop <name>` repeats it until the plan is done or stalls.
-- **Gate.** `/gate <name>` is PASS or FAIL, nothing in between. A defect found during the loop is appended to `plan.md` as two probed tests and the loop halts for the human.
+- **Gate.** `/gate <name>` is PASS or FAIL, nothing in between. A defect found during the loop is appended to `failed-test.md` as two probed tests and the loop halts for the human.
 - **Review, reflect.** An independent subagent refutes the work. Learnings land in `brain/` for the next session.
 
 ## Installation
@@ -46,7 +46,7 @@ flowchart LR
 tdd-set/bin/install.sh apps/<name>
 ```
 
-Creates the three files an app carries: `AGENTS.md` (command lines + `Skills:`), `spec.md`, `plan.md`. Works on a new or an existing app, and is idempotent. Everything else stays in the root. Details in the [tdd-set reference](tdd-set/README.md#install-per-app-new-or-existing).
+Creates the three files an app carries: `AGENTS.md` (command lines + `Skills:`), `spec.md`, `failed-test.md`. Works on a new or an existing app, and is idempotent. Everything else stays in the root. Details in the [tdd-set reference](tdd-set/README.md#install-per-app-new-or-existing).
 
 ## Usage
 
@@ -58,7 +58,7 @@ Creates the three files an app carries: `AGENTS.md` (command lines + `Skills:`),
 
 | Check | Fails when |
 |---|---|
-| Plan complete | any `- [ ]` remains in `plan.md` |
+| Plan complete | any `- [ ]` remains in `failed-test.md` |
 | Suite green | the `Test:` command exits non-zero |
 | Tests untouched | any line in a test file was removed or modified since the loop started |
 | Names present | an entry was checked but no test function with that name was added |
@@ -74,5 +74,5 @@ The commit hook blocks `git commit` when `Format:` prints anything or `Lint:` fa
 
 ## Attribution
 
-- **Kent Beck.** `tdd-set/AGENTS.md` is his BPlusTree3 `rust/docs/CLAUDE.md` verbatim (commit `e1f539e`). The plan as a checklist comes from his TCRSkill `plan.md`. The command lines in the app `AGENTS.md` follow his `agent.md`.
+- **Kent Beck.** `tdd-set/AGENTS.md` is his BPlusTree3 `rust/docs/CLAUDE.md` verbatim (commit `e1f539e`). The plan as a checklist comes from his TCRSkill `failed-test.md`. The command lines in the app `AGENTS.md` follow his `agent.md`.
 - **noodle.** Brain vault, reflect and meditate, deterministic hooks, one writer per app. [Mapping](docs/from-noodle.md)

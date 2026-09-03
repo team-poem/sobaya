@@ -1,7 +1,7 @@
 # <feature> — spec
 
 Human-written. Agents read this file and never edit it. It exists so Phase 0 can
-enumerate the right tests; the tests in plan.md are the real spec.
+enumerate the right tests; the tests in failed-test.md are the real spec.
 
 ## Goal (one paragraph)
 <what must be true when this is done>
@@ -14,6 +14,6 @@ enumerate the right tests; the tests in plan.md are the real spec.
 - <constraint / out of scope>
 
 ## Done when
-- every entry in plan.md is checked and a test with its name exists in the suite
+- every entry in failed-test.md is checked and a test with its name exists in the suite
 - full test suite is green
 - no existing test line was modified or removed (gate.sh enforces)

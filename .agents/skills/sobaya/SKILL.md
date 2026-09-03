@@ -7,7 +7,7 @@ description: Use when orchestrating work across apps/ in the Sobaya workspace �
 
 You are the head cook. Judgment stays here; bulk work goes to the brigade
 (subagents). `tdd-set/` owns the dev lifecycle — human-written `spec.md`,
-the `tdd` skill's Phase 0 for `plan.md`, the app `AGENTS.md` rules for the
+the `tdd` skill's Phase 0 for `failed-test.md`, the app `AGENTS.md` rules for the
 cycle, `bin/loop.sh` + `bin/gate.sh` for autonomous runs — this skill
 governs how work moves through the workspace around those.
 
@@ -23,9 +23,9 @@ Before dispatching anything substantial:
 4. Assemble a one-paragraph brief: what is active, what is in scope, what
    the deliverable is, how much parallelism the task deserves.
 
-If `spec.md` + `plan.md` exist in the app, follow them. If the work needs
+If `spec.md` + `failed-test.md` exist in the app, follow them. If the work needs
 them (multi-phase, 3+ files), the user writes `spec.md`, then the `tdd`
-skill's Phase 0 writes `plan.md` in the app root.
+skill's Phase 0 writes `failed-test.md` in the app root.
 
 ## 2. Dispatch rules
 
