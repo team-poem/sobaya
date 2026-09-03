@@ -13,6 +13,15 @@
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/guard-workspace-rules.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/tdd-set/hooks/commit-gate.sh"
+          }
+        ]
       }
     ],
     "SessionStart": [

@@ -7,6 +7,7 @@ cmd=$(sed -n 's/.*"command":"\([^"]*\)".*/\1/p' | head -1)
 grep -qE '(^|[;&| ])git( -C [^ ]+)? commit' <<<"$cmd" || exit 0
 # `git -C <dir> commit` from the Sobaya root: gate that app, not the root
 dir=$(sed -nE 's/.*git -C ([^ ]+) .*/\1/p' <<<"$cmd" | head -1)
+[ -n "$dir" ] || dir=$(sed -nE 's/^ *cd ([^ ;&]+).*/\1/p' <<<"$cmd" | head -1)
 [ -n "$dir" ] && cd "$dir" 2>/dev/null
 [ -f AGENTS.md ] || exit 0
 

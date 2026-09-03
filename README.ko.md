@@ -18,26 +18,26 @@
 - 사이클당 테스트 하나: 스위트에 옮기고, 실패를 보고, 최소한을 구현하고, green에서 리팩터링하고, 커밋
 - 행위 변경과 구조 변경은 같은 커밋에 두지 않음
 - 결정론적 게이트: 플랜 100% 체크, 스위트 green, 기존 테스트 줄 무변조, 체크한 항목의 테스트 존재
-- 명령줄은 앱 `AGENTS.md`에 한 번만 선언(`Test`, `Format`, `Lint`, `Bench`), 게이트와 커밋 훅이 강제
-- 모든 에이전트가 같은 계약 파일 `AGENTS.md`를 읽음(`CLAUDE.md`는 포인터), 스킬 디렉터리도 하나
+- 명령줄은 앱 `AGENTS.md`에 한 번만 선언(`Test`, `Format`, `Lint`, `Bench`), 게이트와 커밋 훅이 강제. `Skills:` 줄로 그 앱이 쓰는 스택 스킬을 고름
+- 하네스는 루트에 하나: 계약, 스킬, 명령, 훅, TDD 규칙. 앱은 `AGENTS.md`·`spec.md`·`plan.md`만 갖고, 루트에서 이름으로 작업
 - `brain/` 영속 메모리를 세션 시작 시 주입, fail-open 셸 훅, 앱당 작성자 1명
 
 ## 루프
 
 ```mermaid
 flowchart LR
-    S["spec.md<br>사람: goal · must · must not"] --> P["/sobaya-plan<br>케이스 열거 → 하나씩 probe로 red 확인 → plan.md에 코드로"]
-    P -- 예 --> G["/go × N<br>테스트 그대로 옮김 → red → green → 커밋<br>green에서 refactor → 커밋"]
-    G --> T["/gate<br>100% 체크 · 스위트 green<br>테스트 무변조 · 이름 존재"]
+    S["apps/name/spec.md<br>사람: goal · must · must not"] --> P["/sobaya-plan name<br>케이스 열거 → 하나씩 probe로 red 확인 → plan.md에 코드로"]
+    P -- 예 --> G["/go name × N<br>테스트 그대로 옮김 → red → green → 커밋<br>green에서 refactor → 커밋"]
+    G --> T["/gate name<br>100% 체크 · 스위트 green<br>테스트 무변조 · 이름 존재"]
     T --> R["review<br>반박자 서브에이전트"]
     R --> F["reflect → brain/"]
     F -. 다음 세션 .-> S
 ```
 
 - **Spec.** 사람이 `spec.md`를 채웁니다. 에이전트는 읽기만 하고 수정하지 않습니다.
-- **Plan.** `/sobaya-plan`이 `plan.md` 초안을 만듭니다: 기능을 쪼개고, 케이스를 최대한 열거하고, 하나씩 probe해서 RED인 것만 남깁니다. 그리고 한 번 묻습니다. *검토·추가 끝나셨으면 이대로 진행할까요?* 사람은 파일을 직접 고칩니다. 검토 여부를 검증하는 장치는 없고, 루프는 사람의 테스트만큼만 좋습니다.
-- **Cycle.** `/go`가 다음 미체크 항목을 집어 Red → Green → Refactor 한 사이클을 돕니다. `/sobaya-loop`는 플랜이 끝나거나 정체할 때까지 반복합니다.
-- **Gate.** `/gate`는 PASS 아니면 FAIL입니다. 루프 도중 발견한 결함은 probe한 테스트 두 개로 `plan.md`에 추가되고 루프는 사람을 위해 멈춥니다.
+- **Plan.** `/sobaya-plan <name>`이 `apps/<name>/plan.md` 초안을 만듭니다: 기능을 쪼개고, 케이스를 최대한 열거하고, 하나씩 probe해서 RED인 것만 남깁니다. 그리고 한 번 묻습니다. *검토·추가 끝나셨으면 이대로 진행할까요?* 사람은 파일을 직접 고칩니다. 검토 여부를 검증하는 장치는 없고, 루프는 사람의 테스트만큼만 좋습니다.
+- **Cycle.** `/go <name>`이 다음 미체크 항목을 집어 Red → Green → Refactor 한 사이클을 돕니다. 리팩터는 앱 `Skills:` 줄이 고른 스킬로. `/sobaya-loop <name>`은 플랜이 끝나거나 정체할 때까지 반복합니다.
+- **Gate.** `/gate <name>`은 PASS 아니면 FAIL입니다. 루프 도중 발견한 결함은 probe한 테스트 두 개로 `plan.md`에 추가되고 루프는 사람을 위해 멈춥니다.
 - **Review, reflect.** 독립 서브에이전트가 반박하고, 배운 것은 `brain/`에 남아 다음 세션이 읽습니다.
 
 ## 설치
@@ -46,13 +46,13 @@ flowchart LR
 tdd-set/bin/install.sh apps/<name>
 ```
 
-새 앱이든 기존 앱이든 되고, 멱등입니다. 자세한 내용은 [tdd-set 레퍼런스](tdd-set/README.md#설치-앱마다-새것이든-기존이든).
+앱이 갖는 파일 셋을 만듭니다: `AGENTS.md`(명령줄 + `Skills:`), `spec.md`, `plan.md`. 새 앱이든 기존 앱이든 되고, 멱등입니다. 나머지는 전부 루트에 있습니다. 자세한 내용은 [tdd-set 레퍼런스](tdd-set/README.md#설치-앱마다-새것이든-기존이든).
 
 ## 사용
 
-- 세션: `cd sobaya && claude` (또는 Codex). `spec.md`를 채우고 `/sobaya-plan`, 예라고 답하고, `/go`를 사이클마다 또는 `/sobaya-loop 30`, 그다음 `/gate`. [사용 가이드](docs/guide.md) 참고.
-- 셸: 앱 루트에서 `../../tdd-set/bin/loop.sh 30`, `../../tdd-set/bin/gate.sh`. [tdd-set 레퍼런스](tdd-set/README.md) 참고.
-- 다른 스택: `skills/<stack>`을 추가하고 앱 `AGENTS.md`의 명령줄 4개를 바꾸면 됩니다. `probe.sh`는 아직 Go 전용입니다.
+- 세션: `cd sobaya && claude` (또는 Codex). `apps/<name>/spec.md`를 채우고 `/sobaya-plan <name>`, 예라고 답하고, `/go <name>`을 사이클마다 또는 `/sobaya-loop <name>`, 그다음 `/gate <name>`. [사용 가이드](docs/guide.md) 참고.
+- 셸: 루트에서 `tdd-set/bin/loop.sh apps/<name> 30`, `tdd-set/bin/gate.sh apps/<name>`. [tdd-set 레퍼런스](tdd-set/README.md) 참고.
+- 다른 스택: `tdd-set/skills/<stack>`을 추가하고 앱 `Skills:` 줄에 이름을 적고 명령줄 4개를 바꾸면 됩니다. `probe.sh`는 아직 Go 전용입니다.
 
 ## 게이트가 강제하는 것
 

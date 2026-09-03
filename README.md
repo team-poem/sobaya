@@ -18,26 +18,26 @@ Failing tests first, then the agent.
 - One test per cycle: copy it into the suite, watch it fail, write the minimum, refactor while green, commit
 - Behavioral and structural changes never share a commit
 - Deterministic gate: plan 100% checked, suite green, no existing test line touched, every checked entry present in the suite
-- Command lines declared once in the app `AGENTS.md` (`Test`, `Format`, `Lint`, `Bench`) and enforced by the gate and a commit hook
-- One contract file for every agent, `AGENTS.md`, with `CLAUDE.md` pointing at it. One skills directory
+- Command lines declared once in the app `AGENTS.md` (`Test`, `Format`, `Lint`, `Bench`) and enforced by the gate and a commit hook. A `Skills:` line picks the stack skills that app uses
+- One harness in the root: contract, skills, commands, hooks, TDD rules. Apps carry only `AGENTS.md`, `spec.md`, `plan.md` and are worked on from the root, by name
 - Persistent memory in `brain/`, injected at session start. Shell hooks that fail open. One writer per app
 
 ## The loop
 
 ```mermaid
 flowchart LR
-    S["spec.md<br>human: goal · must · must not"] --> P["/sobaya-plan<br>enumerate cases → probe each red → plan.md as code"]
-    P -- yes --> G["/go × N<br>copy test verbatim → red → green → commit<br>refactor while green → commit"]
-    G --> T["/gate<br>100% checked · suite green<br>tests untouched · names present"]
+    S["apps/name/spec.md<br>human: goal · must · must not"] --> P["/sobaya-plan name<br>enumerate cases → probe each red → plan.md as code"]
+    P -- yes --> G["/go name × N<br>copy test verbatim → red → green → commit<br>refactor while green → commit"]
+    G --> T["/gate name<br>100% checked · suite green<br>tests untouched · names present"]
     T --> R["review<br>refuter subagent"]
     R --> F["reflect → brain/"]
     F -. next session .-> S
 ```
 
 - **Spec.** The human fills `spec.md`. Agents read it, never edit it.
-- **Plan.** `/sobaya-plan` drafts `plan.md`: split the feature, enumerate as many cases as possible, probe each one, keep only those that print RED. It asks once, *reviewed and added yours, proceed?*, and the human edits the file directly. Nothing verifies the review. The loop is exactly as good as the human's tests.
-- **Cycle.** `/go` takes the next unchecked entry and runs one Red → Green → Refactor cycle. `/sobaya-loop` repeats it until the plan is done or stalls.
-- **Gate.** `/gate` is PASS or FAIL, nothing in between. A defect found during the loop is appended to `plan.md` as two probed tests and the loop halts for the human.
+- **Plan.** `/sobaya-plan <name>` drafts `apps/<name>/plan.md`: split the feature, enumerate as many cases as possible, probe each one, keep only those that print RED. It asks once, *reviewed and added yours, proceed?*, and the human edits the file directly. Nothing verifies the review. The loop is exactly as good as the human's tests.
+- **Cycle.** `/go <name>` takes the next unchecked entry and runs one Red → Green → Refactor cycle, refactoring with the skills the app's `Skills:` line names. `/sobaya-loop <name>` repeats it until the plan is done or stalls.
+- **Gate.** `/gate <name>` is PASS or FAIL, nothing in between. A defect found during the loop is appended to `plan.md` as two probed tests and the loop halts for the human.
 - **Review, reflect.** An independent subagent refutes the work. Learnings land in `brain/` for the next session.
 
 ## Installation
@@ -46,13 +46,13 @@ flowchart LR
 tdd-set/bin/install.sh apps/<name>
 ```
 
-Works on a new or an existing app, and is idempotent. Details in the [tdd-set reference](tdd-set/README.md#설치-앱마다-새것이든-기존이든).
+Creates the three files an app carries: `AGENTS.md` (command lines + `Skills:`), `spec.md`, `plan.md`. Works on a new or an existing app, and is idempotent. Everything else stays in the root. Details in the [tdd-set reference](tdd-set/README.md#설치-앱마다-새것이든-기존이든).
 
 ## Usage
 
-- Session: `cd sobaya && claude` (or Codex). Fill `spec.md`, run `/sobaya-plan`, answer yes, then `/go` per cycle or `/sobaya-loop 30`, then `/gate`. See the [usage guide](docs/guide.md).
-- Shell: `../../tdd-set/bin/loop.sh 30` and `../../tdd-set/bin/gate.sh` from the app root. See the [tdd-set reference](tdd-set/README.md).
-- Another stack: add `skills/<stack>` and swap the four command lines in the app `AGENTS.md`. `probe.sh` is Go only today.
+- Session: `cd sobaya && claude` (or Codex). Fill `apps/<name>/spec.md`, run `/sobaya-plan <name>`, answer yes, then `/go <name>` per cycle or `/sobaya-loop <name>`, then `/gate <name>`. See the [usage guide](docs/guide.md).
+- Shell: `tdd-set/bin/loop.sh apps/<name> 30` and `tdd-set/bin/gate.sh apps/<name>` from the root. See the [tdd-set reference](tdd-set/README.md).
+- Another stack: add `tdd-set/skills/<stack>`, name it on the app's `Skills:` line, swap the four command lines. `probe.sh` is Go only today.
 
 ## What the gate enforces
 

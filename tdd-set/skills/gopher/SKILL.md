@@ -1,8 +1,8 @@
 ---
 name: gopher
 description: >-
-  Go refactor pass for the TDD loop's green phase. Use after a test goes green, before commit,
-  when the code is Go. Structural changes only, tests must stay green after every step.
+  Go refactor pass for the TDD loop's green phase. Applies to an app whose AGENTS.md `Skills:`
+  line names gopher. Use after a test goes green, before commit. Structural changes only, tests must stay green after every step.
 ---
 
 # Gopher (refactor while green)

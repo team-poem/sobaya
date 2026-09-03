@@ -8,7 +8,10 @@ description: >-
 
 # TDD (plan.md driven)
 
-`AGENTS.md` holds the cycle rules: "go" = next unchecked test in `plan.md`, Red → Green →
+Everything runs from the sobaya root with the app named: `/sobaya-plan <name>`, `/go <name>`.
+All paths below are `apps/<name>/...`; use `git -C apps/<name>` and `go -C apps/<name>`, never `cd`.
+
+`tdd-set/AGENTS.md` holds the cycle rules: "go" = next unchecked test in `plan.md`, Red → Green →
 Refactor (Tidy First), commit discipline. Follow it exactly. This skill adds only what it lacks.
 
 ## Phase 0 — Plan (once per feature, before the first "go")
@@ -27,7 +30,7 @@ stop and ask the human to fill it first.
    the degenerate/empty case, boundaries, duplicates, error paths, ordering. Stop only when you
    cannot name another case.
 3. **Probe each case before writing it down.** Write the complete test function, run
-   `../../tdd-set/bin/probe.sh <package-dir> -` with it on stdin (path from a Sobaya app root):
+   `tdd-set/bin/probe.sh apps/<name>/<package-dir> -` with it on stdin:
    - `RED` → append the entry to `plan.md` (format in `plan-template.md`): a checkbox line
      `- [ ] TestName — what it proves`, then the test function in a fenced code block.
    - `GREEN` → the behavior already exists; do not add it. Say so.
@@ -47,14 +50,14 @@ stop and ask the human to fill it first.
   check the box, commit, and report that the entry needed no change.
 - Red → minimal code → full suite green. Commit this **behavioral** change: test + code +
   the checked box, one commit.
-- Then, still green, refactor (Go: `gopher` checklist), one step at a time, full suite after
-  each step. Commit **structural** changes separately, message prefixed `refactor:`. Never
+- Then, still green, refactor with the stack skills named on the `Skills:` line of
+  `apps/<name>/AGENTS.md` (e.g. `gopher` for Go), one step at a time, full suite after each step. Commit **structural** changes separately, message prefixed `refactor:`. Never
   in the behavioral commit.
 - Report in one line, stop.
 
 ## Defect found during a "go"
 
-AGENTS.md's defect rule applies (API-level failing test first, then the smallest test that reproduces
+`tdd-set/AGENTS.md`'s defect rule applies (API-level failing test first, then the smallest test that reproduces
 the problem), through the plan: probe each of the two tests with `probe.sh`, **append** them
 as new unchecked entries at the end of `plan.md` (never edit or reorder existing entries),
 commit that `plan.md` change on its own, and stop. Inside `loop.sh` nobody can answer, so the

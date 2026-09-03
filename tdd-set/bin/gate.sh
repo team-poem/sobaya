@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# Final gate. PASS = every plan.md entry checked, suite green, no existing test line
-# touched, every checked entry's test function present in the suite. The human-written tests
-# are the spec; nothing else is judged.
-# usage: bin/gate.sh [start_commit]
+# Final gate for one app. PASS = every plan.md entry checked, suite green, no existing test line
+# touched, every checked entry's test function present in the suite. The human's tests are the
+# spec; nothing else is judged.
+# usage: tdd-set/bin/gate.sh apps/<name> [start_commit]
 set -u
-start=${1:-$(cat .git/sobaya-loop-start 2>/dev/null)}
+app=${1:?usage: gate.sh apps/<name> [start_commit]}; app=${app%/}
+cd "$app" || exit 1
+start=${2:-$(cat .git/sobaya-loop-start 2>/dev/null)}
 [ -n "$start" ] || { echo "no start commit"; exit 1; }
 fail=0
 test_globs=('*_test.go' '*_test.py' '*.test.*' '*.spec.*')

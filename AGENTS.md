@@ -69,8 +69,12 @@ code) and loop guards; `gopher` is the Go refactor checklist;
 checked, then `tdd-set/bin/gate.sh` passes only when every entry is
 checked, suite green, no existing test modified, each checked entry's test
 present in the suite. The human-written tests are the spec.
-`tdd-set/bin/install.sh apps/<name>` puts all of it into a new or existing
-app; there is no separate scaffold step. Sobaya skills own the workspace:
+Everything runs from this root with the app named — `/sobaya-plan <name>`,
+`/go <name>`, `/gate <name>`, `/sobaya-loop <name>` — because a session opened
+inside an app inherits only CLAUDE.md, not skills, commands, or hooks. An app
+carries three files: `AGENTS.md` (its command lines and a `Skills:` line naming
+the stack skills it uses, e.g. `gopher`), `spec.md`, `plan.md`.
+`tdd-set/bin/install.sh apps/<name>` creates them; there is no scaffold step. Sobaya skills own the workspace:
 `sobaya` (orchestration), `reflect` (capture learnings), `meditate` (vault
 audit + skill refinement).
 
