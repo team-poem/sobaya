@@ -1,159 +1,78 @@
 <div align="center">
 
-<img src="banner.svg" alt="Sobaya banner — the head cook's chopsticks lift soba noodles that flow into three bowls, one per app" width="100%">
+<img src="banner.svg" alt="Sobaya" width="100%">
 
-**English** · [한국어](README.ko.md)
+### Sobaya
 
-<br>
+Failing tests first, then the agent.
 
-*Failing tests first, then the agent.*<br>
-*An agentic-engineering workspace built on TDD: the human writes the spec and every failing test,*<br>
-*the agent loop turns them green one at a time, and a gate refuses anything that touched the tests.*
-
-<br>
-
-[The loop](#the-loop) · [Getting started](#getting-started) · [What the gate enforces](#what-the-gate-enforces) · [What's inside](#whats-inside) · [Workspace discipline](#workspace-discipline) · [From noodle to Sobaya](#from-noodle-to-sobaya)
+**English** · [한국어](README.ko.md) · [Guide](docs/guide.md) · [tdd-set reference](tdd-set/README.md) · [Contract](AGENTS.md)
 
 </div>
 
----
+`sobaya` is an agentic-engineering workspace for Claude Code and Codex. The human writes the spec and every failing test; a loop turns them green one test at a time under TDD + Tidy First rules; a gate refuses anything that touched the tests. No plugins, no daemon — git, shell, `claude -p`, and markdown.
 
-Sobaya (蕎麦屋, a soba shop) is a workspace where the **failing tests are the spec**. Before any implementation exists, every test case is written as code, proven red, and recorded in `plan.md`. An autonomous loop then runs the TDD rules in the app's `AGENTS.md`, one test per cycle: copy it into the suite, watch it fail, write the minimum, refactor while green, commit. When the plan is fully checked, a shell gate declares the feature done only if the suite is green and no existing test line was modified. Around that loop, Sobaya adds the kitchen: persistent memory (`brain/`), deterministic hooks, and subagent discipline.
+## Features
 
-It is **not a framework** and uses **no plugins** — git, shell, `claude -p`, and markdown.
+- Failing tests are the spec: every case is written as code and proven red before any implementation exists
+- One test per cycle: copy it into the suite, watch it fail, write the minimum, refactor while green, commit
+- Behavioral and structural changes never share a commit
+- Deterministic gate: plan 100% checked, suite green, no existing test line touched, every checked entry present in the suite
+- Command lines declared once in the app `AGENTS.md` (`Test`, `Format`, `Lint`, `Bench`) and enforced by the gate and a commit hook
+- One contract file for both agents: `AGENTS.md`, with `CLAUDE.md` pointing at it; one skills directory
+- Persistent memory in `brain/`, injected at session start; fail-open shell hooks; one writer per app
 
 ## The loop
 
 ```mermaid
 flowchart LR
     S["spec.md<br>human: goal · must · must not"] --> P["/sobaya-plan<br>enumerate cases → probe each red → plan.md as code"]
-    P -- approve --> G["/go × N<br>copy test verbatim → red → green → commit<br>refactor while green → commit"]
+    P -- yes --> G["/go × N<br>copy test verbatim → red → green → commit<br>refactor while green → commit"]
     G --> T["/gate<br>100% checked · suite green<br>tests untouched · names present"]
     T --> R["review<br>refuter subagent"]
     R --> F["reflect → brain/"]
     F -. next session .-> S
 ```
 
-| Stage | Who | What happens |
-|---|---|---|
-| **Spec** | Human | `spec.md` in the app root: goal, must, must-not. Agents read it and never edit it. |
-| **Plan** | Human, `/sobaya-plan` drafts | The agent splits the feature, enumerates as many cases as it can, probes each (dropped into the package as a temporary file, executed, deleted) and writes only those that print **RED** into `plan.md` as a checkbox plus the complete test function. Then it asks once: *reviewed and added yours — proceed?* The human edits `plan.md` directly, adds cases, removes weak ones. Nothing verifies that review; the human is trusted, and the loop is exactly as good as their tests. |
-| **Cycle** | `/go` (the app `AGENTS.md` rules) | Take the next unchecked entry. Copy its test **verbatim** into the suite. Full suite: expect red. Minimum code to green. Commit the behavioral change (test + code + checked box). Then, still green, refactor one step at a time (`gopher` for Go) and commit structural changes separately. Report one line, stop. |
-| **Loop** | `/sobaya-loop` (`loop.sh`) | Only ever runs "go", never plans. Repeats `claude -p "go"` until no unchecked entry remains; halts if an iteration adds entries (defect flow) because nobody inside the loop can be asked; stops after three cycles without a commit. Leftovers are stashed, never lost. |
-| **Gate** | `/gate` (`gate.sh`) | See [What the gate enforces](#what-the-gate-enforces). PASS or FAIL, nothing in between. |
-| **Review** | Sobaya refuter dispatch | An independent subagent told to refute the work — never the one that implemented it. |
-| **Learn** | `reflect` / `meditate` | Session learnings → `brain/`; accumulated lessons → principles and skill edits. |
+- **Spec** — the human fills `spec.md`. Agents read it, never edit it.
+- **Plan** — `/sobaya-plan` drafts `plan.md`: split the feature, enumerate as many cases as possible, probe each one, keep only those that print RED. It asks once — *reviewed and added yours, proceed?* — and the human edits the file directly. Nothing verifies the review; the loop is exactly as good as the human's tests.
+- **Cycle** — `/go` takes the next unchecked entry and runs one Red → Green → Refactor cycle. `/sobaya-loop` repeats it until the plan is done or stalls.
+- **Gate** — `/gate` is PASS or FAIL, nothing in between. A defect found mid-loop is appended to `plan.md` as two probed tests and the loop halts for the human.
+- **Review, reflect** — an independent subagent refutes the work; learnings land in `brain/` for the next session.
 
-A defect found mid-loop follows the defect rule through the plan: the agent probes an API-level failing test and the smallest reproducing test, appends both to `plan.md`, commits, and the loop halts because nobody inside it can be asked. The human looks and re-runs.
-
-## Getting started
+## Installation
 
 ```sh
-cd sobaya && claude
+tdd-set/bin/install.sh apps/<name>
 ```
 
-| You want | Do this |
-|---|---|
-| **Any app, new or existing** | `tdd-set/bin/install.sh apps/<name>` — git init if needed, the TDD rules appended to `AGENTS.md`, `spec.md` and `plan.md` templates, the `tdd` and `gopher` skills, the `/sobaya-plan` `/go` `/gate` `/sobaya-loop` commands, the commit hook. Idempotent. Then add a row to `brain/apps.md`. |
-| **A feature** | Fill `spec.md`. Run `/sobaya-plan`, read the draft, add and remove cases in `plan.md` yourself, answer yes. Then `/go` per cycle in the session, or `/sobaya-loop 30` for the whole plan, then `/gate`. |
-| **A bug** | Probe a failing test that reproduces it, append it to `plan.md`, `/go`. |
-| **To wrap up** | `reflect` captures what the session learned; `meditate` periodically curates the vault. |
+Works on a new or an existing app, and is idempotent. Details in the [tdd-set reference](tdd-set/README.md#설치-앱마다-새것이든-기존이든).
 
-The app's `AGENTS.md` declares the command lines the harness runs:
+## Usage
 
-```markdown
-- Test: `go test ./...`                      ← gate
-- Format: `gofmt -l .`                       ← commit hook, must print nothing
-- Lint: `go vet ./...`                       ← commit hook, must exit 0
-- Bench: `go test -bench=. -benchmem ./...`  ← gate prints it; gopher compares before/after
-```
+- Session: `cd sobaya && claude` (or Codex). Fill `spec.md`, run `/sobaya-plan`, answer yes, then `/go` per cycle or `/sobaya-loop 30`, then `/gate`. See the [usage guide](docs/guide.md).
+- Shell: `../../tdd-set/bin/loop.sh 30` and `../../tdd-set/bin/gate.sh` from the app root. See the [tdd-set reference](tdd-set/README.md).
+- Another stack: add `skills/<stack>` and swap the four command lines in the app `AGENTS.md`; `probe.sh` is Go-only today.
 
 ## What the gate enforces
-
-`gate.sh` runs after the loop and compares the tree against the commit the loop started from. Every check is deterministic shell; there is no model judgment.
 
 | Check | Fails when |
 |---|---|
 | Plan complete | any `- [ ]` remains in `plan.md` |
 | Suite green | the `Test:` command exits non-zero |
-| Tests untouched | any line in a test file was removed or modified since the start commit (additions only) |
-| Names present | an entry was checked but no test function with that name was added to the suite |
+| Tests untouched | any line in a test file was removed or modified since the loop started |
+| Names present | an entry was checked but no test function with that name was added |
 
-The commit hook (`commit-gate.sh`) blocks `git commit` when `Format:` prints anything or `Lint:` fails — also for `git -C apps/<name> commit` issued from the workspace root.
+The commit hook blocks `git commit` when `Format:` prints anything or `Lint:` fails.
 
-## What's inside
+## Documentation
 
-**tdd-set/** — the lifecycle
-- `AGENTS.md` — the TDD + Tidy First rules, appended into every app's `AGENTS.md` (origin under Attribution)
-- `spec-template.md`, `plan-template.md` — the two human documents
-- `skills/tdd` — Phase 0 (probe-then-record) and the loop guards CLAUDE.md lacks; `skills/gopher` — Go refactor checklist, never renames what a test references
-- `commands/` — `/sobaya-plan` `/go` `/gate` `/sobaya-loop`
-- `bin/install.sh`, `bin/probe.sh`, `bin/loop.sh`, `bin/gate.sh`, `hooks/commit-gate.sh`
-
-**Workspace** — the kitchen
-- **3 skills** — `sobaya` (orchestration), `reflect`, `meditate`
-- **4 hooks** — brain index injected at session start; index rebuilt on brain writes; two PreToolUse guards (Fable-only root, workspace rules) — deterministic POSIX shell, fail-open
-- **brain/** — Obsidian-compatible persistent memory: principles, codebase notes, cross-app plans, backlog
-- **apps/** — every project is its own git repository; the root repo tracks only the harness
-
-## Workspace discipline
-
-The loop runs inside one app. The `sobaya` skill governs everything around it: pre-flight (brain index → app git state → active plans), work-order briefs for subagents, one writer per app (parallel mutation means one worktree per agent), review by refutation, diagnose-before-retry, and persist-before-spawn so an interrupted session can be adopted by the next one. Spec and plan live in the app root because the loop and gate read them there; `brain/plans/` keeps only cross-app and harness plans.
-
-## From noodle to Sobaya
-
-The kitchen conventions come from [poteto/noodle](https://github.com/poteto/noodle), a Go event loop that schedules LLM "cook" sessions over file-based work orders. Sobaya keeps its flow and drops its machinery.
-
-<details>
-<summary><b>The full mapping — every noodle mechanism and its Sobaya counterpart</b></summary>
-
-<br>
-
-| noodle (Go runtime) | Sobaya (Claude Code native) |
-|---|---|
-| Event-loop cycles drive everything | `loop.sh` drives the TDD cycles; an interactive session drives everything else |
-| `mise.json` context brief, rebuilt per cycle | `sobaya` skill pre-flight: brain index (hook-injected) → relevant notes → `apps.md` + app git status → todos + active plans |
-| `schedule` agent writes `orders-next.json` | The human-written `plan.md`; the next unchecked entry is the next order |
-| Orders advance through stages: execute → quality → reflect | cycle → gate → refuter review → reflect, each stage's deliverable declared up front |
-| Cooks spawn as provider-CLI child processes, one skill each | `claude -p "go"` per cycle; subagents via the Agent tool for everything around it |
-| Git worktree per cook, merge locks, sequential merges | One writer per app; parallel mutation = one worktree per agent; merges sequential, verified between |
-| `stage_yield` — deliverable ≠ process exit | Every cycle ends in a commit; leftovers are stashed, never lost |
-| Crash recovery: `orders.json` staging + session adoption | `plan.md` checkboxes are the state; any session resumes at the next unchecked entry |
-| Scheduler-driven recovery, never auto-retry | Three cycles without a commit stop the loop; diagnose-then-decide |
-| Brain vault + reflect/meditate self-improvement | Ported intact: reflect routes learnings (structure > skill edit > note > todo), meditate audits the vault with subagents |
-| `inject-brain` / `auto-index-brain` hooks | Ported as fail-open POSIX hooks, with a wiring fix (Claude Code matchers are tool names, not paths) |
-| Autonomous cron loop, web UI, NDJSON event sourcing | Deliberately absent |
-
-</details>
-
-## Repository layout
-
-```
-sobaya/
-├── AGENTS.md          # harness contract (EN); CLAUDE.md just points here
-├── banner.svg
-├── .claude/
-│   ├── settings.json  # hook wiring
-│   ├── hooks/         # inject-brain, auto-index-brain, guard-fable-only, guard-workspace-rules
-│   └── skills/        # → link to .agents/skills (sobaya, reflect, meditate, tdd + gopher)
-├── .githooks/         # commit-msg — Fable-only agent commit gate
-├── tdd-set/           # the lifecycle: AGENTS.md rules, templates, skills, commands, bin/, hooks/
-├── brain/             # persistent memory vault (EN)
-│   ├── index.md       # hook-generated — never hand-edit
-│   ├── principles/    # decision rules
-│   ├── codebase/      # knowledge & gotcha notes
-│   ├── plans/         # NN-slug/ cross-app or harness plans only (app spec/plan live in the app root)
-│   ├── todos.md       # permanent-ID backlog
-│   └── archive/
-├── apps/              # projects — each its own git repo (gitignored here)
-├── references/        # reference clones (noodle) — gitignored
-├── tests/             # hook test suite (sh tests/hooks-test.sh)
-└── docs/              # guides (Korean)
-```
+- [Usage guide](docs/guide.md) (Korean) — how a session actually flows
+- [tdd-set reference](tdd-set/README.md) (Korean) — every file, script, and command
+- [AGENTS.md](AGENTS.md) — the harness contract both agents read
+- [From noodle to Sobaya](docs/from-noodle.md) — where the workspace conventions come from
 
 ## Attribution
 
 - **Kent Beck** — `tdd-set/AGENTS.md` is his BPlusTree3 `rust/docs/CLAUDE.md` verbatim (commit `e1f539e`); the plan-as-checklist idea comes from his TCRSkill `plan.md`; the command lines in the app `AGENTS.md` follow his `agent.md`
-- **noodle** (analyzed at commit `82d2921`) — brain vault structure, the reflect/meditate loop, deterministic hooks, and its Go mechanics adopted as conventions (atomic writes, one writer per target, worktree isolation, diagnose-don't-retry). Working clone: `references/noodle/`
-
-Usage guide (Korean): [docs/guide.md](docs/guide.md) · tdd-set reference: [tdd-set/README.md](tdd-set/README.md)
+- **noodle** — brain vault, reflect/meditate, deterministic hooks, one-writer-per-app. [Mapping](docs/from-noodle.md)
