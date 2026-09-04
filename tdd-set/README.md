@@ -26,7 +26,8 @@ Everything runs from the sobaya root with the app named. A session opened inside
 | `commands/` | One slash command per stage, all taking the app name. `/sobaya-plan` = Phase 0, `/go` = one cycle (the same "go" as in AGENTS.md), `/gate` = gate only, `/sobaya-loop` = the whole plan, then the gate |
 | `bin/install.sh` | Step 0. Creates the three app files (see Install). There is no separate scaffold step |
 | `bin/probe.sh` | Steps 3 to 4. Drops one candidate test into the package as a temporary file, runs it, deletes it. RED (fails or does not build) → record it in failed-test.md; GREEN → the behavior already exists, drop it. Go (`go test -run`, snippet = the function) and Node (vitest or `node --test`, snippet = one `test(...)` block, header block via the third argument) |
-| `bin/loop.sh` | Steps 6, 7, 10, 11. Only ever runs "go". Halts when an iteration adds entries (nobody inside the loop can be asked), stops after three iterations without a commit, then runs the gate |
+| `bin/loop.sh` | Steps 6, 7, 10, 11. Only ever runs "go". Halts when an iteration adds entries (nobody inside the loop can be asked), stops after three iterations without a commit, prints the run's token/cost summary, then runs the gate. `SOBAYA_MODEL=<model>` routes the cycles to a cheaper model |
+| `bin/usage.sh` | Token and cost log. `loop.sh` pipes every `claude -p --output-format json` result through `usage.sh record`, which appends one JSONL line (model, in/out/cache tokens, cost, turns, subagents) to `apps/<name>/.git/sobaya-loop-usage.log`. `usage.sh summary apps/<name> [run]` prints the per-iteration table and totals |
 | `bin/gate.sh` | Steps 6 and 12. PASS = failed-test.md 100% checked · suite green · no existing line touched in a test file or anywhere under `tests/`, `test/`, `__tests__/` (helpers and fixtures are frozen with the tests) · every checked entry's test name found in the suite. The human's tests are the spec, so nothing else is judged |
 
 ## Install (per app, new or existing)
@@ -50,6 +51,8 @@ From the shell:
 
 ```sh
 tdd-set/bin/loop.sh apps/<name> 30
+SOBAYA_MODEL=sonnet tdd-set/bin/loop.sh apps/<name> 30   # same loop on a cheaper model; compare with usage.sh
+tdd-set/bin/usage.sh summary apps/<name>                  # last run's tokens and cost per iteration
 tdd-set/bin/gate.sh apps/<name>
 ```
 

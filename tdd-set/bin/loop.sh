@@ -5,6 +5,10 @@
 # The loop only ever runs "/go <name>". It never plans. Whether the human reviewed failed-test.md is
 # not verified; the human is trusted. It halts if an iteration adds entries (defect flow),
 # because nobody inside the loop can be asked; the human looks and re-runs.
+#
+# Every iteration's token usage and cost is appended to <app>/.git/sobaya-loop-usage.log
+# (see usage.sh); a summary prints before the gate. SOBAYA_MODEL=<model> routes the cycles to
+# a cheaper model (`claude -p --model`); unset = the default model.
 set -u
 app=${1:?usage: loop.sh apps/<name> [max_iterations]}; max=${2:-50}
 app=${app%/}; name=$(basename "$app")
@@ -39,7 +43,9 @@ for ((i = 1; i <= max; i++)); do
   grep -q '^- \[ \]' "$app/failed-test.md" || break
   before=$(g rev-parse HEAD); n_before=$(entries)
   echo "=== $name iteration $i ==="
-  claude -p "/go $name" "${flags[@]}" </dev/null || echo "claude exited non-zero"
+  claude -p "/go $name" "${flags[@]}" ${SOBAYA_MODEL:+--model "$SOBAYA_MODEL"} --output-format json </dev/null \
+    | "$here/usage.sh" record "$app" "$start" "$i"
+  [ "${PIPESTATUS[0]}" -eq 0 ] || echo "claude exited non-zero"
   if ! g diff --quiet || [ -n "$(g ls-files --others --exclude-standard)" ]; then
     echo "iteration $i left uncommitted changes; stashing (git -C $app stash list to inspect)"
     g stash push -u -m "sobaya-loop iteration $i leftovers"
@@ -57,4 +63,6 @@ for ((i = 1; i <= max; i++)); do
   fi
 done
 
+echo "=== $name usage ==="
+"$here/usage.sh" summary "$app" "$start"
 exec "$here/gate.sh" "$app" "$start"

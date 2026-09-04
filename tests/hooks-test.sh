@@ -314,6 +314,23 @@ check $? "tdd-set gate: helper untouched again passes"
 bash "$GATE" "$ag" "$agstart" >/dev/null 2>&1
 [ $? -ne 0 ]; check $? "tdd-set gate: rejects a modified test line"
 
+# --- usage.sh: record logs one JSONL line per iteration and prints the agent's result; summary totals a run ---
+USAGE="$ROOT/tdd-set/bin/usage.sh"
+ua="$TMP/usageapp"; mkdir -p "$ua/.git"
+res=$(printf '{"type":"result","result":"one line report","usage":{"input_tokens":12,"output_tokens":34,"cache_read_input_tokens":500,"cache_creation_input_tokens":60},"total_cost_usd":0.0123,"num_turns":3,"duration_ms":4200,"modelUsage":{"claude-sonnet-5":{}},"subagent_stats":{"spawned":0},"is_error":false}' \
+  | bash "$USAGE" record "$ua" abc123 1)
+[ "$res" = "one line report" ]; check $? "usage: record prints the agent result"
+printf '{"type":"result","result":"x","usage":{"input_tokens":8,"output_tokens":2,"cache_read_input_tokens":100,"cache_creation_input_tokens":0},"total_cost_usd":0.0007,"num_turns":1,"duration_ms":900,"modelUsage":{"claude-sonnet-5":{}},"subagent_stats":{"spawned":2},"is_error":false}' \
+  | bash "$USAGE" record "$ua" abc123 2 >/dev/null
+[ "$(wc -l < "$ua/.git/sobaya-loop-usage.log")" -eq 2 ]; check $? "usage: one log line per iteration"
+grep -q '"iter":1,"model":"claude-sonnet-5","in":12,"out":34,"cache_read":500,"cache_create":60,"cost":0.0123,"turns":3,"subagents":0' "$ua/.git/sobaya-loop-usage.log"
+check $? "usage: log line carries tokens, cost, turns, subagents"
+sum=$(bash "$USAGE" summary "$ua" abc123)
+case "$sum" in *"total: 2 iterations, \$0.013, in 20, out 36, cache_read 600, cache_create 60; max iteration \$0.012"*) check 0 "usage: summary totals the run" ;; *) echo "$sum"; check 1 "usage: summary totals the run" ;; esac
+raw=$(printf 'not json at all' | bash "$USAGE" record "$ua" abc123 3)
+[ "$raw" = "not json at all" ] && [ "$(wc -l < "$ua/.git/sobaya-loop-usage.log")" -eq 2 ]
+check $? "usage: non-JSON output is passed through and not logged"
+
 echo
 if [ "$fail" -eq 0 ]; then
   echo "ALL PASS"
