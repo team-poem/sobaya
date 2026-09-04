@@ -64,7 +64,8 @@ PreToolUse hook (`.claude/hooks/guard-fable-only.sh`) and a commit gate
 Red → Green → Refactor cycle; the `tdd` skill
 adds Phase 0 (split the feature, enumerate as many test cases as possible,
 probe each one red with `tdd-set/bin/probe.sh`, record it in `failed-test.md` as
-code) and loop guards; `gopher` is the Go refactor checklist;
+code) and loop guards; `go-mistakes` is the Go refactor checklist (the 100 Go
+Mistakes catalog, mirrored with full bodies under its `references/`);
 `tdd-set/bin/loop.sh` repeats `claude -p "go"` until `failed-test.md` is fully
 checked, then `tdd-set/bin/gate.sh` passes only when every entry is
 checked, suite green, no existing test modified, each checked entry's test
@@ -73,7 +74,7 @@ Everything runs from this root with the app named — `/sobaya-plan <name>`,
 `/go <name>`, `/gate <name>`, `/sobaya-loop <name>` — because a session opened
 inside an app inherits only CLAUDE.md, not skills, commands, or hooks. An app
 carries three files: `AGENTS.md` (its command lines and a `Skills:` line naming
-the stack skills it uses, e.g. `gopher`), `spec.md`, `failed-test.md`.
+the stack skills it uses, e.g. `go-mistakes`), `spec.md`, `failed-test.md`.
 `tdd-set/bin/install.sh apps/<name>` creates them; there is no scaffold step. Sobaya skills own the workspace:
 `sobaya` (orchestration), `reflect` (capture learnings), `meditate` (vault
 audit + skill refinement).

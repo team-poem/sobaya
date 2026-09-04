@@ -16,12 +16,12 @@ Everything runs from the sobaya root with the app named. A session opened inside
 
 | File | Role |
 |---|---|
-| The app's `AGENTS.md` lines `- Test:` / `- Format:` / `- Lint:` / `- Bench:` / `- Skills:` | The only source of command lines. The gate runs Test (verdict) and Bench (printed only); the commit hook runs Format and Lint. `Skills:` names the stack skills this app uses for refactoring (e.g. `gopher`) |
+| The app's `AGENTS.md` lines `- Test:` / `- Format:` / `- Lint:` / `- Bench:` / `- Skills:` | The only source of command lines. The gate runs Test (verdict) and Bench (printed only); the commit hook runs Format and Lint. `Skills:` names the stack skills this app uses for refactoring (e.g. `go-mistakes`) |
 | `AGENTS.md` | Step 8. The TDD + Tidy First rules. `/go` reads this file and applies it to the named app (origin: BPlusTree3 `rust/docs/CLAUDE.md`, commit e1f539e). "go" = the next test in failed-test.md, Red → Green → Refactor, Tidy First, commit discipline |
 | `spec-template.md` | Step 5. The human's goal document (Goal, Must, Must not). Phase 0 enumerates tests from it. The loop only reads it |
 | `failed-test-template.md` | Steps 2 to 4. Failing tests written as **code** in the document before any implementation. Entry = `- [ ] TestName — what it proves` + code block. Go: a test function. Node: one `test(...)` block; each section opens with a header block (`// file:` line, imports, shared constants) that becomes the head of that test file |
 | `skills/tdd/SKILL.md` | Steps 1 to 3 (Phase 0) plus loop guards (no test tampering, one line report). Only what AGENTS.md lacks |
-| `skills/<stack>/SKILL.md` | Step 9. Refactor checklist per stack. Today `gopher` (Go) and `nodejs` (JS/TS). An app picks one or more on its `Skills:` line. Add another stack in the same shape |
+| `skills/<stack>/SKILL.md` | Step 9. Refactor checklist per stack. Today `go-mistakes` (Go: the 100 Go Mistakes catalog, all bodies mirrored under `references/` so the checklist survives link rot) and `nodejs` (JS/TS). An app picks one or more on its `Skills:` line. Add another stack in the same shape |
 | `hooks/commit-gate.sh` | Step 9, enforced. Before `git commit`, runs the app's Format and Lint lines and blocks on failure. Handles `git -C apps/<name> commit` and `cd apps/<name> && git commit`. No lines and a go.mod present → gofmt and go vet defaults |
 | `commands/` | One slash command per stage, all taking the app name. `/sobaya-plan` = Phase 0, `/go` = one cycle (the same "go" as in AGENTS.md), `/gate` = gate only, `/sobaya-loop` = the whole plan, then the gate |
 | `bin/install.sh` | Step 0. Creates the three app files (see Install). There is no separate scaffold step |

@@ -22,7 +22,7 @@ if [ ! -f "$app/AGENTS.md" ]; then
 - Format: `gofmt -l .`
 - Lint: `go vet ./...`
 - Bench: `go test -bench=. -benchmem ./...`
-- Skills: gopher'
+- Skills: go-mistakes'
   fi
   cat > "$app/AGENTS.md" <<AGENTS
 # $name

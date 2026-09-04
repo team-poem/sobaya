@@ -52,7 +52,7 @@ Creates the three files an app carries: `AGENTS.md` (command lines + `Skills:`),
 
 - Session: `cd sobaya && claude` (or Codex). Fill `apps/<name>/spec.md`, run `/sobaya-plan <name>`, answer yes, then `/go <name>` per cycle or `/sobaya-loop <name>`, then `/gate <name>`. See the [usage guide](docs/guide.md).
 - Shell: `tdd-set/bin/loop.sh apps/<name> 30` and `tdd-set/bin/gate.sh apps/<name>` from the root. See the [tdd-set reference](tdd-set/README.md).
-- Another stack: add `tdd-set/skills/<stack>`, name it on the app's `Skills:` line, swap the command lines. Today: `gopher` (Go) and `nodejs` (vitest or `node --test`).
+- Another stack: add `tdd-set/skills/<stack>`, name it on the app's `Skills:` line, swap the command lines. Today: `go-mistakes` (Go, the 100 Go Mistakes catalog mirrored locally) and `nodejs` (vitest or `node --test`).
 
 ## What the gate enforces
 

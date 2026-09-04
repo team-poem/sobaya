@@ -52,7 +52,7 @@ tdd-set/bin/install.sh apps/<name>
 
 - 세션: `cd sobaya && claude` (또는 Codex). `apps/<name>/spec.md`를 채우고 `/sobaya-plan <name>`, 예라고 답하고, `/go <name>`을 사이클마다 또는 `/sobaya-loop <name>`, 그다음 `/gate <name>`. [사용 가이드](docs/guide.md) 참고.
 - 셸: 루트에서 `tdd-set/bin/loop.sh apps/<name> 30`, `tdd-set/bin/gate.sh apps/<name>`. [tdd-set 레퍼런스](tdd-set/README.md) 참고.
-- 다른 스택: `tdd-set/skills/<stack>`을 추가하고 앱 `Skills:` 줄에 이름을 적고 명령줄을 바꾸면 됩니다. 지금은 `gopher`(Go)와 `nodejs`(vitest 또는 `node --test`).
+- 다른 스택: `tdd-set/skills/<stack>`을 추가하고 앱 `Skills:` 줄에 이름을 적고 명령줄을 바꾸면 됩니다. 지금은 `go-mistakes`(Go, 100 Go Mistakes 카탈로그를 로컬에 미러링)와 `nodejs`(vitest 또는 `node --test`).
 
 ## 게이트가 강제하는 것
 

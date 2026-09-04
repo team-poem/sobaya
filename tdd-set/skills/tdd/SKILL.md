@@ -69,7 +69,7 @@ stop and ask the human to fill it first.
 - Red → minimal code → full suite green. Commit this **behavioral** change: test + code +
   the checked box, one commit.
 - Then, still green, refactor with the stack skills named on the `Skills:` line of
-  `apps/<name>/AGENTS.md` (e.g. `gopher` for Go), one step at a time, full suite after each step. Commit **structural** changes separately, message prefixed `refactor:`. Never
+  `apps/<name>/AGENTS.md` (e.g. `go-mistakes` for Go), one step at a time, full suite after each step. Commit **structural** changes separately, message prefixed `refactor:`. Never
   in the behavioral commit.
 - Report in one line, stop.
 
