@@ -7,8 +7,9 @@
 # because nobody inside the loop can be asked; the human looks and re-runs.
 #
 # Every iteration's token usage and cost is appended to <app>/.git/sobaya-loop-usage.log
-# (see usage.sh); a summary prints before the gate. SOBAYA_MODEL=<model> routes the cycles to
-# a cheaper model (`claude -p --model`); unset = the default model.
+# (see usage.sh); a summary prints before the gate. SOBAYA_MODEL=<model> picks the model for the
+# cycles (`claude -p --model`). Default sonnet — measured 2026-09-04: 25/25 entries green for $13.76.
+# SOBAYA_MODEL= (empty) uses the CLI's default model.
 set -u
 app=${1:?usage: loop.sh apps/<name> [max_iterations]}; max=${2:-50}
 app=${app%/}; name=$(basename "$app")
@@ -20,10 +21,17 @@ if [ -n "${CLAUDE_FLAGS:-}" ]; then
   read -r -a flags <<<"$CLAUDE_FLAGS"
 else
   abs=$(cd "$app" && pwd)   # the agent sometimes writes absolute paths; allow both forms
-  flags=(--permission-mode acceptEdits --allowedTools "Bash(gofmt:*)" "Bash(tdd-set/bin/probe.sh:*)")
+  # measured 2026-09-04 (25 cycles): 54 denials, all read-only forms the agent reaches for anyway
+  # (`cd <app> && go test`, `git branch/rev-parse/ls-files`); each denial costs a wasted turn.
+  # Agent/WebFetch/WebSearch are refused outright: one cycle needs no fan-out.
+  flags=(--permission-mode acceptEdits --disallowedTools Agent WebFetch WebSearch
+         --allowedTools "Bash(gofmt:*)" "Bash(tdd-set/bin/probe.sh:*)")
   for a in "$app" "$abs"; do
-    flags+=("Bash(go -C $a:*)" "Bash(cd $a && npm:*)" "Bash(cd $a && npx:*)" "Bash(cd $a && node:*)")
-    for sub in add commit diff status log show; do flags+=("Bash(git -C $a $sub:*)"); done
+    flags+=("Bash(go -C $a:*)" "Bash(cd $a && go:*)" "Bash(cd $a && gofmt:*)"
+            "Bash(cd $a && npm:*)" "Bash(cd $a && npx:*)" "Bash(cd $a && node:*)")
+    for sub in add commit diff status log show branch rev-parse ls-files; do
+      flags+=("Bash(git -C $a $sub:*)" "Bash(cd $a && git $sub:*)")
+    done
   done
 fi
 
@@ -43,7 +51,8 @@ for ((i = 1; i <= max; i++)); do
   grep -q '^- \[ \]' "$app/failed-test.md" || break
   before=$(g rev-parse HEAD); n_before=$(entries)
   echo "=== $name iteration $i ==="
-  claude -p "/go $name" "${flags[@]}" ${SOBAYA_MODEL:+--model "$SOBAYA_MODEL"} --output-format json </dev/null \
+  model=${SOBAYA_MODEL-sonnet}
+  claude -p "/go $name" "${flags[@]}" ${model:+--model "$model"} --output-format json </dev/null \
     | "$here/usage.sh" record "$app" "$start" "$i"
   [ "${PIPESTATUS[0]}" -eq 0 ] || echo "claude exited non-zero"
   if ! g diff --quiet || [ -n "$(g ls-files --others --exclude-standard)" ]; then
