@@ -9,9 +9,10 @@ description: >-
 
 # Go Mistakes (refactor while green)
 
-`references/mistakes-map.md` lists all 100 mistakes as title + one-line TL;DR; the chapter files
-under `references/mistakes/` hold the full bodies. Read the map, then only the chapters the change
-touches. Never cite a mistake you did not open.
+The chapter files under `references/mistakes/` hold the full bodies; `references/mistakes-map.md`
+(30KB) lists all 100 as title + one-line TL;DR. In a loop cycle never open the map: pick from the
+table below and open one chapter, the one the diff touches most (both concurrency chapters count as
+one). The map is for reading a whole package outside the loop. Never cite a mistake you did not open.
 
 ## Select chapters by what changed
 

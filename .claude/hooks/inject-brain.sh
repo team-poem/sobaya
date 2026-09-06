@@ -2,6 +2,8 @@
 # SessionStart hook: surface the brain index so every session starts with the
 # knowledge map. Fail-open: a missing vault produces no output and exit 0.
 
+[ -z "${SOBAYA_LOOP:-}" ] || exit 0   # a loop cycle (tdd-set/bin/loop.sh) reads no vault index
+
 BRAIN_INDEX="${CLAUDE_PROJECT_DIR:-.}/brain/index.md"
 
 if [ -f "$BRAIN_INDEX" ] && [ -r "$BRAIN_INDEX" ]; then

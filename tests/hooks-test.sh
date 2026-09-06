@@ -31,6 +31,12 @@ case "$out" in
   *) check 1 "inject: prints header and index body" ;;
 esac
 
+# --- inject-brain: SOBAYA_LOOP=1 (a loop cycle) skips the injection entirely ---
+out=$(SOBAYA_LOOP=1 CLAUDE_PROJECT_DIR="$proj" sh "$INJECT" 2>/dev/null)
+rc=$?
+check "$rc" "inject: exits 0 under SOBAYA_LOOP"
+[ -z "$out" ]; check $? "inject: silent under SOBAYA_LOOP (index present)"
+
 # --- inject-brain: missing brain dir is silent and exit 0 ---
 proj="$TMP/p2"
 mkdir -p "$proj"
@@ -330,6 +336,10 @@ case "$sum" in *"total: 2 iterations, \$0.013, in 20, out 36, cache_read 600, ca
 raw=$(printf 'not json at all' | bash "$USAGE" record "$ua" abc123 3)
 [ "$raw" = "not json at all" ] && [ "$(wc -l < "$ua/.git/sobaya-loop-usage.log")" -eq 2 ]
 check $? "usage: non-JSON output is passed through and not logged"
+
+# --- tdd-set: next.sh (one entry, one checkbox) and probe.sh (Go import blocks) ---
+bash "$ROOT/tdd-set/tests/next-entry.sh" >/dev/null 2>&1; check $? "tdd-set next.sh: tdd-set/tests/next-entry.sh passes"
+bash "$ROOT/tdd-set/tests/probe-go-imports.sh" >/dev/null 2>&1; check $? "tdd-set probe.sh: tdd-set/tests/probe-go-imports.sh passes"
 
 echo
 if [ "$fail" -eq 0 ]; then

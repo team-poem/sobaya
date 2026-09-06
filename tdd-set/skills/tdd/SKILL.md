@@ -34,8 +34,10 @@ stop and ask the human to fill it first.
    the degenerate/empty case, boundaries, duplicates, error paths, ordering. Stop only when you
    cannot name another case.
 3. **Probe each case before writing it down.**
-   - Go: write the complete test function and run
-     `tdd-set/bin/probe.sh apps/<name>/<package-dir> -` with it on stdin.
+   - Go: write the complete test function, preceded by the `import (...)` block it needs (the
+     probe adds the `package` line, and `import "testing"` only when the snippet has no import),
+     and run `tdd-set/bin/probe.sh apps/<name>/<package-dir> -` with it on stdin. Record only the
+     function in `failed-test.md`; the cycle adds any missing import to the suite file.
    - Node: per small feature, first write the section's **header block** (a `// file:` line naming
      the test file relative to the app root, the imports, the shared constants) to a temp file
      outside the app, e.g. `${TMPDIR:-/tmp}/sobaya-header.ts`. Then write each case as one
@@ -56,18 +58,19 @@ stop and ask the human to fill it first.
 
 ## "go" — one entry per cycle
 
-- Take the next unchecked entry and put its code block into the suite **verbatim, by appending
-  only**. Do not rename, reword, or weaken it. If the test cannot compile or is wrong, stop and
+- Take the next unchecked entry from `tdd-set/bin/next.sh apps/<name>` — never read
+  `failed-test.md` whole — and put its code block into the suite **verbatim, by appending only**. Do not rename, reword, or weaken it. If the test cannot compile or is wrong, stop and
   say so.
   - Go: append the function to the package's `_test.go` file (create it with the `package` line
-    and `import "testing"` if absent).
+    and `import "testing"` if absent); an import the test needs is added to the file's import
+    block, never by rewriting a line.
   - Node: the target file is the `// file:` line of the entry's section header. If the file does
     not exist, create it from the header block exactly. Then append a blank line and the entry
     block at the end. Never edit lines already in the file; the gate rejects any changed line.
-- Run the full suite. Expect the new test red. If it is green already, write no code:
-  check the box, commit, and report that the entry needed no change.
+- Run the full suite as the `Test:` line says (never `-v`). Expect the new test red. If it is green
+  already, write no code: check the box, commit, and report that the entry needed no change.
 - Red → minimal code → full suite green. Commit this **behavioral** change: test + code +
-  the checked box, one commit.
+  the checked box (`tdd-set/bin/next.sh apps/<name> check <TestName>`), one commit.
 - Then, still green, refactor with the stack skills named on the `Skills:` line of
   `apps/<name>/AGENTS.md` (e.g. `go-mistakes` for Go), one step at a time, full suite after each step. Commit **structural** changes separately, message prefixed `refactor:`. Never
   in the behavioral commit.

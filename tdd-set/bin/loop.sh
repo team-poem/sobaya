@@ -11,6 +11,7 @@
 # cycles (`claude -p --model`). Default sonnet — measured 2026-09-04: 25/25 entries green for $13.76.
 # SOBAYA_MODEL= (empty) uses the CLI's default model.
 set -u
+export SOBAYA_LOOP=1   # inject-brain.sh skips the vault index for loop cycles; they need none of it
 app=${1:?usage: loop.sh apps/<name> [max_iterations]}; max=${2:-50}
 app=${app%/}; name=$(basename "$app")
 here=$(cd "$(dirname "$0")" && pwd)
@@ -25,7 +26,7 @@ else
   # (`cd <app> && go test`, `git branch/rev-parse/ls-files`); each denial costs a wasted turn.
   # Agent/WebFetch/WebSearch are refused outright: one cycle needs no fan-out.
   flags=(--permission-mode acceptEdits --disallowedTools Agent WebFetch WebSearch
-         --allowedTools "Bash(gofmt:*)" "Bash(tdd-set/bin/probe.sh:*)")
+         --allowedTools "Bash(gofmt:*)" "Bash(tdd-set/bin/probe.sh:*)" "Bash(tdd-set/bin/next.sh:*)")
   for a in "$app" "$abs"; do
     flags+=("Bash(go -C $a:*)" "Bash(cd $a && go:*)" "Bash(cd $a && gofmt:*)"
             "Bash(cd $a && npm:*)" "Bash(cd $a && npx:*)" "Bash(cd $a && node:*)")

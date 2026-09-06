@@ -2,8 +2,9 @@
 # Probe one candidate test: drop it into the package as a temporary file, run it, report,
 # delete it. Phase 0 writes an entry into failed-test.md only after this prints RED.
 # usage: tdd-set/bin/probe.sh apps/<name>/<dir> <snippet-file|-> [header-file]
-# Go:   <dir> is the package dir; snippet = the test func only (package/import added here).
-#       No header file.
+# Go:   <dir> is the package dir; snippet = the test func, preceded by its own import block when it
+#       needs more than "testing" (the package line is added here; import "testing" only when the
+#       snippet has no import). No header file.
 # Node: <dir> is where the test file lives; snippet = one test(...) block, exactly as it will be
 #       appended to the suite. [header-file] holds the section's header block from failed-test.md
 #       (the `// file:` line, imports, shared constants); the probe runs header + snippet as one
@@ -28,7 +29,9 @@ if [ -f "$root/go.mod" ]; then
   probe="$dir/zz_probe_test.go"
   [ -e "$probe" ] && { echo "$probe already exists; remove it first"; exit 2; }
   trap 'rm -f "$probe"' EXIT
-  printf 'package %s\n\nimport "testing"\n\n%s\n' "$pkg" "$snippet" > "$probe"
+  # a snippet may carry its own import block (issue #3); "testing" is added only when it has none
+  if grep -qE '^import\b' <<<"$snippet"; then printf 'package %s\n\n%s\n' "$pkg" "$snippet"
+  else printf 'package %s\n\nimport "testing"\n\n%s\n' "$pkg" "$snippet"; fi > "$probe"
   out=$(go -C "$root" test "./${rel:-.}" -run "^$name\$" 2>&1); rc=$?
   build_re='build failed|undefined:|cannot find|syntax error'
   fail_line=$(grep -m1 -E '^\s+(---|.*_test\.go:[0-9]+:)' <<<"$out" | sed 's/^ *//')
