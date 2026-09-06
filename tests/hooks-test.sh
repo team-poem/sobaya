@@ -340,6 +340,7 @@ check $? "usage: non-JSON output is passed through and not logged"
 # --- tdd-set: next.sh (one entry, one checkbox) and probe.sh (Go import blocks) ---
 bash "$ROOT/tdd-set/tests/next-entry.sh" >/dev/null 2>&1; check $? "tdd-set next.sh: tdd-set/tests/next-entry.sh passes"
 bash "$ROOT/tdd-set/tests/probe-go-imports.sh" >/dev/null 2>&1; check $? "tdd-set probe.sh: tdd-set/tests/probe-go-imports.sh passes"
+bash "$ROOT/tdd-set/tests/gate-verbatim.sh" >/dev/null 2>&1; check $? "tdd-set gate.sh: tdd-set/tests/gate-verbatim.sh passes"
 
 echo
 if [ "$fail" -eq 0 ]; then

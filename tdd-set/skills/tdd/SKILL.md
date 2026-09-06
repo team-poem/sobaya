@@ -60,7 +60,7 @@ stop and ask the human to fill it first.
 
 - Take the next unchecked entry from `tdd-set/bin/next.sh apps/<name>` — never read
   `failed-test.md` whole — and put its code block into the suite **verbatim, by appending only**. Do not rename, reword, or weaken it. If the test cannot compile or is wrong, stop and
-  say so.
+  say so; never rewrite it — the gate rejects an entry that is not in the suite verbatim.
   - Go: append the function to the package's `_test.go` file (create it with the `package` line
     and `import "testing"` if absent); an import the test needs is added to the file's import
     block, never by rewriting a line.

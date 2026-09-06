@@ -27,3 +27,38 @@ Lessons for the harness:
   `errors`… is RED by construction — the probe cannot tell "new symbol missing" from "import
   missing". All 25 probes were build-failure REDs for this reason. Needs a fix (import block in
   the snippet or goimports) before probe results mean anything for non-trivial tests.
+
+## Second run (2026-09-06) — after next.sh, SOBAYA_LOOP, one-chapter go-mistakes
+
+ddukddak-hub-go, drive-permission leftovers (organize API gate, folder routes removed), 6 entries,
+sonnet. Phase 0 also on sonnet (`claude -p "/sobaya-plan"`, logged as run `phase0-0b40e73`).
+
+| | first run (token gate) | second run (drive leftovers) |
+|---|---|---|
+| entries | 25 | 6 |
+| sessions | 25 (one per entry) | **1** (the agent did all 6 in one session) |
+| cost | $13.76 | $2.02 (+ Phase 0 $0.94) |
+| per entry | $0.55 | $0.34 |
+| cache_create per session | 41K | 86K once (not 6 × 41K) |
+| cache_read per entry | 1.52M | 1.21M |
+| turns per entry | 27.5 | 15.3 |
+| wall time per entry | 104 s | 80 s |
+| denials | 54 | 8 (`cat >>` into the test file, python heredocs, /tmp writes) |
+
+Not comparable one-to-one (different feature, simpler entries), but two things are clear:
+
+- **The agent ignored "one entry per session"**: with `next.sh` it kept calling it after each commit
+  and finished the plan in one 92-turn session. That skips `loop.sh`'s per-iteration guards (stall,
+  defect-flow halt, per-entry usage row). `/go` now says explicitly: one entry, then stop.
+  Cost-wise the single session saved ~5 × 41K cache_create; per-entry context (cache_read) barely
+  moved, so the O(N²) term is now the growing session, not the re-read file.
+- **Three of six entries were rewritten, not appended verbatim**, and the gate passed them. The plan
+  was wrong twice (mux answers 405 for POST /api/drive while GET /api/drive stays; `EnsureRoot` seeds
+  5 default folders, so `len(entries) == 0` can never hold), and the agent silently fixed the tests
+  instead of stopping. Phase 0's probe cannot catch a wrong expectation — it is RED either way.
+  `gate.sh` now requires every checked entry's code block verbatim in the committed suite
+  (`tdd-set/tests/gate-verbatim.sh`). The plan was aligned to the suite by hand afterwards.
+- probe.sh with import blocks (issue #3) worked: the hand-added entry
+  `TestOrganizeDriveAPIEmptyConsoleKeyRejectsAnyCookie` probed as a runtime RED (`status = 200`),
+  not a build failure. Phase 0's own probes: 5 RED, 1 GREEN dropped.
+- No `refactor:` commit in the run; the agent judged nothing to tidy (diff: 4 files, +151/−9).

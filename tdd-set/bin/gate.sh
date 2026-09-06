@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Final gate for one app. PASS = every failed-test.md entry checked, suite green, no existing line in a
-# test file or test directory (helpers, fixtures) touched, every checked entry's test function present. The human's tests are the
+# test file or test directory (helpers, fixtures) touched, every checked entry's test function present, verbatim. The human's tests are the
 # spec; nothing else is judged.
 # usage: tdd-set/bin/gate.sh apps/<name> [start_commit]
 set -u
@@ -38,6 +38,19 @@ while read -r name; do
     echo "FAIL entry checked but test not added to suite: $name"; fail=1
   fi
 done < <(git diff "$start"..HEAD -- failed-test.md | sed -nE 's/^\+- \[x\] ([A-Za-z0-9_]+).*/\1/p')
+
+# every checked entry's code block must sit in the committed suite verbatim: the tests are the spec,
+# and a rewritten entry (weaker assertion, another status code) still passes the name check above
+suite=$(git ls-files -- "${test_globs[@]}" | while read -r f; do git show "HEAD:$f"; done)
+while IFS= read -r -d '' block; do
+  name=${block%%$'\n'*}; block=${block#*$'\n'}; block=${block%$'\n'}   # $(...) strips the suite's final newline
+  [[ "$suite" == *"$block"* ]] || { echo "FAIL entry checked but its code block is not verbatim in the committed suite: $name"; fail=1; }
+done < <(awk '
+  /^## / { name = "" }
+  /^- \[x\] / { name = $3; next }
+  /^```/ { if (inb) { inb = 0; printf "%s\n%s%c", name, block, 0; block = ""; name = "" } else if (name != "") inb = 1; next }
+  inb { block = block $0 "\n" }
+' failed-test.md)
 
 echo "plan: $(grep -c '^- \[x\]' failed-test.md) checked ($newly_checked this run), commits since start: $(git rev-list --count "$start"..HEAD)"
 
