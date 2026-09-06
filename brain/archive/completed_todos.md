@@ -12,3 +12,9 @@ Items move here from [[todos]] when done, newest first.
 
 7. [x] ~~soba-timer — first app, e2e pipeline test vehicle~~ — done. [[archive/plans/02-soba-timer/overview]]
 1. [x] ~~Build the Sobaya harness~~ — done. [[archive/plans/01-sobaya-harness/overview]]
+10. [x] ~~loop.sh: cost grows with failed-test.md size, wall time with iteration count~~ — closed
+   2026-09-06 via team-poem/sobaya#2: fix 1 (pass only the next entry) is `tdd-set/bin/next.sh`
+   (f8e0a38); fix 2 (continue in one session) rejected — /go is one entry per session by rule
+   (c84cb4f); fix 3 (`SOBAYA_MODEL`) already existed, loop defaults to sonnet. Remaining
+   in-session context growth is measure-only. Evidence table lives in
+   [[codebase/loop-cost-measurement]].
