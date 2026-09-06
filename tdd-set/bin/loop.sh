@@ -25,13 +25,20 @@ else
   # measured 2026-09-04 (25 cycles): 54 denials, all read-only forms the agent reaches for anyway
   # (`cd <app> && go test`, `git branch/rev-parse/ls-files`); each denial costs a wasted turn.
   # Agent/WebFetch/WebSearch are refused outright: one cycle needs no fan-out.
+  # Claude Code splits a compound command on `&&` and checks each part on its own, so a pattern
+  # holding `&&` never matches anything (verified 2026-09-06 with haiku: `Bash(cd <app> && npm:*)`
+  # denied, `Bash(cd <app>:*)` + `Bash(npm:*)` runs the suite). Only the `cd` part stays app-scoped;
+  # go/gofmt/npm/npx/node and the git subcommands are allowed bare. The `-C` forms remain scoped.
   flags=(--permission-mode acceptEdits --disallowedTools Agent WebFetch WebSearch
-         --allowedTools "Bash(gofmt:*)" "Bash(tdd-set/bin/probe.sh:*)" "Bash(tdd-set/bin/next.sh:*)")
+         --allowedTools "Bash(gofmt:*)" "Bash(go:*)" "Bash(npm:*)" "Bash(npx:*)" "Bash(node:*)"
+         "Bash(tdd-set/bin/probe.sh:*)" "Bash(tdd-set/bin/next.sh:*)")
+  for sub in add commit diff status log show branch rev-parse ls-files; do
+    flags+=("Bash(git $sub:*)")
+  done
   for a in "$app" "$abs"; do
-    flags+=("Bash(go -C $a:*)" "Bash(cd $a && go:*)" "Bash(cd $a && gofmt:*)"
-            "Bash(cd $a && npm:*)" "Bash(cd $a && npx:*)" "Bash(cd $a && node:*)")
+    flags+=("Bash(cd $a:*)" "Bash(go -C $a:*)")
     for sub in add commit diff status log show branch rev-parse ls-files; do
-      flags+=("Bash(git -C $a $sub:*)" "Bash(cd $a && git $sub:*)")
+      flags+=("Bash(git -C $a $sub:*)")
     done
   done
 fi
