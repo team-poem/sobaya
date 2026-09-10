@@ -6,6 +6,10 @@ at a time; the harness validates the result before advancing.
 
 ## Shared contract
 
+- **Implementation language:** the harness uses Bash 3.2, jq, Git, and
+  standard Unix tools. A different runtime language requires explicit user
+  approval; architecture approval alone does not authorize that change.
+  App source languages remain app-specific.
 - **Canonical instructions:** this `AGENTS.md`, the app's `AGENTS.md`, and
   `tdd-set/AGENTS.md`. Provider adapters do not redefine acceptance rules.
 - **Human-owned inputs:** never edit `spec.md`. Agent-generated tests are

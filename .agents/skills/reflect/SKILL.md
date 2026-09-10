@@ -37,7 +37,7 @@ For each candidate ask: **"Would this matter in a different task?"**
 3. **Brain note** — workspace/app knowledge: one topic per file in
    `brain/codebase/<kebab-slug>.md`, ~150–600 words shaped as
    problem → cause → pattern → evidence, wikilinking related principles.
-   Rebuild the index with `python3 scripts/brain-index.py .`; do not assume
+   Rebuild the index with `bash scripts/brain-index.sh .`; do not assume
    a host hook ran.
 4. **Todo** — follow-up work that can't be done now: in `brain/todos.md`,
    read `<!-- next-id: N -->`, append `N. [ ] ...` under the right section,

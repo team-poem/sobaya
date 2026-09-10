@@ -22,23 +22,16 @@ test('secondCase', () => {});
 PLAN
 cp "$d/failed-test.md" "$d/original.md"
 bash "$root/tdd-set/bin/next.sh" "$d" > "$d/output"
-python3 - "$d/output" <<'PY'
-from pathlib import Path
-import sys
-s=Path(sys.argv[1]).read_text()
-assert s.startswith('## Addition\n')
-assert '// file: add.test.js' in s and "test('firstCase'" in s
-assert 'secondCase' not in s
-PY
+[ "$(head -n 1 "$d/output")" = '## Addition' ]
+grep -Fq '// file: add.test.js' "$d/output"
+grep -Fq "test('firstCase'" "$d/output"
+! grep -Fq secondCase "$d/output"
 if bash "$root/tdd-set/bin/next.sh" "$d" check >/dev/null 2>&1; then
   echo 'FAIL: legacy check mutated the plan'; exit 1
 fi
 cmp "$d/failed-test.md" "$d/original.md"
-python3 - "$d/failed-test.md" <<'PY'
-from pathlib import Path
-import sys
-p=Path(sys.argv[1]); p.write_text(p.read_text().replace('- [ ]', '- [x]'))
-PY
+sed 's/- \[ \]/- [x]/g' "$d/failed-test.md" > "$d/checked.md"
+mv "$d/checked.md" "$d/failed-test.md"
 set +e
 bash "$root/tdd-set/bin/next.sh" "$d" > "$d/output"
 rc=$?

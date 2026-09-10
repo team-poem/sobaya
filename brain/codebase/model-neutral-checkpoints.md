@@ -2,7 +2,7 @@
 
 Sobaya's September 2026 migration replaces provider-specific instructions and
 model-exclusive maintenance with a shared AGENTS.md contract and a deterministic
-Python runtime. Model policies affect the chosen worker and guidance; they never
+shell runtime. Model policies affect the chosen worker and guidance; they never
 change the approved spec, test bodies, headers, or acceptance commands.
 
 The important failures were at transitions, not prompt wording. A successful
@@ -27,7 +27,7 @@ requires a final gate and a read-only review bound to HEAD. Call budgets accumul
 per approval, including review; structured diagnostic handoff is required before
 configured escalation. Token reports are evidence, not a guaranteed money cap.
 
-Configuration files do not prove active integration. `scripts/setup.py --check`
+Configuration files do not prove active integration. `scripts/setup.sh --check`
 verifies real Git hook resolution; `doctor.sh` checks declared worker executables.
 Neither proves model credentials or live API behavior. This migration was tested
 with fixture adapters, including Codex argv/schema/usage handling, not a live model

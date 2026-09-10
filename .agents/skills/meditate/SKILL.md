@@ -72,7 +72,7 @@ Edit or merge notes, add evidenced principles (and update
 - Move completed plan dirs to `brain/archive/plans/`; tick their entries in
   `brain/plans/index.md`.
 - Move done todos to `brain/archive/completed_todos.md`.
-- Rebuild the index with `python3 scripts/brain-index.py .` and check it
+- Rebuild the index with `bash scripts/brain-index.sh .` and check it
   with `--check`; do not rely on unverified host hooks.
 
 ## Report

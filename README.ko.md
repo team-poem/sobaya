@@ -16,6 +16,11 @@ Sobaya는 사람이 승인한 테스트를 중심으로 동작하는 개발 워�
 GREEN을 검증해야 진행 상황을 커밋합니다. 프로젝트는 `apps/<name>`의 독립
 Git 저장소에 놓입니다.
 
+하네스 런타임과 테스트는 Bash 3.2·jq·Git·표준 Unix 도구를 사용합니다.
+앱 테스트 러너(Go·Node·로컬 Vitest)는 별도 의존성입니다. 전체 하네스 검사는
+`bash tests/run.sh`로 실행하며 Python 인터프리터 사용과 저장소에 있는
+Python 하네스 소스를 차단합니다.
+
 ## 작업 흐름
 
 ```mermaid
@@ -42,7 +47,7 @@ flowchart LR
    별도 작업으로 요청합니다.
 
 ```sh
-python3 scripts/setup.py .
+bash scripts/setup.sh .
 tdd-set/bin/install.sh apps/example
 # 사람이 spec.md와 테스트 플랜을 검토한 뒤 해당 입력을 커밋합니다.
 tdd-set/bin/approve.sh apps/example

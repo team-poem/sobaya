@@ -16,6 +16,11 @@ that approval, materializes one test, observes RED, delegates implementation,
 and validates GREEN before committing progress. Projects live in independent
 Git repositories at `apps/<name>`.
 
+The harness runtime and its tests use Bash 3.2, jq, Git, and standard Unix
+tools. App test runners (Go, Node, or local Vitest) are separate dependencies.
+Run the full local harness suite with `bash tests/run.sh`; it blocks Python
+interpreter use and Python harness sources in the repository.
+
 ## Workflow
 
 ```mermaid
@@ -42,7 +47,7 @@ flowchart LR
    Request any structural refactor separately.
 
 ```sh
-python3 scripts/setup.py .
+bash scripts/setup.sh .
 tdd-set/bin/install.sh apps/example
 # Human fills spec.md and reviews the test plan; commit reviewed inputs.
 tdd-set/bin/approve.sh apps/example

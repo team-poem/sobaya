@@ -55,6 +55,6 @@ func TestAdd_WrongExpectation(t *testing.T) {
 	}
 }'
 [ $rc -eq 0 ] && grep -q '^RED    TestAdd_WrongExpectation  (fails' <<<"$out"; check $? "probe: a failing assertion is RED (fails), not a build failure ($out)"
-[ ! -e "$d/calc/zz_probe_test.go" ]; check $? "probe: temporary file removed"
+[ -z "$(find "$d/calc" -name 'zz_sobaya_probe_*' -print)" ]; check $? "probe: temporary file removed"
 
 [ $fail -eq 0 ] && echo "ALL PASS" || { echo "FAILURES PRESENT"; exit 1; }

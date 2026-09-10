@@ -5,11 +5,20 @@ Sobaya's provider-neutral development runtime. The shared contract is
 [`AGENTS.md`](AGENTS.md). The human owns acceptance. Workers implement;
 the runtime materializes tests, validates progress, and commits checkpoints.
 
+The canonical implementation is shell: Bash 3.2, jq, Git, and standard Unix
+tools. Go/Node/Vitest execute app tests, not the harness coordinator. Changing
+the harness runtime language needs explicit user approval; agreement on the
+architecture does not supply that approval.
+
+Writer locking uses `shlock` on macOS/BSD or `flock` on Linux. Version-1
+approval state and usage records remain compatible, including existing call
+counts, fractional timestamps, and an unfinished entry resumed explicitly.
+
 ## Commands
 
 Paths in the table are relative to `tdd-set/`; from the Sobaya root, prefix
 them with `tdd-set/`. `APP` means `apps/<name>`. First activate root Git hooks
-with `python3 scripts/setup.py .`. Existing conflicting hooks are preserved;
+with `bash scripts/setup.sh .`. Existing conflicting hooks are preserved;
 integrate them explicitly before activation.
 
 | Command | Purpose |
@@ -193,10 +202,10 @@ task prompt references, not provider-specific slash-command registrations.
 Brain indexing and workspace checks are explicit scripts:
 
 ```sh
-python3 scripts/setup.py .
-python3 scripts/setup.py . --check --app apps/example
-python3 scripts/brain-index.py . --check
-python3 scripts/workspace-check.py .
+bash scripts/setup.sh .
+bash scripts/setup.sh . --check --app apps/example
+bash scripts/brain-index.sh . --check
+bash scripts/workspace-check.sh .
 ```
 
 Host hooks may improve feedback, but acceptance is enforced by the runtime

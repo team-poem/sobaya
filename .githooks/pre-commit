@@ -1,5 +1,5 @@
 #!/bin/sh
-# Provider-neutral root checks. Enable per clone: git config core.hooksPath .githooks
+# Provider-neutral root checks. Activate with scripts/setup.sh ROOT.
 set -eu
 root=$(git rev-parse --show-toplevel)
-exec python3 "$root/scripts/workspace-check.py" "$root" --staged
+exec /bin/bash "$root/scripts/workspace-check.sh" "$root" --staged
