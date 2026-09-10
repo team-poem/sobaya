@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "mode": "economy",
+  "default_worker": "sol",
+  "review_worker": "astra",
+  "max_calls": 20,
+  "timeout_seconds": 900,
+  "workers": {
+    "sol": {"adapter": "codex", "model": "gpt-5.6-sol", "guidance": "guided"},
+    "astra": {"adapter": "codex", "model": "gpt-6-astra", "guidance": "concise"}
+  },
+  "escalation": ["astra"]
+}

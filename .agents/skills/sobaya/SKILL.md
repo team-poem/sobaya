@@ -1,75 +1,53 @@
 ---
 name: sobaya
-description: Use when orchestrating work across apps/ in the Sobaya workspace — starting substantial multi-step work in any app, dispatching subagents for app work, or deciding how to parallelize and isolate changes. Not for trivial single-file edits.
+description: Use for substantial Sobaya orchestration, app preflight, or deciding whether work benefits from delegation and worktree isolation.
 ---
 
-# Sobaya Orchestration
+# Sobaya orchestration
 
-You are the head cook. Judgment stays here; bulk work goes to the brigade
-(subagents). `tdd-set/` owns the dev lifecycle — human-written `spec.md`,
-the `tdd` skill's Phase 0 for `failed-test.md`, the app `AGENTS.md` rules for the
-cycle, `bin/loop.sh` + `bin/gate.sh` for autonomous runs — this skill
-governs how work moves through the workspace around those.
+Read the root shared contract first. This skill adds orchestration decisions,
+not another development lifecycle. `tdd-set/AGENTS.md` owns that lifecycle.
 
-## 1. Pre-flight (mise en place)
+## Preflight
 
-Before dispatching anything substantial:
+Read the brain index and only relevant notes; inspect `brain/apps.md` when
+present, the target app's Git status, active work, and applicable contracts.
+State the objective, authorized scope, acceptance evidence, and next bounded
+piece of work. Read the app's spec and approval state before implementation.
+Use `tdd-set/bin/status.sh <app>` and `doctor.sh <app>` where appropriate.
 
-1. Check the brain index (injected at session start; otherwise read
-   `brain/index.md`) and open only the notes relevant to this task.
-2. Read `brain/apps.md` and the target app's state:
-   `git -C apps/<name> status --short` and `git -C apps/<name> log --oneline -5`.
-3. Check `brain/todos.md` and any active plan in `brain/plans/`.
-4. Assemble a one-paragraph brief: what is active, what is in scope, what
-   the deliverable is, how much parallelism the task deserves.
+## Choose the work shape
 
-If `spec.md` + `failed-test.md` exist in the app, follow them. If the work needs
-them (multi-phase, 3+ files), the user writes `spec.md`, then the `tdd`
-skill's Phase 0 writes `failed-test.md` in the app root.
+Work locally when one focused investigation is enough. Delegate a bounded
+subtask when it can proceed independently and the breadth, implementation
+risk, or need for independent judgment pays for the extra context. File
+count alone is not a reason to spawn an agent. Do not create parallel work
+that requires the same mutable state.
 
-## 2. Dispatch rules
+For unfamiliar areas, delegate targeted exploration when useful; request
+conclusions with evidence, not file dumps. For consequential changes, use
+an independent reviewer to try to refute correctness. The implementer does
+not serve as its own independent reviewer. Dispatch examples are in
+`references/dispatch-patterns.md`; load them only when dispatching.
 
-- **Explore before you touch.** Unknown code is mapped by Explore agents
-  that return conclusions, not file dumps. Never bulk-read an app into the
-  orchestrator context. ([[principles/guard-the-context-window]])
-- **Brief like a work order.** Implementation dispatches state: app path,
-  task, constraints, files NOT to touch, expected report format. Templates:
-  `references/dispatch-patterns.md`. ([[principles/cost-aware-delegation]])
-- **Review by refutation.** Review agents are told to refute the work, not
-  confirm it — and are never the agent that implemented it.
-- **Artifacts over messages.** Long-running subagents write progress and
-  results to files as they go (reports under the active plan dir), so
-  interrupted work survives. The final message points at the files.
+## Execute, verify, reflect
 
-## 3. Pipeline discipline
+Carry authorized reversible work to completion. Each handoff names the
+checkout, scope, protected inputs, expected artifact, and verification.
+One writer owns each checkout. Parallel mutation uses isolated worktrees;
+integration is sequential with verification between changes.
 
-Substantial work runs staged: **execute → review → reflect**.
+For implementation, progress through one approved entry and a validated
+checkpoint at a time. The runner's policy fixes allowed workers, call and
+time limits, and any fallback; never silently upgrade a model or relax
+acceptance. Do not equate a session boundary with an entry boundary.
 
-- Declare each stage's deliverable before dispatching it.
-- A stage is complete when its artifact is verified directly
-  ([[principles/prove-it-works]]) — not when an agent says so.
-- After the final stage of meaningful work, run Skill(reflect).
+Verify actual artifacts and command results before accepting a report.
+Diagnose failed delegation before a retry, revised brief, or handoff. If
+human approval is required for changed tests or scope, present the concrete
+proposal while continuing unaffected authorized work.
 
-## 4. Concurrency
-
-- One writer per app at any moment. Parallel mutation means one worktree per
-  agent; merge sequentially, verifying between merges.
-  ([[principles/serialize-shared-state-mutations]])
-- Read-only agents may fan out freely.
-- Cap concurrent agents at what the task actually needs, not what the
-  harness allows.
-
-## 5. Failure handling
-
-No blind retries. When a dispatch fails or returns garbage: read its output
-and artifacts, diagnose (real bug: API-level failing test, then the
-smallest reproducing test, per the app's AGENTS.md),
-then decide — fix the brief, change the decomposition, or do it directly.
-Re-dispatching the same prompt is almost never the answer.
-([[principles/fix-root-causes]])
-
-## 6. Persist before you spawn
-
-For work that spans sessions or long dispatches: make sure the plan/progress
-file exists in `brain/plans/` *before* spawning. If the session dies, the
-next one adopts the work from the plan's checkboxes and report files.
+Persist progress before long or interruption-prone handoffs. App plans live
+in their app repo; cross-app and harness plans live in `brain/plans/`.
+After substantial verified work, use `reflect` and retain only durable
+learnings. Do not manufacture a memory change when there is none.

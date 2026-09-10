@@ -14,7 +14,7 @@ their proposals too — verify claims against the actual files before acting.
 Build a cheap snapshot to paste into both agent prompts:
 
 ```sh
-find brain -name '*.md' -type f | sort
+rg --files brain -g '*.md' | sort
 wc -l brain/*.md brain/*/*.md brain/*/*/*.md 2>/dev/null | tail -25
 ```
 
@@ -22,7 +22,7 @@ Include the snapshot AND the current `brain/index.md` content.
 
 ## 2. Auditor (staleness pass)
 
-Dispatch one general-purpose agent:
+Dispatch one read-only agent:
 
 ```
 Audit the Sobaya brain vault at <absolute path>/brain.
@@ -43,7 +43,7 @@ Don't churn a clean vault.
 
 ## 4. Reviewer (pattern pass)
 
-Dispatch a second general-purpose agent:
+Dispatch a second independent read-only agent:
 
 ```
 Read the Sobaya brain vault at <absolute path>/brain and the skills in
@@ -60,16 +60,20 @@ Propose only — do NOT edit anything.
 ## 5. Judge and apply
 
 Review both reports against the actual files; reject weak proposals (false
-positives are normal). Present the consolidated change list to the user,
-then apply the approved ones: edit/delete/merge notes, add principles (and
-update `brain/principles.md`), fix skills, add wikilinks.
+positives are normal). Apply verified, reversible changes already within
+the authorized audit scope; do not stop for repeated permission. Preserve
+user-authored intent and approved acceptance criteria. Present a concrete
+proposal when a change needs new authority or an unresolved user decision.
+Edit or merge notes, add evidenced principles (and update
+`brain/principles.md`), fix skills, and add useful wikilinks.
 
 ## 6. Housekeep
 
 - Move completed plan dirs to `brain/archive/plans/`; tick their entries in
   `brain/plans/index.md`.
 - Move done todos to `brain/archive/completed_todos.md`.
-- The index rebuilds itself via hook as you edit.
+- Rebuild the index with `python3 scripts/brain-index.py .` and check it
+  with `--check`; do not rely on unverified host hooks.
 
 ## Report
 

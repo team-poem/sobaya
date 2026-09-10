@@ -10,8 +10,8 @@ content belongs in subagents.
 **In practice:**
 - Route bulk reads (whole-repo exploration, long logs, reference docs) to
   Explore subagents that return conclusions, not file dumps.
-- Always-loaded text stays minimal: CLAUDE.md stays ~30 lines; the
-  session-start injection is the brain *index*, never note bodies.
+- Keep always-loaded AGENTS.md concise. Read the brain index first,
+  then only relevant notes; verify any optional host injection separately.
 - Skills carry their depth in `references/` so it loads only when invoked.
 
 See also: [[principles/cost-aware-delegation]]

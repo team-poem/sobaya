@@ -6,6 +6,8 @@ description: Use at the end of substantial work sessions, after completing an ap
 # Reflect
 
 Scan the session, keep what's durable, route it to the strongest encoding.
+Root maintenance is role-neutral and follows the authorized task scope.
+Do not use reflection to change human-owned specs or approved tests.
 Low-quality or speculative content degrades everything downstream — when in
 doubt, drop it.
 
@@ -28,14 +30,15 @@ For each candidate ask: **"Would this matter in a different task?"**
 
 ## 3. Route — strongest encoding wins
 
-1. **Structure** — can a hook, script, scaffold, or rule enforce it? Do
-   that instead of writing advice. ([[principles/encode-lessons-in-structure]])
+1. **Structure** — can a script, scaffold, or rule enforce it? Prefer
+   that to advice when it is within the authorized scope. ([[principles/encode-lessons-in-structure]])
 2. **Skill edit** — about how a specific skill should work? Edit that
    SKILL.md or its references.
 3. **Brain note** — workspace/app knowledge: one topic per file in
    `brain/codebase/<kebab-slug>.md`, ~150–600 words shaped as
    problem → cause → pattern → evidence, wikilinking related principles.
-   The index updates itself via hook.
+   Rebuild the index with `python3 scripts/brain-index.py .`; do not assume
+   a host hook ran.
 4. **Todo** — follow-up work that can't be done now: in `brain/todos.md`,
    read `<!-- next-id: N -->`, append `N. [ ] ...` under the right section,
    increment the counter. IDs are permanent; never renumber.

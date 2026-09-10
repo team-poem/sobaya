@@ -1,4 +1,11 @@
-# Claude Config Load Timing
+# Historical host hook activation timing
+
+This note records the retired provider-specific setup used during plan 01.
+Its commands and paths are historical evidence, not current setup steps.
+The durable lesson is to test actual integration and never infer that a
+newly written hook is active. Current explicit checks are documented in
+`tdd-set/README.md`.
+
 
 `.claude/` config added mid-session activates at a session refresh point,
 not at file creation. Observed during the plan 01 build (one session):

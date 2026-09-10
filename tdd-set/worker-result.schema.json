@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "status": {"type": "string", "enum": ["done", "handoff", "defect"]},
+    "summary": {"type": "string"},
+    "reason": {"type": "string"}
+  },
+  "required": ["status", "summary", "reason"],
+  "additionalProperties": false
+}

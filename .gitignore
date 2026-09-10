@@ -11,6 +11,8 @@ apps/*
 
 # OS junk
 .DS_Store
+__pycache__/
+*.pyc
 
 # Obsidian per-user vault state (brain/ is Obsidian-compatible; state stays local)
 /.obsidian/

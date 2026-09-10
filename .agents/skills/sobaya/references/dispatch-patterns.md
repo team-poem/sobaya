@@ -1,61 +1,50 @@
-# Dispatch Patterns
+# Dispatch patterns
 
-Prompt templates for the brigade. Replace `<angle>` fields; delete sections
-that don't apply. Every dispatch is scoped and reportable.
+Use these templates only when a bounded independent task justifies a
+separate agent. Replace placeholders; omit irrelevant fields.
 
-## Explore (read-only scout)
+## Explore
 
-Use the Explore agent type. One concern per agent; fan out for breadth.
-
-```
-Explore apps/<name> to answer: <question>.
-Context: <one or two sentences — why this matters>.
-Start at: <entry points if known>.
-Do NOT propose changes. Return: the direct answer first, then key files as
-path:line references, then anything surprising. Keep it under ~400 words.
+```text
+Read <checkout> to answer <specific question>.
+Context: <why this decision matters>. Start at <entry points>.
+Read-only scope: <files or subsystem>. Do not edit.
+Return the answer, supporting path:line evidence, and uncertainty.
 ```
 
-## Implement (cook)
+## Implement
 
-general-purpose agent. One unit of work per dispatch.
-
-```
-Work in apps/<name> (a standalone git repo at apps/<name>).
-Task: <the change, concretely — behavior, not vibes>.
-Constraints: <stack, conventions; read apps/<name>/AGENTS.md first>.
-Git: always `git -C <absolute path>`; never bare-`cd` into another repo —
-the shell cwd persists between calls.
-Do NOT touch: <files/areas owned by other agents or out of scope>.
-Process: the app's AGENTS.md (TDD rules) — next unchecked test in
-failed-test.md copied verbatim into the suite, red, minimal code, green, check it
-off, commit (behavioral). Then refactor while green and commit structural
-changes separately (`refactor:`). Never modify an existing test.
-Report: append progress to <brain/plans/NN-slug/reports/task-N.md> as you
-finish each part (do not wait until the end), then return: what changed,
-what you verified (commands + output), what remains.
+```text
+Work only in <absolute isolated checkout>.
+Implement <bounded authorized behavior or approved entry>.
+Read the applicable AGENTS.md files and relevant stack skill.
+Protected inputs: spec.md, approved failed-test.md, existing tests and
+support, and <other agent-owned paths>. Do not change acceptance criteria.
+Use explicit working directories. Follow the harness checkpoint process.
+Keep behavioral and structural commits separate when commits are in scope.
+Persist progress in <artifact path> before a long handoff.
+Return changed files, exact verification, unresolved issues, and state
+needed to resume. Do not expand scope or switch worker policy silently.
 ```
 
-For parallel cooks on one app: give each `isolation: worktree` and disjoint
-"Do NOT touch" sets; merge their branches one at a time afterward, running
-the app's tests between merges.
+Give parallel writers separate worktrees and disjoint ownership. Merge one
+at a time and verify each integration.
 
-## Review (refuter)
+## Review
 
-Independent agent — never the implementer.
-
-```
-Review the diff in apps/<name> (<rev range or worktree path>). Your job is
-to REFUTE that it is correct, complete, and scoped — not to approve it.
-Hunt specifically for: broken edge cases, missing or vacuous tests, scope
-creep, violations of <app conventions / the brain principles relevant here>.
-For each finding: severity, file:line, why it is wrong, the smallest fix.
-If you cannot refute it, say so explicitly and list what you checked.
+```text
+Independently review <revision range / checkout> against <approved goal>.
+Try to refute correctness, completeness, and scope. Inspect edge cases,
+vacuous or missing coverage, integration, and protected-input integrity.
+For each actionable finding provide severity, file:line, failure scenario,
+and evidence. Distinguish reproduced failures from hypotheses.
+Do not edit. If there are no findings, state the checks and their limits.
 ```
 
-## Verify (prove-it-works pass)
+## Verify
 
-```
-In apps/<name>, run: <test/build/run commands>.
-Report the exact commands and the full relevant output. If anything fails,
-capture the failure verbatim and stop — do NOT fix it.
+```text
+In <checkout>, run <bounded verification commands>.
+Report commands, relevant output, exit status, and environmental limits.
+On failure preserve diagnostics; do not change code or tests.
 ```

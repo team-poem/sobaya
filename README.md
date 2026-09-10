@@ -6,73 +6,96 @@
 
 Failing tests first, then the agent.
 
-**English** · [한국어](README.ko.md) · [Guide](docs/guide.md) · [tdd-set reference](tdd-set/README.md) · [Contract](AGENTS.md)
+**English** · [한국어](README.ko.md) · [Guide](docs/guide.md) · [Runtime reference](tdd-set/README.md) · [Contract](AGENTS.md) · [Validation report](docs/harness-validation.md)
 
 </div>
 
-`sobaya` is an agentic engineering workspace. The human writes the spec and every failing test. A loop turns them green one test at a time under TDD + Tidy First rules. A gate refuses anything that touched the tests. No plugins, no daemon. Just git, shell, `claude -p`, and markdown.
+Sobaya is an engineering workspace built around human-approved tests. The
+human owns the specification and reviews test drafts. The harness freezes
+that approval, materializes one test, observes RED, delegates implementation,
+and validates GREEN before committing progress. Projects live in independent
+Git repositories at `apps/<name>`.
 
-## Features
-
-- Failing tests are the spec: every case is written as code and proven red before any implementation exists. Node cases share one file per small feature, so imports and constants live in a header block, not in every entry
-- One test per cycle: copy it into the suite, watch it fail, write the minimum, refactor while green, commit
-- Behavioral and structural changes never share a commit
-- Deterministic gate: plan 100% checked, suite green, no existing test line touched, every checked entry present in the suite
-- Command lines declared once in the app `AGENTS.md` (`Test`, `Format`, `Lint`, `Bench`) and enforced by the gate and a commit hook. A `Skills:` line picks the stack skills that app uses
-- One harness in the root: contract, skills, commands, hooks, TDD rules. Apps carry only `AGENTS.md`, `spec.md`, `failed-test.md` and are worked on from the root, by name
-- Persistent memory in `brain/`, injected at session start. Shell hooks that fail open. One writer per app
-
-## The loop
+## Workflow
 
 ```mermaid
 flowchart LR
-    S["apps/name/spec.md<br>human: goal · must · must not"] --> P["/sobaya-plan name<br>enumerate cases → probe each red → failed-test.md as code"]
-    P -- yes --> G["/go name × N<br>copy test verbatim → red → green → commit<br>refactor while green → commit"]
-    G --> T["/gate name<br>100% checked · suite green<br>tests untouched · names present"]
-    T --> R["review<br>refuter subagent"]
-    R --> F["reflect → brain/"]
-    F -. next session .-> S
+    S[Human specification] --> D[Draft and probe tests]
+    D --> A[Human review and approve baseline]
+    A --> R[Harness adds one test and verifies RED]
+    R --> W[Worker implements]
+    W --> V[Harness verifies integrity and full suite]
+    V --> C[Harness checks entry and commits]
+    C --> N{Entries remain?}
+    N -- yes --> R
+    N -- no --> G[Final gate and independent review]
 ```
 
-- **Spec.** The human fills `spec.md`. Agents read it, never edit it.
-- **Plan.** `/sobaya-plan <name>` drafts `apps/<name>/failed-test.md`: split the feature, enumerate as many cases as possible, probe each one, keep only those that print RED. It asks once, *reviewed and added yours, proceed?*, and the human edits the file directly. Nothing verifies the review. The loop is exactly as good as the human's tests.
-- **Cycle.** `/go <name>` takes the next unchecked entry, appends its test to the suite (Go: the package test file; Node: the file the section header names), and runs one Red → Green → Refactor cycle, refactoring with the skills the app's `Skills:` line names. `/sobaya-loop <name>` repeats it until the plan is done or stalls.
-- **Gate.** `/gate <name>` is PASS or FAIL, nothing in between. A defect found during the loop is appended to `failed-test.md` as two probed tests and the loop halts for the human.
-- **Review, reflect.** An independent subagent refutes the work. Learnings land in `brain/` for the next session.
-
-## Installation
+1. Install the app contract and fill `spec.md` with the intended behavior.
+2. Draft `failed-test.md`, probe candidates, and review every expectation.
+   Generated tests remain drafts until the human approves them.
+3. Commit the reviewed inputs and record approval with `approve.sh`.
+4. Run one `step.sh` or continue with `loop.sh`. Workers implement source;
+   the harness owns test insertion, validation, checkboxes, and commits.
+5. Run the final gate and complete independent review, then
+   capture durable lessons. The loop includes a separate reviewer call; findings leave completion pending.
+   Request any structural refactor separately.
 
 ```sh
-tdd-set/bin/install.sh apps/<name>
+python3 scripts/setup.py .
+tdd-set/bin/install.sh apps/example
+# Human fills spec.md and reviews the test plan; commit reviewed inputs.
+tdd-set/bin/approve.sh apps/example
+tdd-set/bin/doctor.sh apps/example
+tdd-set/bin/loop.sh apps/example 20
+tdd-set/bin/status.sh apps/example
+tdd-set/bin/gate.sh apps/example
 ```
 
-Creates the three files an app carries: `AGENTS.md` (command lines + `Skills:`), `spec.md`, `failed-test.md`. Works on a new or an existing app, and is idempotent. Everything else stays in the root. Details in the [tdd-set reference](tdd-set/README.md#install-per-app-new-or-existing).
+Run commands from the workspace root. No provider-specific slash commands
+are needed. [The guide](docs/guide.md) covers setup, changed tests, and recovery.
 
-## Usage
+Already passing entries get a verified test-only checkpoint without a worker
+call. See the runtime reference for explicit Go missing-symbol RED approval and
+[`economy.example.json`](tdd-set/policies/economy.example.json) for Sol execution
+with diagnostic handoff to Astra and an Astra review.
 
-- Session: `cd sobaya && claude` (or Codex). Fill `apps/<name>/spec.md`, run `/sobaya-plan <name>`, answer yes, then `/go <name>` per cycle or `/sobaya-loop <name>`, then `/gate <name>`. See the [usage guide](docs/guide.md).
-- Shell: `tdd-set/bin/loop.sh apps/<name> 30` and `tdd-set/bin/gate.sh apps/<name>` from the root. See the [tdd-set reference](tdd-set/README.md).
-- Another stack: add `tdd-set/skills/<stack>`, name it on the app's `Skills:` line, swap the command lines. Today: `go-mistakes` (Go, the 100 Go Mistakes catalog mirrored locally) and `nodejs` (vitest or `node --test`).
+## What is protected
 
-## What the gate enforces
-
-| Check | Fails when |
+| Boundary | Contract |
 |---|---|
-| Plan complete | any `- [ ]` remains in `failed-test.md` |
-| Suite green | the `Test:` command exits non-zero |
-| Tests untouched | any line in a test file, or anything under a test directory (helpers, fixtures), was removed or modified since the loop started |
-| Names present | an entry was checked but no test function with that name was added |
+| Human approval | Specification, plan, and app acceptance commands are frozen against a committed baseline |
+| Test integrity | Approved test bodies and headers, existing tests, helpers, and fixtures must remain intact |
+| Progress | One verified entry at a time; a worker report or checked box alone is not acceptance |
+| Acceptance | Full declared test suite and required hygiene checks; final gate verifies completion |
+| Execution | Explicit allowed workers, maximum calls, and timeout; no unconfigured model upgrade |
+| Concurrency | One writer per checkout; parallel mutation requires isolated worktrees |
 
-The commit hook blocks `git commit` when `Format:` prints anything or `Lint:` fails.
+The default worker is Astra through Codex. An explicit policy can select
+other workers or a custom command adapter; all use the same acceptance
+rules. `selected`, `quality`, and `economy` modes control only configured
+worker choices. Call and time limits are hard limits; reported usage is
+not a guaranteed currency budget. Fresh sessions are the safe default;
+entry checkpoints do not depend on a one-session-per-test architecture.
 
-## Documentation
+## Layout and verification
 
-- [Usage guide](docs/guide.md) (Korean): how a session actually flows
-- [tdd-set reference](tdd-set/README.md): every file, script, and command
-- [AGENTS.md](AGENTS.md): the harness contract every agent reads
-- [From noodle to Sobaya](docs/from-noodle.md): where the workspace conventions come from
+- `AGENTS.md`: concise shared contract; maintenance is authorized by task,
+  not by model name.
+- `tdd-set/`: approval, worker execution, checkpoints, gate, and stack skills.
+- `.agents/skills/`: orchestration, reflection, and vault maintenance.
+- `brain/`: persistent knowledge, loaded only when relevant.
+- `docs/`: [usage guide](docs/guide.md) and [source mapping](docs/from-noodle.md).
+
+Harness tests use local fixtures and fake workers; they do not launch paid
+model sessions. Passing them is evidence about the harness, not proof that
+an arbitrary app's test plan captures all intended behavior. See the
+[runtime reference](tdd-set/README.md) for commands and policy examples.
 
 ## Attribution
 
-- **Kent Beck.** `tdd-set/AGENTS.md` is his BPlusTree3 `rust/docs/CLAUDE.md` verbatim (commit `e1f539e`). The plan as a checklist comes from his TCRSkill `failed-test.md`. The command lines in the app `AGENTS.md` follow his `agent.md`.
-- **noodle.** Brain vault, reflect and meditate, deterministic hooks, one writer per app. [Mapping](docs/from-noodle.md)
+TDD and Tidy First practices are adapted from Kent Beck's BPlusTree3 and
+TCRSkill work. The historical source for the original development rules was
+BPlusTree3 `rust/docs/CLAUDE.md` at commit `e1f539e`; the current rules are
+adapted, not verbatim. Workspace memory, isolation, and review practices
+were inspired by [noodle](docs/from-noodle.md).

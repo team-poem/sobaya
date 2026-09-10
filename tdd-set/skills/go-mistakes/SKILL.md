@@ -3,16 +3,20 @@ name: go-mistakes
 description: >-
   Go refactor pass for the TDD loop's green phase, driven by the 100 Go Mistakes catalog (Teiva
   Harsanyi) mirrored locally with full bodies. Applies to an app whose AGENTS.md `Skills:` line
-  names go-mistakes. Use after a test goes green, before commit. Names each hit by number (#25);
+  names go-mistakes. Use for a separately authorized structural refactor while the suite is green. Names each hit by number (#25);
   structural changes only, tests must stay green after every step.
 ---
 
 # Go Mistakes (refactor while green)
 
+Apply during a separately authorized refactoring task, not inside the
+source-only implementation worker. Preserve the approved test baseline.
+
 The chapter files under `references/mistakes/` hold the full bodies; `references/mistakes-map.md`
-(30KB) lists all 100 as title + one-line TL;DR. In a loop cycle never open the map: pick from the
-table below and open one chapter, the one the diff touches most (both concurrency chapters count as
-one). The map is for reading a whole package outside the loop. Never cite a mistake you did not open.
+(30KB) lists all 100 as title + one-line TL;DR. Start with the chapter the
+diff touches most; open additional chapters only when the change warrants
+them. Use the map for broader package reviews. Never cite a mistake you
+did not open.
 
 ## Select chapters by what changed
 
@@ -37,8 +41,8 @@ Skip chapters the diff does not touch. #100 (GOMAXPROCS in containers) is obsole
 2. For each selected chapter, walk its mistakes against the new code only. Stop at the first hit,
    fix it as one structural change, run the full suite, continue.
 3. Never rename, move, or change the signature of anything a test references: the tests are the
-   spec and the gate rejects any edit to them; a name the tests use is fixed until a human changes
-   failed-test.md.
+   spec and the gate rejects any edit to them; a name the tests use is fixed until the human approves
+   a changed acceptance baseline.
 4. Touched a hot path? Run the AGENTS.md `Bench:` command before and after and put both numbers in
    the `refactor:` commit message. A regression is not a refactor — revert it.
 5. Commit structural changes in their own commit, message prefixed `refactor:`, never mixed with a

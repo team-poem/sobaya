@@ -3,6 +3,10 @@
 Source: https://github.com/poteto/noodle — analyzed at commit `82d2921`
 (2026-06-12). Working clone: `references/noodle/` (gitignored).
 
+**Historical source analysis:** provider-specific wiring below describes
+the original port, not current installation. See `docs/from-noodle.md` and
+`tdd-set/README.md` for current runtime behavior.
+
 **Borrowed into Sobaya:**
 - Brain vault structure: principles/, codebase/ (one topic per file,
   150–600 words), plans/NN-slug (overview + phases), todos with permanent

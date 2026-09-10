@@ -1,5 +1,9 @@
----
-description: Run the gate for one app — plan 100% checked, suite green, tests untouched, names present
----
-Run `tdd-set/bin/gate.sh apps/$ARGUMENTS` and report its output verbatim, then one line:
-PASS or which check failed. Do not fix anything.
+# Validate an app feature
+
+Provider-neutral task reference. Replace `APP` with `apps/<name>`; this
+file does not require a host slash-command registration.
+
+Run `tdd-set/bin/gate.sh APP` and report its actual result. Gate success
+is required evidence, but independent review of the resulting HEAD is also
+required before feature completion. Use `review.sh APP` when review remains
+pending. Do not change tests or approval state to obtain a pass.

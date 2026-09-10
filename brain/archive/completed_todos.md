@@ -17,7 +17,7 @@ Items move here from [[todos]] when done, newest first.
    (f8e0a38); fix 2 (continue in one session) rejected — /go is one entry per session by rule
    (c84cb4f); fix 3 (`SOBAYA_MODEL`) already existed, loop defaults to sonnet. Remaining
    in-session context growth is measure-only. Evidence table lives in
-   [[codebase/loop-cost-measurement]].
+   [[archive/codebase/legacy-loop-cost-measurement]].
 11. [x] ~~loop.sh: `Bash(cd apps/<name> && npm:*)` allowlist patterns never match~~ — fixed
    2026-09-06: patterns split into `Bash(cd <app>:*)` + bare `Bash(npm:*)`/`npx`/`node`/`go` and
    bare `git <sub>` rules; re-verified with haiku (`cd <app> && npm test` runs, no denial).

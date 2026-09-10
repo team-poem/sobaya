@@ -30,6 +30,7 @@ run 'func TestAdd_Plain(t *testing.T) {
 }'
 [ $rc -eq 1 ] && grep -q '^GREEN  TestAdd_Plain' <<<"$out"; check $? "probe: snippet without imports still gets import \"testing\" ($out)"
 
+export SOBAYA_PROBE_ALLOW_UNDEFINED=1
 run 'import (
 	"strconv"
 	"testing"
@@ -40,7 +41,8 @@ func TestMul_Missing(t *testing.T) {
 		t.Fatal("bad")
 	}
 }'
-[ $rc -eq 0 ] && grep -q '^RED    TestMul_Missing  (does not build' <<<"$out"; check $? "probe: an undefined symbol is still RED (does not build) ($out)"
+[ $rc -eq 0 ] && grep -q '^RED    TestMul_Missing  (undefined new symbol explicitly allowed' <<<"$out"; check $? "probe: an explicitly allowed undefined new symbol is RED ($out)"
+unset SOBAYA_PROBE_ALLOW_UNDEFINED
 
 run 'import (
 	"strconv"

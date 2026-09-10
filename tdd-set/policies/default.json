@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "mode": "selected",
+  "default_worker": "astra",
+  "max_calls": 20,
+  "timeout_seconds": 900,
+  "workers": {
+    "astra": {
+      "adapter": "codex",
+      "model": "gpt-6-astra",
+      "guidance": "concise"
+    }
+  },
+  "escalation": []
+}

@@ -1,88 +1,57 @@
 # Sobaya
 
-Failing-test-first agentic engineering workspace: the human writes the spec
-and every failing test, the loop turns them green one at a time, the gate
-refuses anything that touched the tests. Projects live in
-`apps/<name>` — each an independent git repository. This root repo tracks
-only the harness: `AGENTS.md` (`CLAUDE.md` just points here), `.agents/skills/`
-(`.claude/skills` is a link to it), `.claude/hooks/` (`.claude/settings.json` and
-`.codex/hooks.json` wire the same scripts), `brain/`, `docs/`, `tests/`, the READMEs.
+Sobaya is a failing-test-first engineering workspace. The human owns the
+specification and approves the tests. Workers implement one approved entry
+at a time; the harness validates the result before advancing.
 
-## Brain
+## Shared contract
 
-`brain/` is an Obsidian-compatible vault — persistent memory across sessions.
-A hook injects its index at session start.
+- **Canonical instructions:** this `AGENTS.md`, the app's `AGENTS.md`, and
+  `tdd-set/AGENTS.md`. Provider adapters do not redefine acceptance rules.
+- **Human-owned inputs:** never edit `spec.md`. Agent-generated tests are
+  drafts until the human approves them. Preserve the approved plan, test
+  bodies, headers, existing tests, helpers, and fixtures. A wrong test
+  requires a human-reviewed replacement baseline; do not weaken it to pass.
+- **Evidence before progress:** a worker's exit code, report, commit, or
+  checked box is not acceptance. Use the harness checkpoint, final gate, and independent completion review.
+  Run the full declared suite at validated checkpoints. Never claim green
+  when tests could not run.
+- **Authorized completion:** carry authorized, reversible work through
+  implementation and verification without asking for repeated permission.
+  Ask when new authority or a human decision is required, including changed
+  acceptance criteria. Diagnose failures before retrying or changing models.
+- **Role-neutral maintenance:** any authorized agent may maintain the root
+  harness. Model names and commit trailers do not grant authority. Preserve
+  user changes, stay within the task's scope, and verify harness changes.
+- **One writer per checkout:** use separate worktrees for parallel mutation;
+  integrate sequentially and verify. Delegate only bounded, independent work
+  whose risk, breadth, or need for independent review justifies the overhead.
 
-- **Read first.** Read brain files relevant to your task before acting.
-- **Write** after mistakes, corrections, or notable learnings — use Skill(reflect).
-- **Structure:** One topic per file. `brain/index.md` is rebuilt by a hook —
-  never hand-edit it. Plan dirs maintain `brain/plans/index.md` by convention.
-- **Maintain:** Delete outdated notes. Move completed plans to `brain/archive/plans/`.
-- **Per-clone:** `brain/apps.md` is gitignored (each checkout grows its own
-  `apps/`); create it from `brain/apps.template.md`. App design docs never go
-  in `brain/` — they live in the app repo.
+## Workspace
 
-## Workflow
+Apps live directly at `apps/<name>`, each in its own Git repository. Do not
+nest another project or workspace inside an app. `references/` holds source
+references. The root owns the harness, skills, documentation, and `brain/`.
+App design documents, `spec.md`, and `failed-test.md` belong in the app repo.
+Use explicit working directories or `git -C <app>` for repository commands.
 
-- **Apps:** Never create projects outside `apps/`. Each app is its own git
-  repo; cross-app changes are separate commits per app.
-- **Flat root:** `apps/<name>` IS the project root — sources, manifest, and
-  the app's `.git` sit directly in it. Never nest the real project a level
-  down (`apps/<name>/app/`) or put another workspace inside
-  (`apps/<name>/apps/`).
-- **Subagent-first:** For multi-file or exploratory work, dispatch subagents
-  (Explore to read, general-purpose to change) — keep this context clean.
-  See Skill(sobaya) for dispatch patterns.
-- **One writer per app:** Never run two mutating agents against the same
-  checkout. Parallel mutation requires worktree isolation.
-- **No blind retries:** When delegated work fails, read its output and
-  diagnose before re-dispatching.
-- **Spec and plan live in the app root** as `spec.md` (human-written goal,
-  never edited by agents) and `failed-test.md` (failing tests: checkbox + code block each) — the loop
-  and gate read them there. `brain/plans/NN-slug/` holds only cross-app or
-  harness plans.
-- **Enforced:** flat-root nesting, project markers outside `apps/`,
-  `brain/index.md` hand-edits, and the app gate (own git repo + a `- Test:`
-  line in the app AGENTS.md, i.e. `tdd-set/bin/install.sh` was run, before
-  real work in an unregistered app) are blocked deterministically by a PreToolUse hook
-  (`.claude/hooks/guard-workspace-rules.sh`).
+Start with the relevant brain notes and the target repository's status.
+Read only the context needed for the current decision. For substantial
+orchestration, use the `sobaya` skill; for planning, use `tdd`; for the
+verified development cycle, read `tdd-set/AGENTS.md`. Runtime commands and
+worker policy are described in `tdd-set/README.md`.
 
-## Harness guard
+## Memory and language
 
-The root repo — everything outside `apps/` and `references/` — is
-maintained by Claude Fable 5 sessions only. If you are any other model or
-agent: read freely, but do not create, edit, or delete root-repo files
-(including `brain/`), and do not commit here. Propose harness changes to
-the user instead; work under `apps/` is unrestricted. Enforced by a
-PreToolUse hook (`.claude/hooks/guard-fable-only.sh`) and a commit gate
-(`.githooks/commit-msg`, wired via `git config core.hooksPath .githooks`).
+`brain/` is an Obsidian-compatible vault: one topic per file. Read
+`brain/index.md` when the index has not already been supplied. Use `reflect`
+after substantial work or a correction, and `meditate` only when justified.
+Never hand-edit the generated `brain/index.md`. Plan directories maintain
+`brain/plans/index.md`; archive completed plans under `brain/archive/plans/`.
+`brain/apps.md` is clone-local and gitignored; its template is
+`brain/apps.template.md`. Persist useful progress before a long handoff.
 
-## Skills
-
-`tdd-set/` owns the dev lifecycle — no external plugins. `tdd-set/AGENTS.md`
-(the TDD + Tidy First rules, appended into every app's `AGENTS.md`) runs the
-Red → Green → Refactor cycle; the `tdd` skill
-adds Phase 0 (split the feature, enumerate as many test cases as possible,
-probe each one red with `tdd-set/bin/probe.sh`, record it in `failed-test.md` as
-code) and loop guards; `go-mistakes` is the Go refactor checklist (the 100 Go
-Mistakes catalog, mirrored with full bodies under its `references/`);
-`tdd-set/bin/loop.sh` repeats `claude -p "go"` until `failed-test.md` is fully
-checked, then `tdd-set/bin/gate.sh` passes only when every entry is
-checked, suite green, no existing test modified, each checked entry's test
-present in the suite. The human-written tests are the spec.
-Everything runs from this root with the app named — `/sobaya-plan <name>`,
-`/go <name>`, `/gate <name>`, `/sobaya-loop <name>` — because a session opened
-inside an app inherits only CLAUDE.md, not skills, commands, or hooks. An app
-carries three files: `AGENTS.md` (its command lines and a `Skills:` line naming
-the stack skills it uses, e.g. `go-mistakes`), `spec.md`, `failed-test.md`.
-`tdd-set/bin/install.sh apps/<name>` creates them; there is no scaffold step. Sobaya skills own the workspace:
-`sobaya` (orchestration), `reflect` (capture learnings), `meditate` (vault
-audit + skill refinement).
-
-## Language
-
-Agent-facing text (this file, skills, brain) is English. One copy of everything:
-Claude reads it through `CLAUDE.md` → `AGENTS.md` and `.claude/skills` → `.agents/skills`;
-Codex reads `AGENTS.md` and `.agents/skills` directly. README.md is
-English (main) with a Korean mirror at README.ko.md — keep both in sync
-when either changes. Other human-facing docs (docs/) are Korean.
+Agent-facing instructions and brain notes are English. Keep `README.md`
+and its Korean mirror `README.ko.md` aligned. Other human-facing guides
+under `docs/` are Korean; historical source mappings may retain their
+English mirror. Avoid duplicate instructions and provider-specific copies.

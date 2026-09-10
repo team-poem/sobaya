@@ -1,4 +1,10 @@
-# Loop cost measurement (2026-09-04)
+# Historical loop cost measurement (2026-09-04)
+
+Historical measurements from the retired provider-specific loop. Model
+defaults, flags, slash commands, and fixes described below are observations
+of those runs, not current instructions. Use `tdd-set/README.md` for the
+current policy and approval workflow. Session reuse remains a future
+optimization; preserve per-entry checkpoints regardless of session count.
 
 First real run of `tdd-set/bin/loop.sh` with `usage.sh` logging — ddukddak-hub-go, token-gate
 feature, 25 entries, `SOBAYA_MODEL=sonnet`. Basis for issue #2.

@@ -1,20 +1,23 @@
-# <feature> — plan (failing tests, written here before any implementation)
+# <feature> — approved test plan
 
-Each entry is one failing test, written in this document first — never in the test file.
-Each was probed with `bin/probe.sh` and printed RED before it was added here. The loop takes the next unchecked entry, copies its code **verbatim** into the suite,
-watches it fail, implements the minimum, refactors, checks the box. The gate verifies
-that the test function named in every checked entry was added to the suite.
+Replace these examples with the human's reviewed acceptance cases. Keep only
+sections for the app's stack. Draft cases are not approved until the human
+reviews the committed spec, commands, exact headers, and test bodies.
 
-Entry format: `- [ ] TestName — one line: what it proves` (name the behavior), then a fenced code
-block holding exactly what the loop appends to the suite.
+Each entry is `- [ ] UniqueName — behavior`, followed by one fenced test.
+The section header names the destination with `// file:` and contains exact
+package/import/setup code. The runner appends each body verbatim, observes
+failure, and checks the box only after the full suite passes. Do not edit
+approved entries during implementation; changed criteria need renewed approval.
 
-- Go: the complete test function. The loop appends it to the package's `_test.go` file.
-- Node: one `test(...)` block whose title starts with the entry name. Each `## Small feature`
-  section opens with a **header block**: a `// file:` line naming the test file (relative to the
-  app root), the imports, and the shared constants. The loop creates that file from the header the
-  first time and appends each entry block to its end. The header is never repeated per entry.
+## Go example
 
-## Small feature 1: <name>
+```go
+// file: add_test.go
+package example
+
+import "testing"
+```
 
 - [ ] TestAdd_SumsTwoPositives — 1 + 2 = 3.
 ```go
@@ -25,52 +28,26 @@ func TestAdd_SumsTwoPositives(t *testing.T) {
 }
 ```
 
-- [ ] TestAdd_ZeroIsIdentity — adding 0 returns the other operand.
-```go
-func TestAdd_ZeroIsIdentity(t *testing.T) {
-	if got := Add(0, 5); got != 5 {
-		t.Fatalf("Add(0,5) = %d, want 5", got)
-	}
-}
-```
+## Node example
 
-- [ ] TestAdd_Overflow — <boundary case>.
-```go
-...
-```
-
-## Small feature 2: <name>
-
-- [ ] Test... — <empty / duplicate / error path / ordering>.
-```go
-...
-```
-
-## Small feature 3 (Node example): <name>
-
-```ts
-// file: tests/add.test.ts
-import { test } from 'node:test'
-import assert from 'node:assert/strict'
-import { add } from '../src/add.js'
-const BIG = 1_000_000
+```js
+// file: add.test.js
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { add } = require('./add.js');
 ```
 
 - [ ] addAdds — 1 + 2 = 3.
-```ts
+```js
 test('addAdds: 1 + 2 = 3', () => {
-  assert.equal(add(1, 2), 3)
-})
+  assert.equal(add(1, 2), 3);
+});
 ```
 
-- [ ] addZeroIsIdentity — adding 0 returns the other operand.
-```ts
-test('addZeroIsIdentity: 0 + BIG = BIG', () => {
-  assert.equal(add(0, BIG), BIG)
-})
-```
+## Review notes
 
-## Notes
-- More entries is better: simplest, empty/zero, boundaries, duplicates, error paths, ordering.
-- Structural changes go in their own commit (Tidy First).
-- Add an entry here the moment you think of it; never skip ahead in the list.
+Include meaningful boundaries, invalid inputs, and error cases relevant to the
+spec. Each identifier must match a real test registered by the declared suite.
+Probe draft candidates before approval; distinguish behavioral failures from
+missing runtimes, dependencies, syntax errors, and skipped tests. Never treat
+a successful shell command without executed tests as acceptance evidence.

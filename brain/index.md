@@ -21,9 +21,8 @@
 
 ## Codebase
 - [[codebase/cdp-chrome-gotchas]]
-- [[codebase/claude-config-load-timing]]
 - [[codebase/gitignore-anchoring]]
-- [[codebase/loop-cost-measurement]]
+- [[codebase/model-neutral-checkpoints]]
 - [[codebase/noodle-reference]]
 - [[codebase/persistent-cwd-and-reference-clones]]
 - [[codebase/svg-visual-verification]]
@@ -37,6 +36,8 @@
 - [[plans/index]]
 
 ## Archive
+- [[archive/codebase/legacy-hook-activation]]
+- [[archive/codebase/legacy-loop-cost-measurement]]
 - [[archive/completed_todos]]
 
 ## Other

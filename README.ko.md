@@ -6,73 +6,94 @@
 
 실패하는 테스트가 먼저, 에이전트는 그다음.
 
-[English](README.md) · **한국어** · [가이드](docs/guide.md) · [tdd-set 레퍼런스](tdd-set/README.md) · [계약](AGENTS.md)
+[English](README.md) · **한국어** · [가이드](docs/guide.md) · [런타임 레퍼런스](tdd-set/README.md) · [계약](AGENTS.md) · [검증 기록](docs/harness-validation.md)
 
 </div>
 
-`sobaya`는 에이전틱 엔지니어링 워크스페이스입니다. 사람이 spec과 실패 테스트를 전부 쓰고, 루프가 TDD + Tidy First 규칙으로 테스트를 하나씩 green으로 만들고, 게이트가 테스트를 건드린 결과를 거부합니다. 플러그인도 데몬도 없습니다. git, 셸, `claude -p`, 마크다운뿐입니다.
+Sobaya는 사람이 승인한 테스트를 중심으로 동작하는 개발 워크스페이스입니다.
+사람이 명세를 소유하고 테스트 초안을 검토합니다. 하네스는 승인한 기준을
+고정하고, 테스트 하나를 스위트에 넣어 RED를 확인하고, 구현을 위임한 다음
+GREEN을 검증해야 진행 상황을 커밋합니다. 프로젝트는 `apps/<name>`의 독립
+Git 저장소에 놓입니다.
 
-## 특징
-
-- 실패하는 테스트가 곧 spec: 구현이 없는 상태에서 모든 케이스를 코드로 쓰고 red임을 확인한 뒤 기록. Node는 작은 기능마다 파일 하나를 공유해 import·상수가 헤더 블록에 한 번만 들어감
-- 사이클당 테스트 하나: 스위트에 옮기고, 실패를 보고, 최소한을 구현하고, green에서 리팩터링하고, 커밋
-- 행위 변경과 구조 변경은 같은 커밋에 두지 않음
-- 결정론적 게이트: 플랜 100% 체크, 스위트 green, 기존 테스트 줄 무변조, 체크한 항목의 테스트 존재
-- 명령줄은 앱 `AGENTS.md`에 한 번만 선언(`Test`, `Format`, `Lint`, `Bench`), 게이트와 커밋 훅이 강제. `Skills:` 줄로 그 앱이 쓰는 스택 스킬을 고름
-- 하네스는 루트에 하나: 계약, 스킬, 명령, 훅, TDD 규칙. 앱은 `AGENTS.md`·`spec.md`·`failed-test.md`만 갖고, 루트에서 이름으로 작업
-- `brain/` 영속 메모리를 세션 시작 시 주입, fail-open 셸 훅, 앱당 작성자 1명
-
-## 루프
+## 작업 흐름
 
 ```mermaid
 flowchart LR
-    S["apps/name/spec.md<br>사람: goal · must · must not"] --> P["/sobaya-plan name<br>케이스 열거 → 하나씩 probe로 red 확인 → failed-test.md에 코드로"]
-    P -- 예 --> G["/go name × N<br>테스트 그대로 옮김 → red → green → 커밋<br>green에서 refactor → 커밋"]
-    G --> T["/gate name<br>100% 체크 · 스위트 green<br>테스트 무변조 · 이름 존재"]
-    T --> R["review<br>반박자 서브에이전트"]
-    R --> F["reflect → brain/"]
-    F -. 다음 세션 .-> S
+    S[사람의 명세] --> D[테스트 초안과 probe]
+    D --> A[사람의 검토와 기준 승인]
+    A --> R[하네스가 테스트 하나 추가하고 RED 확인]
+    R --> W[워커가 구현]
+    W --> V[하네스가 무결성과 전체 스위트 검증]
+    V --> C[하네스가 항목 체크하고 커밋]
+    C --> N{남은 항목?}
+    N -- 있음 --> R
+    N -- 없음 --> G[최종 게이트와 독립 리뷰]
 ```
 
-- **Spec.** 사람이 `spec.md`를 채웁니다. 에이전트는 읽기만 하고 수정하지 않습니다.
-- **Plan.** `/sobaya-plan <name>`이 `apps/<name>/failed-test.md` 초안을 만듭니다: 기능을 쪼개고, 케이스를 최대한 열거하고, 하나씩 probe해서 RED인 것만 남깁니다. 그리고 한 번 묻습니다. *검토·추가 끝나셨으면 이대로 진행할까요?* 사람은 파일을 직접 고칩니다. 검토 여부를 검증하는 장치는 없고, 루프는 사람의 테스트만큼만 좋습니다.
-- **Cycle.** `/go <name>`이 다음 미체크 항목을 집어 테스트를 스위트에 이어 붙이고(Go: 패키지 테스트 파일, Node: 섹션 헤더가 지정한 파일) Red → Green → Refactor 한 사이클을 돕니다. 리팩터는 앱 `Skills:` 줄이 고른 스킬로. `/sobaya-loop <name>`은 플랜이 끝나거나 정체할 때까지 반복합니다.
-- **Gate.** `/gate <name>`은 PASS 아니면 FAIL입니다. 루프 도중 발견한 결함은 probe한 테스트 두 개로 `failed-test.md`에 추가되고 루프는 사람을 위해 멈춥니다.
-- **Review, reflect.** 독립 서브에이전트가 반박하고, 배운 것은 `brain/`에 남아 다음 세션이 읽습니다.
-
-## 설치
+1. 앱 계약을 설치하고 `spec.md`에 의도한 동작을 적습니다.
+2. `failed-test.md` 초안을 만들고 후보 테스트를 probe하여 기대값을 검토합니다.
+   에이전트가 만든 테스트는 사람이 승인하기 전까지 초안입니다.
+3. 검토한 입력을 커밋하고 `approve.sh`로 승인을 기록합니다.
+4. `step.sh`로 한 항목, `loop.sh`로 연속 실행합니다. 워커는 소스를 구현하고,
+   하네스가 테스트 삽입·검증·체크박스·커밋을 담당합니다.
+5. 최종 게이트와 독립 리뷰를 마치고 배운 점을 기록합니다. 루프에는 별도 리뷰
+   호출이 포함되며 지적 사항이 남으면 완료로 처리하지 않습니다. 구조 리팩터링은
+   별도 작업으로 요청합니다.
 
 ```sh
-tdd-set/bin/install.sh apps/<name>
+python3 scripts/setup.py .
+tdd-set/bin/install.sh apps/example
+# 사람이 spec.md와 테스트 플랜을 검토한 뒤 해당 입력을 커밋합니다.
+tdd-set/bin/approve.sh apps/example
+tdd-set/bin/doctor.sh apps/example
+tdd-set/bin/loop.sh apps/example 20
+tdd-set/bin/status.sh apps/example
+tdd-set/bin/gate.sh apps/example
 ```
 
-앱이 갖는 파일 셋을 만듭니다: `AGENTS.md`(명령줄 + `Skills:`), `spec.md`, `failed-test.md`. 새 앱이든 기존 앱이든 되고, 멱등입니다. 나머지는 전부 루트에 있습니다. 자세한 내용은 [tdd-set 레퍼런스](tdd-set/README.md#install-per-app-new-or-existing).
+명령은 워크스페이스 루트에서 실행합니다. 특정 제공자의 슬래시 명령은 필요하지
+않습니다. [가이드](docs/guide.md)는 설치·테스트 변경·실패 복구를 설명합니다.
 
-## 사용
+이미 통과하는 항목은 워커 호출 없이 테스트를 검증하고 커밋합니다. Go의 미정의
+심볼을 RED로 허용하는 명시적 승인 옵션은 런타임 레퍼런스를 참조하세요.
+[`economy.example.json`](tdd-set/policies/economy.example.json)은 Sol로 구현하고
+진단 인계가 있을 때 Astra로 전환하며, 최종 리뷰는 Astra가 맡는 예제입니다.
 
-- 세션: `cd sobaya && claude` (또는 Codex). `apps/<name>/spec.md`를 채우고 `/sobaya-plan <name>`, 예라고 답하고, `/go <name>`을 사이클마다 또는 `/sobaya-loop <name>`, 그다음 `/gate <name>`. [사용 가이드](docs/guide.md) 참고.
-- 셸: 루트에서 `tdd-set/bin/loop.sh apps/<name> 30`, `tdd-set/bin/gate.sh apps/<name>`. [tdd-set 레퍼런스](tdd-set/README.md) 참고.
-- 다른 스택: `tdd-set/skills/<stack>`을 추가하고 앱 `Skills:` 줄에 이름을 적고 명령줄을 바꾸면 됩니다. 지금은 `go-mistakes`(Go, 100 Go Mistakes 카탈로그를 로컬에 미러링)와 `nodejs`(vitest 또는 `node --test`).
+## 보호하는 경계
 
-## 게이트가 강제하는 것
-
-| 검사 | FAIL 조건 |
+| 경계 | 계약 |
 |---|---|
-| 플랜 완료 | `failed-test.md`에 `- [ ]`가 남아 있음 |
-| 스위트 green | `Test:` 명령이 0이 아닌 코드로 종료 |
-| 테스트 무변조 | 루프 시작 이후 테스트 파일이나 테스트 디렉터리 안의 것(helper, fixture)에서 삭제되거나 수정된 줄이 있음 |
-| 이름 존재 | 체크된 항목의 이름을 가진 테스트 함수가 추가되지 않음 |
+| 사람의 승인 | 명세·플랜·앱 검증 명령을 커밋된 기준에 고정 |
+| 테스트 무결성 | 승인한 테스트 본문·헤더와 기존 테스트·헬퍼·픽스처 보존 |
+| 진행 | 검증된 항목 하나씩 전진; 워커 보고나 체크박스만으로는 승인 불가 |
+| 결과 판정 | 전체 테스트 스위트와 필수 정리 검사; 최종 게이트로 완료 검증 |
+| 실행 | 허용 워커·최대 호출 수·시간 제한 명시; 설정 없는 모델 승급 금지 |
+| 동시성 | 체크아웃당 작성자 한 명; 병렬 변경은 독립 워크트리 사용 |
 
-커밋 훅은 `Format:`이 무언가 출력하거나 `Lint:`가 실패하면 `git commit`을 차단합니다.
+기본 워커는 Codex의 Astra입니다. 명시적 정책으로 다른 워커나 사용자 명령
+어댑터를 고를 수 있으며, 판정 기준은 모두 같습니다. `selected`·`quality`·
+`economy` 모드는 설정에 등록한 워커 선택에만 영향을 줍니다. 호출 수와 시간은
+제한하지만, 사용량 기록이 통화 기준 예산 상한을 보장하지는 않습니다. 안전한
+기본값은 새 세션이며, 항목별 검증 경계가 테스트당 세션 하나를 아키텍처로
+강제하는 것은 아닙니다.
 
-## 문서
+## 구성과 검증
 
-- [사용 가이드](docs/guide.md): 세션이 실제로 흘러가는 방식
-- [tdd-set 레퍼런스](tdd-set/README.md): 파일·스크립트·명령 전부
-- [AGENTS.md](AGENTS.md): 모든 에이전트가 읽는 하네스 계약
-- [noodle에서 Sobaya로](docs/from-noodle.ko.md): 워크스페이스 컨벤션의 출처
+- `AGENTS.md`: 간결한 공통 계약. 모델 이름이 아닌 작업 권한으로 유지보수합니다.
+- `tdd-set/`: 승인·워커 실행·중간 검증·게이트·스택 스킬.
+- `.agents/skills/`: 오케스트레이션·회고·볼트 관리.
+- `brain/`: 관련 내용만 읽는 영속 지식.
+- `docs/`: [사용 가이드](docs/guide.md)와 [출처 대응표](docs/from-noodle.ko.md).
+
+하네스 테스트는 로컬 픽스처와 가짜 워커를 사용하며 유료 모델 세션을 실행하지
+않습니다. 테스트 통과는 하네스에 대한 근거이며, 앱 테스트 플랜이 의도한 모든
+동작을 포괄한다는 증명은 아닙니다. 명령과 정책 예시는
+[런타임 레퍼런스](tdd-set/README.md)에 있습니다.
 
 ## 출처
 
-- **Kent Beck.** `tdd-set/AGENTS.md`는 그의 BPlusTree3 `rust/docs/CLAUDE.md` 원문(커밋 `e1f539e`). 플랜 체크리스트는 그의 TCRSkill `failed-test.md`에서. 앱 `AGENTS.md`의 명령줄은 그의 `agent.md`를 따름.
-- **noodle.** brain 볼트, reflect/meditate, 결정론적 훅, 앱당 작성자 1명. [대응표](docs/from-noodle.ko.md)
+TDD와 Tidy First는 Kent Beck의 BPlusTree3·TCRSkill 작업을 바탕으로 조정했습니다.
+초기 개발 규칙의 역사적 출처는 BPlusTree3의 `rust/docs/CLAUDE.md`, 커밋
+`e1f539e`이며 현재 규칙은 원문 그대로가 아닙니다. 워크스페이스 메모리·격리·
+리뷰 방식은 [noodle](docs/from-noodle.ko.md)에서 영감을 받았습니다.
