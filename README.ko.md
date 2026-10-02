@@ -67,6 +67,17 @@ tdd-set/bin/gate.sh apps/example
 [`economy.example.json`](tdd-set/policies/economy.example.json)은 Sol로 구현하고
 진단 인계가 있을 때 Astra로 전환하며, 최종 리뷰는 Astra가 맡는 예제입니다.
 
+## 작업 공간 설정 검사 (v1 개발 중)
+
+`bin/sobaya config check --root PATH`는 작업 공간의 `sobaya.json`과 JSON
+형식의 `sobaya.lock`을 읽습니다. 명시한 `project`/`dependency` 모드, 정확한
+버전과 lock 필드를 검사하고 JSON 객체 하나를 출력합니다. 입력 오류는 종료
+코드 2와 stderr 진단으로 보고하며 stdout은 비워 둡니다. 작업 공간을 보존하고
+배포 파일 검증이나 설치는 수행하지 않습니다.
+
+[v1 설계](docs/plans/sobaya-v1-design.md)의 첫 구현입니다. 최초 연결, 고정된
+실행기 호출과 버전 bump는 후속 작업이며, 개발에는 위의 기존 명령을 사용합니다.
+
 ## 보호하는 경계
 
 | 경계 | 계약 |

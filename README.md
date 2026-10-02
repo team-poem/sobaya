@@ -67,6 +67,18 @@ call. See the runtime reference for explicit Go missing-symbol RED approval and
 [`economy.example.json`](tdd-set/policies/economy.example.json) for Sol execution
 with diagnostic handoff to Astra and an Astra review.
 
+## Workspace configuration (v1 development)
+
+`bin/sobaya config check --root PATH` reads the workspace's `sobaya.json`
+and JSON `sobaya.lock`. It validates the explicit `project`/`dependency` mode,
+exact version and matching lock fields, then prints one JSON object. Invalid
+input returns exit 2 with a diagnostic on stderr and no stdout. It preserves
+the workspace and does not verify or install release artifacts.
+
+This is the first implemented part of the [v1 design](docs/plans/sobaya-v1-design.md).
+Initialization, pinned runtime dispatch and version bumps are subsequent work;
+the existing commands above remain the development workflow.
+
 ## What is protected
 
 | Boundary | Contract |
