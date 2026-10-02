@@ -66,6 +66,12 @@ an explicit `// file:` header can include package/import declarations.
 Keep every approved body and header verbatim. Required setup should be
 reviewed before the baseline is frozen, not repaired by a worker later.
 
+Initial and replacement drafts use the annotated human review view defined in
+[`skills/tdd/SKILL.md`](skills/tdd/SKILL.md). Korean explanations are added only
+to that presentation. The plan, probes, approval baseline, and materialized tests
+use the exact underlying executable blocks, preserving necessary source comments;
+there is no runtime comment-removal step.
+
 By default RED must be an executed named test failure. For a new Go API, the
 human may approve `bin/approve.sh APP --allow-go-undefined-red`. This records
 an explicit exception: the existing suite must pass first, and compiler

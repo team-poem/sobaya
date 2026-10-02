@@ -20,7 +20,8 @@ commands from the Sobaya root; no provider slash-command support is needed.
    a missing intended symbol can be useful evidence, but missing imports,
    unavailable dependencies, and broken tooling are not behavioral evidence.
    Record probe results and limitations with the draft.
-4. Show the complete draft and any uncertain expectations to the human.
+4. Show the complete draft using the human review view below, including
+   required support and any uncertain expectations.
    Agent-generated tests remain drafts until explicitly approved. If that
    approval already exists for the exact inputs, do not ask again.
 5. Commit the human-reviewed inputs and use `approve.sh <app>` to record
@@ -50,6 +51,46 @@ acceptance, not implementation choices.
 
 Do not add a GREEN candidate as a new missing behavior without resolving
 why it is already satisfied. Do not silently repair a human test.
+
+## Human review view
+
+Apply this presentation to every initial draft, revised draft, and replacement
+proposal during a TDD run. Keep executable headers and test bodies in the plan
+without the added review explanations. Necessary source comments remain part
+of the executable inputs and are protected on approval.
+
+Create the human-facing copy from those exact executable blocks. Label it
+"검토용 — 설명 주석은 실행 코드에 포함되지 않음" and identify the plan entry
+and destination file. Insert standalone Korean `// 검토:` lines immediately
+above each meaningful code line: test declaration, inputs, setup, actions,
+branches, and assertions. Explain multiline expressions at their meaningful
+parts; blank lines and closing delimiters do not need explanations. Explain
+behavior and concrete expectations rather than translating syntax. State what
+fixtures, mocks, clocks, and helpers assume or bypass. Include shared headers
+and required support in the review, explaining shared code once before its
+entries and pointing to it from dependent tests.
+
+Preserve all original code, source comments, whitespace, and ordering in this
+copy; do not abbreviate, rename, reformat, or replace code with pseudocode.
+Before showing it, compare it with the executable input: removing only the
+newly inserted explanation lines must recover the exact original block.
+Check that each explanation describes what the adjacent code actually does
+or verifies; a response-status assertion does not prove a visible UI message.
+Surface unresolved expectations for the human instead of asserting them as
+settled requirements.
+
+Deliver this view in the conversation or a separate review document, never as
+extra executable fences in `failed-test.md`. Probe, approve, and materialize
+only the underlying executable inputs. Approval is of the code shown through
+this view; do not strip comments from or otherwise rewrite approved inputs.
+Any subsequent code change requires an updated view and renewed approval.
+
+For a replacement, explain why it is needed and which expectations change,
+then show the complete proposed blocks with the same annotations. Keep the
+current approved baseline intact until the human approves the replacement.
+An implementation or environment failure alone does not require test changes
+or another approval. See the Korean presentation example in
+[`docs/guide.md`](../../../docs/guide.md#주석으로-테스트-검토하기).
 
 ## After approval
 
