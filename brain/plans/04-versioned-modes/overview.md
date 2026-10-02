@@ -61,10 +61,44 @@ current review view now use language-appropriate `// ┎` or `# ┎` comments.
 Removing only the added review explanations still reproduces the approved
 source exactly; no runtime stripping or approved-test edit was introduced.
 
+## Next proposed tranche: release packaging
+
+PR #6 was merged as 3c9456d. The human requested continuation. Read-only
+inspection found that init needs actual distribution commit/hash evidence
+before it can create a meaningful lock. The existing hook embeds a checkout
+path and doctor assumes a Git workspace, so introducing local init first
+would either fake release identity or prematurely redesign dispatch.
+
+Propose a local release packer before mode integration. See
+[executable draft](draft-release-tests.sh) and
+[Korean annotated review](../../../docs/plans/sobaya-v1-release-review.md).
+Four unapproved entries cover the pinned runtime archive and sidecar manifest,
+repeatability/source isolation, invalid identity or payload, and preserving
+existing outputs/source state. No implementation or suite registration yet.
+
+The packer uses an explicit source root, exact release version, full commit,
+matching local version tag, and a new output directory outside the source.
+Its allowlist excludes workspace content and uses canonical tdd-set skills.
+The manifest retains the existing runtime version/commit/sha256 tuple. A
+checksum establishes identity, not authenticity. Full init/doctor/hook
+usability and trusted release retrieval still need subsequent tests.
+
+Draft checks: Bash 3.2 syntax and annotation/source equivalence pass; the
+missing package-release.sh is NOT PROBED, not RED/GREEN. All four entries
+reject an always-successful no-op control. No live network or model work
+is part of these probes. Independent draft review found permission-bit and
+output-symlink-target snapshot gaps plus a Git prerequisite-order issue.
+All were fixed before approval; adversarial controls now fail as intended,
+while a non-mutating diagnostic control can traverse the error fixtures.
+Re-review found no remaining findings at draft SHA-256
+bdc855b56d44cbb1dc60fdc1e256fa647a55dcb560a76906521a27e680473f24.
+This is test-draft validation only, not an actual packer RED/GREEN result.
+
 ## Subsequent work
 
-Mode-specific init and hook/instruction composition; versioned distribution,
-locked dispatch and bump; upgrade failure recovery and 0.9/1.0/0.9 state+hook
+Local versioned release packaging, then verified installation and mode-specific
+init with hook/instruction composition; locked dispatch and bump; upgrade
+failure recovery and 0.9/1.0/0.9 state+hook
 compatibility; performance comparison; prerelease consumer validation. Keep
 runtime installations immutable during active runs. State version 1, approval
 baselines, accumulated calls and interrupted entries need compatibility tests.
@@ -78,7 +112,8 @@ cloud-native-go repository is still unknown and does not block core planning.
 
 ## Workspace
 
-Work on codex/sobaya-v1-design in the attached sobaya-v1-plan managed worktree.
+The configuration PR was merged. Continue on codex/sobaya-v1-release-plan
+from origin/main in the existing sobaya-v1-plan managed worktree.
 The original checkout contains unrelated user changes and must remain intact.
 The first four entries are approved; no app approval/checkpoint state is being
 changed. Further test proposals remain drafts until separately reviewed.
