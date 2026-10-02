@@ -31,4 +31,13 @@ retain their filename diagnostics and the CLI normalizes failure to exit 2.
 Entries 1–2 and the full existing suite passed. The approved test source
 remains byte-for-byte identical to tests/test-config.sh.
 
-Subsequent entries are not yet claimed green by this checkpoint.
+## Entry 3
+
+`config_rejects_invalid_fields`: before field validation, the named assertion
+failed with `invalid config returned 0 instead of 2`. Configuration schema,
+explicit mode, runtime object and exact release-version syntax are now checked
+before output. Versions retain their spelling; branch aliases, ranges and a
+v prefix are rejected. Entries 1–3 and the full existing suite passed; the
+approved test source still compares byte-for-byte with tests/test-config.sh.
+
+The fourth entry is not yet claimed green by this checkpoint.
