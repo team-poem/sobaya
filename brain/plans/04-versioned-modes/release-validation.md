@@ -22,3 +22,14 @@ archive's SHA-256. The focused entry passed, including the extracted CLI's
 read-only config check against manifest-derived consumer metadata.
 The full existing suite passed, as did Bash 3.2 syntax, git diff --check,
 and the byte-for-byte approved-source comparison.
+
+## Entry 2
+
+`package_is_repeatable_from_pinned_commit`: the actual test failed when tar
+could not find `sobaya/bin/sobaya`, excluded by the committed export-ignore
+attribute. A temporary shared bare Git clone now overrides export-ignore and
+export-subst through its own info/attributes, never modifying the source.
+Entries 1–2 passed: archive/manifest bytes repeat despite dirty source files
+or an annotated tag, and export attributes no longer change selected bytes.
+The full existing suite, Bash 3.2 syntax, git diff --check and the unchanged
+approved-source comparison all passed before this checkpoint.

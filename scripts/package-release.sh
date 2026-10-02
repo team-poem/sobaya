@@ -35,7 +35,13 @@ scratch=$(mktemp -d "${TMPDIR:-/tmp}/sobaya-release.XXXXXX")
 trap 'rm -rf "$scratch"' EXIT
 artifact="sobaya-$version.tar.gz"
 manifest="sobaya-$version.json"
-git -C "$source_root" archive --format=tar --prefix=sobaya/ "$commit" -- "${paths[@]}" |
+# Override export attributes only in a private Git repository, preserving the
+# source's configuration and the exact committed runtime bytes.
+private="$scratch/repository"
+git clone --bare --shared --template= --quiet -- "$source_root" "$private"
+mkdir -p "$private/info"
+printf '%s\n' '* -export-ignore -export-subst' > "$private/info/attributes"
+git -C "$private" -c core.attributesFile=/dev/null archive --format=tar --prefix=sobaya/ "$commit" -- "${paths[@]}" |
   gzip -n > "$scratch/$artifact"
 digest=$(shasum -a 256 "$scratch/$artifact"); digest=${digest%% *}
 jq -cn --arg artifact "$artifact" --arg version "$version" --arg commit "$commit" --arg sha256 "$digest" \
