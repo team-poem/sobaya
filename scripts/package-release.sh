@@ -4,24 +4,43 @@ set -eu
 set -o pipefail
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 2; }
-source_root= version= commit= output=
+unset source_root version commit output
 while [ "$#" -gt 0 ]; do
   [ "$#" -ge 2 ] || die "missing value for $1"
   case "$1" in
-    --source) [ -z "$source_root" ] || die 'duplicate source'; source_root=$2 ;;
-    --version) [ -z "$version" ] || die 'duplicate version'; version=$2 ;;
-    --commit) [ -z "$commit" ] || die 'duplicate commit'; commit=$2 ;;
-    --output) [ -z "$output" ] || die 'duplicate output'; output=$2 ;;
+    --source) [ "${source_root+x}" != x ] || die 'duplicate source'; source_root=$2 ;;
+    --version) [ "${version+x}" != x ] || die 'duplicate version'; version=$2 ;;
+    --commit) [ "${commit+x}" != x ] || die 'duplicate commit'; commit=$2 ;;
+    --output) [ "${output+x}" != x ] || die 'duplicate output'; output=$2 ;;
     *) die "unknown argument: $1" ;;
   esac
   shift 2
 done
-[ -n "$source_root" ] || die 'source is required'
-[ -n "$version" ] || die 'version is required'
-[ -n "$commit" ] || die 'commit is required'
-[ -n "$output" ] || die 'output is required'
+[ -n "${source_root:-}" ] || die 'source is required'
+[ -n "${version:-}" ] || die 'version is required'
+[ -n "${commit:-}" ] || die 'commit is required'
+[ -n "${output:-}" ] || die 'output is required'
 for tool in git jq gzip shasum; do command -v "$tool" >/dev/null || die "missing $tool"; done
 [ ! -e "$output" ] && [ ! -L "$output" ] || die 'output already exists'
+
+# An invoking Git hook must not redirect the explicit source/private repository.
+git_environment=$(git rev-parse --local-env-vars) || die 'cannot inspect Git environment'
+for name in $git_environment; do unset "$name"; done
+export GIT_NO_REPLACE_OBJECTS=1 GIT_NO_LAZY_FETCH=1
+
+# The same exact SemVer grammar as config check, without branch/range aliases.
+number='(0|[1-9][0-9]*)'
+prerelease='(0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)'
+version_pattern="^$number[.]$number[.]$number(-$prerelease([.]$prerelease)*)?([+][0-9A-Za-z-]+([.][0-9A-Za-z-]+)*)?$"
+[[ $version =~ $version_pattern ]] || die 'version must be an exact release version without a v prefix'
+[[ $commit =~ ^[0-9a-fA-F]{40}$ ]] || die 'commit must be a full 40-digit hexadecimal commit'
+source "$(cd "$(dirname "$0")" && pwd)/tools-common.sh"
+source_root=$(tools_repo "$source_root" 2>/dev/null) || die 'source must be a Git repository root'
+commit=$(printf '%s' "$commit" | tr 'A-F' 'a-f')
+kind=$(git -C "$source_root" cat-file -t "$commit" 2>/dev/null) || die 'commit does not exist'
+[ "$kind" = commit ] || die 'commit must identify a commit object'
+tag_commit=$(git -C "$source_root" rev-parse --verify "refs/tags/v$version^{commit}" 2>/dev/null) || die 'version tag is missing or does not identify a commit'
+[ "$tag_commit" = "$commit" ] || die 'version tag must match commit'
 
 paths=(
   AGENTS.md bin/sobaya .githooks/pre-commit
@@ -31,8 +50,25 @@ paths=(
   tdd-set/failed-test-template.md tdd-set/worker-result.schema.json
   tdd-set/bin/ tdd-set/lib/ tdd-set/hooks/ tdd-set/policies/ tdd-set/skills/
 )
+for path in "${paths[@]}"; do
+  kind=$(git -C "$source_root" cat-file -t "$commit:${path%/}" 2>/dev/null) || die "missing runtime path: $path"
+  case "$path:$kind" in
+    */:tree) ;;
+    */:*) die "runtime directory required: $path" ;;
+    *:blob) ;;
+    *) die "runtime file required: $path" ;;
+  esac
+done
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/sobaya-release.XXXXXX")
 trap 'rm -rf "$scratch"' EXIT
+git -C "$source_root" ls-tree -r -z "$commit" -- "${paths[@]}" > "$scratch/tree" || die 'cannot inspect runtime payload'
+while IFS= read -r -d '' record; do
+  mode=${record%% *}; path=${record#*$'\t'}
+  case "$mode" in
+    100644|100755) ;;
+    *) die "runtime path must be a regular file: $path" ;;
+  esac
+done < "$scratch/tree"
 artifact="sobaya-$version.tar.gz"
 manifest="sobaya-$version.json"
 # Override export attributes only in a private Git repository, preserving the

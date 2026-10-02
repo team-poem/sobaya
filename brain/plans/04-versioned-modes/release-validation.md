@@ -33,3 +33,15 @@ Entries 1–2 passed: archive/manifest bytes repeat despite dirty source files
 or an annotated tag, and export attributes no longer change selected bytes.
 The full existing suite, Bash 3.2 syntax, git diff --check and the unchanged
 approved-source comparison all passed before this checkpoint.
+
+## Entry 3
+
+`package_rejects_invalid_identity_and_payload`: the pre-validation packer
+failed the named assertion with `invalid package returned 0 instead of 2`.
+It now requires exact SemVer, a full existing commit object, a repository
+root, and a matching local version tag. It checks required runtime roots
+and rejects non-regular selected entries, including symlinks and gitlinks.
+Inherited repository-selection environment and replacement objects cannot
+redirect these reads away from the explicitly selected commit/source.
+Entries 1–3, the full existing suite, Bash 3.2 syntax, git diff --check and
+the byte-for-byte approved-source comparison passed at this checkpoint.
