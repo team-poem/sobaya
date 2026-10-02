@@ -1,7 +1,8 @@
 # Versioned project and dependency modes
 
-Status: architecture authorized on 2026-10-02; executable test drafts awaiting
-human review. No v1 runtime implementation is authorized by test approval yet.
+Status: architecture and the first four configuration-check entries authorized
+on 2026-10-02. See [the exact approval record](config-approval.md). Implementation
+is proceeding through those entries; later tranches remain unapproved drafts.
 The detailed human-facing decisions are in
 [the Korean design](../../../docs/plans/sobaya-v1-design.md).
 
@@ -26,10 +27,10 @@ does not provide the proposed v1 launcher, configuration or installer.
 
 ## Next bounded entry
 
-Draft a read-only `sobaya config check --root PATH` command contract and tests.
-The exact command/output/lock schema are proposals until the human reviews
-the executable drafts and the derived Korean annotated view. Keep the draft
-outside tests/run.sh until approved. Do not alter existing tests or spec.md.
+Implement the approved read-only `sobaya config check --root PATH` command.
+The exact command/output/lock schema and executable tests were reviewed at
+574d9ee and explicitly approved by the human. The source is materialized
+verbatim as tests/test-config.sh. Do not alter existing tests or spec.md.
 The app probe supports Go/Node, not Bash: report a missing future CLI as NOT
 PROBED, never as behavioral RED. After approval, use the root Bash harness
 maintenance workflow, one reviewed entry at a time, with the full existing
@@ -70,6 +71,5 @@ cloud-native-go repository is still unknown and does not block core planning.
 
 Work on codex/sobaya-v1-design in the attached sobaya-v1-plan managed worktree.
 The original checkout contains unrelated user changes and must remain intact.
-No approval has been recorded for the forthcoming tests. Commit drafts only
-as clearly labelled proposals, without claiming a green feature or advancing
-an app's approval/checkpoint state.
+The first four entries are approved; no app approval/checkpoint state is being
+changed. Further test proposals remain drafts until separately reviewed.

@@ -1,0 +1,8 @@
+#!/bin/bash
+set -eu
+if [ "$#" -ne 4 ] || [ "$1" != config ] || [ "$2" != check ] || [ "$3" != --root ]; then
+  printf '%s\n' 'Usage: sobaya config check --root PATH' >&2
+  exit 2
+fi
+root=$(cd "$(dirname "$0")/.." && pwd -P)
+exec /bin/bash "$root/tdd-set/lib/config-check.sh" "$4"
