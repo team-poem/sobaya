@@ -61,14 +61,16 @@ of the executable inputs and are protected on approval.
 
 Create the human-facing copy from those exact executable blocks. Label it
 "검토용 — 설명 주석은 실행 코드에 포함되지 않음" and identify the plan entry
-and destination file. Insert standalone Korean `// 검토:` lines immediately
-above each meaningful code line: test declaration, inputs, setup, actions,
-branches, and assertions. Explain multiline expressions at their meaningful
+and destination file. Insert standalone Korean explanation comments marked
+with `┎` immediately above each meaningful code line: test declaration, inputs,
+setup, actions, branches, and assertions. Explain multiline expressions at their meaningful
 parts; blank lines and closing delimiters do not need explanations. Explain
 behavior and concrete expectations rather than translating syntax. State what
 fixtures, mocks, clocks, and helpers assume or bypass. Include shared headers
 and required support in the review, explaining shared code once before its
-entries and pointing to it from dependent tests.
+entries and pointing to it from dependent tests. Use the language's comment
+syntax (`// ┎ 설명` for Go/JavaScript, `# ┎ 설명` for Bash), keeping the marker
+aligned with the following code line's indentation.
 
 Preserve all original code, source comments, whitespace, and ordering in this
 copy; do not abbreviate, rename, reformat, or replace code with pseudocode.

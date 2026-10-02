@@ -1,8 +1,9 @@
 # Versioned project and dependency modes
 
 Status: architecture and the first four configuration-check entries authorized
-on 2026-10-02. See [the exact approval record](config-approval.md). Implementation
-is proceeding through those entries; later tranches remain unapproved drafts.
+on 2026-10-02. See [the exact approval record](config-approval.md). All four
+entries are implemented and the integrated full suite passes. Later tranches
+remain unapproved drafts. See [validation evidence](config-validation.md).
 The detailed human-facing decisions are in
 [the Korean design](../../../docs/plans/sobaya-v1-design.md).
 
@@ -25,9 +26,9 @@ gate regressions. Fake workers only; no paid model calls. Independent release
 preflight found no blocker. This source release requires a Git checkout; it
 does not provide the proposed v1 launcher, configuration or installer.
 
-## Next bounded entry
+## Implemented configuration tranche
 
-Implement the approved read-only `sobaya config check --root PATH` command.
+The approved read-only `bin/sobaya config check --root PATH` is implemented.
 The exact command/output/lock schema and executable tests were reviewed at
 574d9ee and explicitly approved by the human. The source is materialized
 verbatim as tests/test-config.sh. Do not alter existing tests or spec.md.
@@ -37,20 +38,28 @@ maintenance workflow, one reviewed entry at a time, with the full existing
 suite and independent review. Do not invent a Node wrapper or call approve.sh
 on the Sobaya root as though it were an app with approved spec.md.
 
-Draft artifacts: [executable Bash](draft-config-tests.sh) and
+Approved artifacts: [executable Bash](draft-config-tests.sh) and
 [Korean review view](../../../docs/plans/sobaya-v1-config-review.md).
-Four proposed entries cover explicit mode/version selection, input documents,
+Four entries cover explicit mode/version selection, input documents,
 configuration fields, and matching lock data. Each invocation checks preservation
 of paths, file contents and an executable consumer hook. Hashes are fake fixtures;
 installed artifact identity is outside this tranche.
 
-Validation: Bash 3.2 syntax and byte-for-byte annotation removal passed. The
-absent future CLI reports NOT PROBED with exit 2 before any test entry executes.
-An always-successful /usr/bin/true control is rejected by all four entries.
+Before approval, Bash 3.2 syntax and byte-for-byte annotation removal passed.
+The absent future CLI reported NOT PROBED with exit 2 before any test executed.
+An always-successful /usr/bin/true control was rejected by all four entries.
 Draft SHA-256: 522bfee85eca9cf1228797491fd60cb625795b5385f9cd6244633739eca92f64.
 Independent review prompted multi-document JSON rejection, executable-hook
 preservation and isolated Git configuration; these were incorporated before
-human review. None of these checks establishes behavioral RED/GREEN for v1.
+human review. After approval, each entry observed an actual named failure,
+then passed together with the full existing suite. The four entries are now
+included in tests/run.sh; see config-validation.md for checkpoint evidence.
+This is not evidence for the remaining v1 integration or distribution work.
+
+The human subsequently requested `┎` review markers. The TDD skill, guide and
+current review view now use language-appropriate `// ┎` or `# ┎` comments.
+Removing only the added review explanations still reproduces the approved
+source exactly; no runtime stripping or approved-test edit was introduced.
 
 ## Subsequent work
 
