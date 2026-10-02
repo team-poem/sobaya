@@ -75,8 +75,15 @@ tdd-set/bin/gate.sh apps/example
 코드 2와 stderr 진단으로 보고하며 stdout은 비워 둡니다. 작업 공간을 보존하고
 배포 파일 검증이나 설치는 수행하지 않습니다.
 
-[v1 설계](docs/plans/sobaya-v1-design.md)의 첫 구현입니다. 최초 연결, 고정된
-실행기 호출과 버전 bump는 후속 작업이며, 개발에는 위의 기존 명령을 사용합니다.
+로컬 배포 묶음은 `bash scripts/package-release.sh`에 `--source`, `--version`,
+`--commit`, `--output`을 명시해 만듭니다. 일치하는 로컬 버전 태그가 필요하며,
+원본 밖의 새 디렉터리에 런타임 압축 파일과 SHA-256 매니페스트를 생성합니다.
+[승인한 명령과 파일 범위](docs/plans/sobaya-v1-release-review.md)를 참고하세요.
+원본과 기존 출력 경로를 보존하며 게시나 설치는 수행하지 않습니다.
+
+검증한 파일 설치, 최초 연결, 고정 실행기 호출과 버전 bump는
+[v1 설계](docs/plans/sobaya-v1-design.md)의 후속 작업이며,
+개발에는 위의 기존 명령을 사용합니다.
 
 ## 보호하는 경계
 
