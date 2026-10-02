@@ -69,3 +69,24 @@ app acceptance/state transition is introduced by the packer. Same-environment
 repeatability is demonstrated, not cross-platform archive equality, atomic
 two-file visibility, concurrent source mutation/pruning safety, trusted remote
 retrieval, v0.9/v1 rollback compatibility, or model-performance parity.
+
+## Independent review corrections
+
+Review of e927727 found two violations of the existing approved contract:
+a dangling output symlink with a trailing slash was followed and its target
+created, and global Git tar.umask=0111 removed executable/traversal bits.
+Both were reproduced against that clean commit before implementation changes.
+The approved test baseline remains unchanged.
+
+The packer strips trailing output separators before checking the original
+entry and requires that entry's parent to exist before resolving paths. It
+also overrides tar.umask with 0022: Git initializes tar modes to 0666/0777,
+so this retains committed 0644/0755 modes in the archive headers themselves.
+Re-running the independent reproducer now returns 2 with empty stdout and
+no created symlink target; the conflicting global mask still yields an
+executable CLI. Direct tar-header inspection confirms 0755 for bin/sobaya
+and 0644 for AGENTS.md, independent of extraction umask.
+After these corrections, all four approved packaging entries and the full
+integrated suite passed again, alongside Bash 3.2 syntax, git diff --check,
+approved-source equality and review-copy recovery. Independent re-review is
+bound to the resulting correction commit; its outcome is recorded in PR #7.

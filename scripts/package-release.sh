@@ -21,7 +21,10 @@ done
 [ -n "${commit:-}" ] || die 'commit is required'
 [ -n "${output:-}" ] || die 'output is required'
 for tool in git jq gzip shasum; do command -v "$tool" >/dev/null || die "missing $tool"; done
+# A trailing slash must not conceal an existing dangling symlink from -L.
+while [ "$output" != / ] && [[ $output == */ ]]; do output=${output%/}; done
 [ ! -e "$output" ] && [ ! -L "$output" ] || die 'output already exists'
+[ -d "$(dirname "$output")" ] || die 'output parent directory must exist'
 
 # An invoking Git hook must not redirect the explicit source/private repository.
 git_environment=$(git rev-parse --local-env-vars) || die 'cannot inspect Git environment'
@@ -82,7 +85,8 @@ private="$scratch/repository"
 git clone --bare --shared --template= --quiet -- "$source_root" "$private" || die 'cannot read source repository'
 mkdir -p "$private/info" || die 'cannot prepare output repository'
 printf '%s\n' '* -export-ignore -export-subst' > "$private/info/attributes" || die 'cannot prepare output attributes'
-git -C "$private" -c core.attributesFile=/dev/null archive --format=tar --prefix=sobaya/ "$commit" -- "${paths[@]}" |
+# Git starts tar modes at 0666/0777; 0022 restores committed 0644/0755 modes.
+git -C "$private" -c core.attributesFile=/dev/null -c tar.umask=0022 archive --format=tar --prefix=sobaya/ "$commit" -- "${paths[@]}" |
   gzip -n > "$scratch/$artifact" || die 'cannot archive source runtime payload'
 digest=$(shasum -a 256 "$scratch/$artifact") || die 'cannot hash output archive'
 digest=${digest%% *}
