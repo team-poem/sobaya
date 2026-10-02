@@ -40,4 +40,21 @@ before output. Versions retain their spelling; branch aliases, ranges and a
 v prefix are rejected. Entries 1–3 and the full existing suite passed; the
 approved test source still compares byte-for-byte with tests/test-config.sh.
 
-The fourth entry is not yet claimed green by this checkpoint.
+## Entry 4 and integrated suite
+
+`lock_requires_exact_matching_runtime`: before lock-field validation, the
+named assertion failed with `invalid config returned 0 instead of 2`.
+The lock now requires schema version 1, an object runtime, the exact configured
+version, a full 40-digit hexadecimal commit and a 64-digit hexadecimal SHA-256.
+Absolute regex anchors reject trailing newlines as part of a version or hash.
+
+All four approved entries passed. tests/run.sh now includes tests/test-config.sh
+without changing its approved bytes or removing any existing suite; its
+interpreter scan also includes the extensionless bin/sobaya launcher. The
+entire integrated suite passed with real Node, Go and local Vitest. Bash 3.2
+syntax and git diff --check passed. No worker, gate or approval implementation
+changed. These checks validate local metadata, not artifact authenticity or
+overall v1 installation/rollback/performance compatibility.
+
+An independent completion review must be bound to the resulting revision;
+its result is reported with the final commit in PR #6.

@@ -32,6 +32,7 @@ export PATH="$TEMP/bin:$PATH"
 pattern='(^#!.*|(^|[;&|[:space:]])(exec[[:space:]]+)?)(/[^[:space:]]*/)?(py''thon[0-9.]*|py''py[0-9.]*)([[:space:]]|$)'
 find scripts tdd-set/bin tdd-set/lib tdd-set/hooks tdd-set/tests tests -type f -name '*.sh' -print0 > "$TEMP/shell-sources"
 find .githooks -type f -print0 >> "$TEMP/shell-sources"
+printf '%s\0' bin/sobaya >> "$TEMP/shell-sources"
 while IFS= read -r -d '' file; do
   if grep -En "$pattern" "$file" > "$TEMP/commands"; then
     printf 'FAIL: non-shell interpreter command in %s\n' "$file" >&2
@@ -43,6 +44,7 @@ while IFS= read -r -d '' file; do
 done < "$TEMP/shell-sources"
 
 for suite in tests/test-contract.sh tests/test-runner.sh tests/test-tools.sh \
+  tests/test-config.sh \
   tdd-set/tests/next-entry.sh tdd-set/tests/probe-go-imports.sh tdd-set/tests/gate-verbatim.sh; do
   printf '\nRunning %s\n' "$suite"
   bash "$ROOT/$suite"
