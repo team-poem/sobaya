@@ -22,4 +22,13 @@ data. The approved entry and full existing suite passed; approved source and
 materialized test compared byte-for-byte. No installation, network or worker
 operation was added.
 
+## Entry 2
+
+`config_rejects_missing_or_malformed_input`: before document validation,
+the named assertion failed with `invalid config returned 0 instead of 2`.
+Each slurped file now requires exactly one JSON object; jq read/parse errors
+retain their filename diagnostics and the CLI normalizes failure to exit 2.
+Entries 1–2 and the full existing suite passed. The approved test source
+remains byte-for-byte identical to tests/test-config.sh.
+
 Subsequent entries are not yet claimed green by this checkpoint.
