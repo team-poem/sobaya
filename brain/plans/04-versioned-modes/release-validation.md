@@ -45,3 +45,27 @@ Inherited repository-selection environment and replacement objects cannot
 redirect these reads away from the explicitly selected commit/source.
 Entries 1–3, the full existing suite, Bash 3.2 syntax, git diff --check and
 the byte-for-byte approved-source comparison passed at this checkpoint.
+
+## Entry 4 and integrated suite
+
+`package_preserves_existing_output_and_source`: the named source snapshot
+assertion failed with `packaging changed the source repository` because a
+source-contained output was accepted. The packer now resolves physical paths
+and rejects such outputs before staging. Temporary files are created beside
+the output, so even a source-contained TMPDIR cannot change source content.
+Existing output directories, files and symlinks are refused; final mkdir
+claims a new directory only after archive and manifest preparation.
+
+tests/run.sh includes the complete approved test-release.sh additively.
+All four release entries and the full integrated suite passed with real Node,
+Go and local Vitest. Bash 3.2 syntax, git diff --check, approved-source equality
+and exact recovery of the executable source after removing only the review
+explanations passed. Each of the four entries has actual RED evidence above;
+none was reported as ALREADY GREEN or inferred from a worker report.
+
+Independent completion review must be bound to the resulting revision before
+reporting completion. No installer, init, dispatch, bump, public release, or
+app acceptance/state transition is introduced by the packer. Same-environment
+repeatability is demonstrated, not cross-platform archive equality, atomic
+two-file visibility, concurrent source mutation/pruning safety, trusted remote
+retrieval, v0.9/v1 rollback compatibility, or model-performance parity.

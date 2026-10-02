@@ -75,8 +75,15 @@ exact version and matching lock fields, then prints one JSON object. Invalid
 input returns exit 2 with a diagnostic on stderr and no stdout. It preserves
 the workspace and does not verify or install release artifacts.
 
-This is the first implemented part of the [v1 design](docs/plans/sobaya-v1-design.md).
-Initialization, pinned runtime dispatch and version bumps are subsequent work;
+Local release packaging is also available through `bash scripts/package-release.sh`
+with explicit `--source`, `--version`, `--commit` and `--output` arguments.
+It requires a matching local version tag and creates a runtime archive plus a
+SHA-256 manifest in a new directory outside the source. See the
+[approved command and file scope](docs/plans/sobaya-v1-release-review.md).
+The source and existing output paths are preserved; it does not publish or install.
+
+Verified installation, initialization, pinned runtime dispatch and version bumps
+are subsequent parts of the [v1 design](docs/plans/sobaya-v1-design.md);
 the existing commands above remain the development workflow.
 
 ## What is protected

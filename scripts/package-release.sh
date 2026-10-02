@@ -36,6 +36,10 @@ version_pattern="^$number[.]$number[.]$number(-$prerelease([.]$prerelease)*)?([+
 [[ $commit =~ ^[0-9a-fA-F]{40}$ ]] || die 'commit must be a full 40-digit hexadecimal commit'
 source "$(cd "$(dirname "$0")" && pwd)/tools-common.sh"
 source_root=$(tools_repo "$source_root" 2>/dev/null) || die 'source must be a Git repository root'
+output=$(tools_abs "$output" 2>/dev/null) || die 'cannot resolve output path'
+case "$output/" in "${source_root%/}/"*) die 'output must be outside source' ;; esac
+output_parent=$(dirname "$output")
+[ -d "$output_parent" ] || die 'output parent directory must exist'
 commit=$(printf '%s' "$commit" | tr 'A-F' 'a-f')
 kind=$(git -C "$source_root" cat-file -t "$commit" 2>/dev/null) || die 'commit does not exist'
 [ "$kind" = commit ] || die 'commit must identify a commit object'
@@ -59,7 +63,8 @@ for path in "${paths[@]}"; do
     *) die "runtime file required: $path" ;;
   esac
 done
-scratch=$(mktemp -d "${TMPDIR:-/tmp}/sobaya-release.XXXXXX")
+# Stage beside the output, outside the source even when TMPDIR points into it.
+scratch=$(mktemp -d "${output_parent%/}/.sobaya-release.XXXXXX") || die 'cannot prepare output'
 trap 'rm -rf "$scratch"' EXIT
 git -C "$source_root" ls-tree -r -z "$commit" -- "${paths[@]}" > "$scratch/tree" || die 'cannot inspect runtime payload'
 while IFS= read -r -d '' record; do
@@ -74,14 +79,16 @@ manifest="sobaya-$version.json"
 # Override export attributes only in a private Git repository, preserving the
 # source's configuration and the exact committed runtime bytes.
 private="$scratch/repository"
-git clone --bare --shared --template= --quiet -- "$source_root" "$private"
-mkdir -p "$private/info"
-printf '%s\n' '* -export-ignore -export-subst' > "$private/info/attributes"
+git clone --bare --shared --template= --quiet -- "$source_root" "$private" || die 'cannot read source repository'
+mkdir -p "$private/info" || die 'cannot prepare output repository'
+printf '%s\n' '* -export-ignore -export-subst' > "$private/info/attributes" || die 'cannot prepare output attributes'
 git -C "$private" -c core.attributesFile=/dev/null archive --format=tar --prefix=sobaya/ "$commit" -- "${paths[@]}" |
-  gzip -n > "$scratch/$artifact"
-digest=$(shasum -a 256 "$scratch/$artifact"); digest=${digest%% *}
+  gzip -n > "$scratch/$artifact" || die 'cannot archive source runtime payload'
+digest=$(shasum -a 256 "$scratch/$artifact") || die 'cannot hash output archive'
+digest=${digest%% *}
 jq -cn --arg artifact "$artifact" --arg version "$version" --arg commit "$commit" --arg sha256 "$digest" \
-  '{manifest_version:1,artifact:$artifact,runtime:{version:$version,commit:$commit,sha256:$sha256}}' > "$scratch/$manifest"
+  '{manifest_version:1,artifact:$artifact,runtime:{version:$version,commit:$commit,sha256:$sha256}}' > "$scratch/$manifest" || die 'cannot write output manifest'
+# mkdir claims only a new directory; never move a directory onto an existing one.
 mkdir "$output" || die 'cannot create output directory'
-mv "$scratch/$artifact" "$scratch/$manifest" "$output/"
-cat "$output/$manifest"
+mv "$scratch/$artifact" "$scratch/$manifest" "$output/" || die 'cannot publish output files'
+cat "$output/$manifest" || die 'cannot read output manifest'
