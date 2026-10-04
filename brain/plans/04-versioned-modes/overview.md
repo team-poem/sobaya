@@ -105,8 +105,14 @@ files or safety under concurrent source mutation/object pruning.
 
 ## Subsequent work
 
-Verified installation and mode-specific
-init with hook/instruction composition; locked dispatch and bump; upgrade
+The human explicitly requested resuming installation, mode connection and bump
+on 2026-10-04. New executable tests for all three stages are being prepared as
+one review packet: [plan](install-flow-plan.md), [draft](draft-install-flow-tests.sh),
+[Korean review](../../../docs/plans/sobaya-v1-install-flow-review.md).
+The new exact test inputs have not yet been approved; production runtime and
+the existing approved suites remain unchanged. Missing installer is NOT PROBED.
+
+After that packet: upgrade
 failure recovery and 0.9/1.0/0.9 state+hook
 compatibility; performance comparison; prerelease consumer validation. Keep
 runtime installations immutable during active runs. State version 1, approval
@@ -121,8 +127,10 @@ cloud-native-go repository is still unknown and does not block core planning.
 
 ## Workspace
 
-The configuration PR was merged. Continue on codex/sobaya-v1-release-plan
-from origin/main in the existing sobaya-v1-plan managed worktree.
+The configuration PR was merged. Remote checks on 2026-10-04 found PR #7 open
+at f6e0766 and main still at 3c9456d. Continue on codex/sobaya-v1-install-plan
+from f6e0766 in the existing sobaya-v1-plan managed worktree; stack its draft PR
+on PR #7 without claiming either a merge or a v1 release.
 The original checkout contains unrelated user changes and must remain intact.
 The four configuration and four packaging entries are approved; no app
 approval/checkpoint state is being changed. Further test proposals remain
