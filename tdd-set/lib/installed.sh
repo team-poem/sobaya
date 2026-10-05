@@ -48,7 +48,10 @@ i_config() {
   for i_name in sobaya.json sobaya.lock; do
     [ -f "$i_root/$i_name" ] && [ ! -L "$i_root/$i_name" ] || i_die "config: regular $i_name required"
   done
+  i_config_digest=$(ir_hash "$i_root/sobaya.json")
+  i_lock_digest=$(ir_hash "$i_root/sobaya.lock")
   i_config_json=$(/bin/bash "$i_lib/config-check.sh" "$i_root") || exit 2
+  [ "$i_config_digest" = "$(ir_hash "$i_root/sobaya.json")" ] && [ "$i_lock_digest" = "$(ir_hash "$i_root/sobaya.lock")" ] || i_die 'protected workspace pin changed while resolving'
   i_mode=$(jq -r .mode <<< "$i_config_json")
   i_version=$(jq -r .runtime.version <<< "$i_config_json")
 }
@@ -71,16 +74,29 @@ i_connection_check() {
   [ -f "$i_meta/connection.json" ] && [ ! -L "$i_meta" ] && [ ! -L "$i_meta/connection.json" ] || i_die 'connection: app is not connected'
   jq -e --arg root "$i_root" --arg store "$i_store" --arg app "$i_app" --arg mode "$i_mode" '.connection_version==1 and .root==$root and .store==$store and .app==$app and .mode==$mode' "$i_meta/connection.json" >/dev/null || i_die 'connection: workspace/store does not match local connection'
 }
+i_pin_stamp() {
+  local file=$1 mode
+  [ -f "$file" ] && [ ! -L "$file" ] || return 1
+  if mode=$(stat -f '%Lp' "$file" 2>/dev/null) && [[ $mode =~ ^[0-7]+$ ]]; then :; else mode=$(stat -c '%a' "$file") || return; fi
+  printf '%s:%s\n' "$mode" "$(ir_hash "$file")"
+}
 i_dispatch() {
   [ -z "$i_mode$i_version$i_manifest$i_archive" ] || i_die 'runtime command: unexpected management options'
   i_config; i_select_app; i_connection_check
   i_runtime=$(ir_verified_path "$i_store" "$i_version" "$(jq -c .runtime <<< "$i_config_json")")
   export SOBAYA_WORKSPACE_ROOT="$i_root" SOBAYA_CONNECTION_MODE="$i_mode" SOBAYA_CONNECTION_STORE="$i_store"
-  rm -rf "$i_tmp"; trap - EXIT
+  export SOBAYA_SELECTED_CONFIG_SHA="$i_config_digest" SOBAYA_SELECTED_LOCK_SHA="$i_lock_digest"
   if [ "$i_command" = gate ]; then
-    if [ "${#i_args[@]}" -gt 0 ]; then exec /bin/bash "$i_runtime/tdd-set/bin/gate.sh" "$i_app" "${i_args[@]}"
-    else exec /bin/bash "$i_runtime/tdd-set/bin/gate.sh" "$i_app"; fi
+    config_stamp=$(i_pin_stamp "$i_root/sobaya.json"); lock_stamp=$(i_pin_stamp "$i_root/sobaya.lock")
+    [ "${config_stamp#*:}" = "$i_config_digest" ] && [ "${lock_stamp#*:}" = "$i_lock_digest" ] || i_die 'protected workspace pin changed before gate runtime selection completed'
+    gate_rc=0
+    if [ "${#i_args[@]}" -gt 0 ]; then /bin/bash "$i_runtime/tdd-set/bin/gate.sh" "$i_app" "${i_args[@]}" > "$i_tmp/gate.out" 2> "$i_tmp/gate.err" || gate_rc=$?
+    else /bin/bash "$i_runtime/tdd-set/bin/gate.sh" "$i_app" > "$i_tmp/gate.out" 2> "$i_tmp/gate.err" || gate_rc=$?; fi
+    cat "$i_tmp/gate.err" >&2
+    [ "$config_stamp" = "$(i_pin_stamp "$i_root/sobaya.json")" ] && [ "$lock_stamp" = "$(i_pin_stamp "$i_root/sobaya.lock")" ] || i_die 'protected workspace pin changed during gate'
+    cat "$i_tmp/gate.out"; return "$gate_rc"
   fi
+  rm -rf "$i_tmp"; trap - EXIT
   if [ "${#i_args[@]}" -gt 0 ]; then exec /bin/bash "$i_runtime/tdd-set/lib/runner.sh" "$i_command" "$i_app" "${i_args[@]}"
   else exec /bin/bash "$i_runtime/tdd-set/lib/runner.sh" "$i_command" "$i_app"; fi
 }

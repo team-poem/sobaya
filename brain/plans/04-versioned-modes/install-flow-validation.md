@@ -17,7 +17,7 @@ controls; Git, Node, archive validation and existing acceptance gates are real.
    both were fixed and directly reprobed. Safety validation is part of this
    coherent installer; later rejection entries may already be green.
 
-No later entry has been accepted yet. No v1 release or PR merge performed.
+Entries below record subsequent acceptance. No v1 release or PR merge performed.
 
 2. install_rejects_identity_and_unsafe_payload: ALREADY GREEN from the safe
    extraction implemented for entry 1. Wrong manifest/tuple/hash/commit and all
@@ -70,3 +70,12 @@ No later entry has been accepted yet. No v1 release or PR merge performed.
    twelve find+sed pairs, preserving all twelve permission bits and identical
    comparison output. One 80-path local sample measured 2.38s versus 0.77s per
    tree walk; this is limited mechanical evidence, not model or v0.9 parity.
+
+8. dispatch_rejects_pin_drift_and_worker_mutation: RED at a late hook failure
+   instead of protected-input rejection, then GREEN with workspace pins in
+   operation snapshots. Entries 1–8 and the full existing suite passed; final
+   focused 7–8 checks passed after the gate selection guard. Independent probes
+   covered project pins outside the app, mutation at lock acquisition, suite
+   mutation during gate/review, and mutation while taking the gate's initial
+   stamp. Each rejected without advancing approval; the last race stopped
+   before any suite or worker execution. No remaining scoped review finding.
