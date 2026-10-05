@@ -71,6 +71,19 @@ i_connection_check() {
   [ -f "$i_meta/connection.json" ] && [ ! -L "$i_meta" ] && [ ! -L "$i_meta/connection.json" ] || i_die 'connection: app is not connected'
   jq -e --arg root "$i_root" --arg store "$i_store" --arg app "$i_app" --arg mode "$i_mode" '.connection_version==1 and .root==$root and .store==$store and .app==$app and .mode==$mode' "$i_meta/connection.json" >/dev/null || i_die 'connection: workspace/store does not match local connection'
 }
+i_dispatch() {
+  [ -z "$i_mode$i_version$i_manifest$i_archive" ] || i_die 'runtime command: unexpected management options'
+  i_config; i_select_app; i_connection_check
+  i_runtime=$(ir_verified_path "$i_store" "$i_version" "$(jq -c .runtime <<< "$i_config_json")")
+  export SOBAYA_WORKSPACE_ROOT="$i_root" SOBAYA_CONNECTION_MODE="$i_mode" SOBAYA_CONNECTION_STORE="$i_store"
+  rm -rf "$i_tmp"; trap - EXIT
+  if [ "$i_command" = gate ]; then
+    if [ "${#i_args[@]}" -gt 0 ]; then exec /bin/bash "$i_runtime/tdd-set/bin/gate.sh" "$i_app" "${i_args[@]}"
+    else exec /bin/bash "$i_runtime/tdd-set/bin/gate.sh" "$i_app"; fi
+  fi
+  if [ "${#i_args[@]}" -gt 0 ]; then exec /bin/bash "$i_runtime/tdd-set/lib/runner.sh" "$i_command" "$i_app" "${i_args[@]}"
+  else exec /bin/bash "$i_runtime/tdd-set/lib/runner.sh" "$i_command" "$i_app"; fi
+}
 i_init() {
   [ "${#i_args[@]}" -eq 0 ] && [ -z "$i_manifest$i_archive" ] || i_die 'init: unexpected arguments'
   [ -n "$i_version" ] || i_die 'init: version is required'
@@ -117,6 +130,7 @@ i_init() {
 }
 case "$i_command" in
   init) i_init ;;
+  doctor|approve|step|loop|gate|status|next|review|usage) i_dispatch ;;
   __hook)
     i_config; i_select_app; i_connection_check
     i_runtime=$(ir_verified_path "$i_store" "$i_version" "$(jq -c .runtime <<< "$i_config_json")")

@@ -91,7 +91,8 @@ ir_unpack() {
   done < "$stage/members"
 }
 ir_tree() {
-  local root=$1 name mode
+  local root=$1 name mode bits mask flavor
+  if mode=$(stat -f '%Lp' "$root" 2>/dev/null) && [[ $mode =~ ^[0-7]+$ ]]; then flavor=bsd; else flavor=gnu; fi
   (cd "$root"
     find . -print | LC_ALL=C sort > "$2/paths"
     while IFS= read -r name; do
@@ -100,8 +101,11 @@ ir_tree() {
       elif [ -f "$name" ]; then mode=$(ir_hash "$name")
       else ir_die 'install: special file in installed runtime'; fi
       printf '%s %s\n' "$name" "$mode"
-      for mode in 4000 2000 1000 400 200 100 040 020 010 004 002 001; do
-        find "$name" -prune -perm "-$mode" -print | sed "s|^|$mode |"
+      if [ "$flavor" = bsd ]; then mode=$(stat -f '%Lp' "$name"); else mode=$(stat -c '%a' "$name"); fi
+      [[ $mode =~ ^[0-7]+$ ]] || ir_die 'install: invalid permissions'
+      bits=$((8#$mode))
+      for mask in 4000 2000 1000 400 200 100 040 020 010 004 002 001; do
+        if (( bits & 8#$mask )); then printf '%s %s\n' "$mask" "$name"; fi
       done
     done < "$2/paths"
   )
@@ -134,7 +138,7 @@ ir_verified_path() (
     [ "$(jq -cS .runtime <<< "$manifest")" = "$(jq -cS . <<< "$expected")" ] || ir_die 'install: lock does not match installed identity'
   fi
   stage=$(mktemp -d "${TMPDIR:-/tmp}/sobaya-verify.XXXXXX")
-  trap 'rm -rf "$stage"' EXIT
+  trap "rm -rf -- $(printf '%q' "$stage")" EXIT
   [ -f "$dest/archive.tar.gz" ] && [ ! -L "$dest/archive.tar.gz" ] || ir_die 'install: retained archive missing'
   cp "$dest/archive.tar.gz" "$stage/archive.tar.gz"
   ir_unpack "$stage/archive.tar.gz" "$manifest" "$stage"

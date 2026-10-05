@@ -191,6 +191,9 @@ r_checked_suite() {
 }
 r_prompt() {
     local name=$1 role=$2 entry=$3
+    if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then
+        printf 'Installed connection (%s): read %s/tdd-set/AGENTS.md, %s/AGENTS.md and %s/AGENTS.md. The workspace selects the pinned runtime; preserve its sobaya.json and sobaya.lock.\n' "$SOBAYA_CONNECTION_MODE" "$r_root" "$SOBAYA_WORKSPACE_ROOT" "$r_app"
+    fi
     if [ "$role" = review ]; then
         printf 'Read %s/AGENTS.md and the app AGENTS.md. Independently review the diff in %s from %s to HEAD. Use a fresh review context. Read only; do not edit or commit. Refute correctness, scope, test coverage and requirements. Return done only if no actionable findings remain, defect for concrete findings, handoff if review cannot finish. Include file/line evidence in summary. Return JSON with status, summary, reason.\n' "$r_root" "$r_app" "$(jq -r .baseline <<< "$r_state")"
     else
@@ -378,8 +381,14 @@ case "$r_command" in
     status) r_load; jq --arg head "$(r_git rev-parse HEAD)" --argjson entries "$(contract_plan "$r_app")" --arg dirty "$(r_git status --porcelain)" '.+{head:$head,pending:[$entries[]|select(.checked|not)|.name],dirty:($dirty!="")}' <<< "$r_state"; exit;;
     doctor)
         r_policy_load
-        bash "$r_root/scripts/workspace-check.sh" "$r_root"
-        bash "$r_root/scripts/setup.sh" "$r_root" --check --app "$r_app"
+        if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then
+            if [ "$SOBAYA_CONNECTION_MODE" = project ]; then
+                bash "$r_root/scripts/workspace-check.sh" "$SOBAYA_WORKSPACE_ROOT" --app "$r_app"
+            fi
+        else
+            bash "$r_root/scripts/workspace-check.sh" "$r_root"
+            bash "$r_root/scripts/setup.sh" "$r_root" --check --app "$r_app"
+        fi
         while IFS= read -r arg; do (cd "$r_app" && command -v "$arg" >/dev/null) || r_die "Worker executable unavailable: $arg"; done < <(jq -r '.workers[]|if .adapter=="codex" then "codex" else .command[0] end' <<< "$r_policy")
         r_clean; printf 'Local setup checks passed. No paid worker call was made.\n'; exit;;
     approve|step|loop|review) ;;

@@ -58,3 +58,15 @@ No later entry has been accepted yet. No v1 release or PR merge performed.
    checkpoint 5, so its full-suite evidence applies to this identical runtime.
    Independent hook review additionally passed nine preservation/forwarding
    probes, including argv, binary stdin, cwd, environment, streams and status.
+
+7. installed_modes_execute_approved_cycle: RED at missing installed doctor,
+   then GREEN for both modes through actual approval, materialization, RED,
+   GREEN, checkpoint, final gate and independent-review state (two fixture
+   worker calls). Entries 1–7 plus the full existing suite passed. Focused
+   independent probes verified a V1 launcher dispatching the exact V2 runtime,
+   reapproval/status/usage/gate preservation and no missing/altered fallback.
+   A Bash 3.2 local-variable EXIT-trap unwind bug was fixed and cleanup reprobed.
+   Installed boundary permission checks now use one stat per path rather than
+   twelve find+sed pairs, preserving all twelve permission bits and identical
+   comparison output. One 80-path local sample measured 2.38s versus 0.77s per
+   tree walk; this is limited mechanical evidence, not model or v0.9 parity.
