@@ -85,3 +85,14 @@ Entries below record subsequent acceptance. No v1 release or PR merge performed.
    archive fails its hash check without publication; both paths preserve the
    entire consumer, including connection and approval metadata. Entries 1–9,
    the full existing suite, Bash 3.2 syntax and ShellCheck error checks passed.
+
+10. bump_validates_candidate_and_preserves_approval: RED at the missing bump
+    command, then GREEN with an actual completed dependency-mode cycle and
+    candidate suite/hygiene. Entries 1–10 and the full existing suite passed.
+    Focused review found approval metadata mutation surviving rejection and
+    an extra background subshell allowing validation to outlive cancellation.
+    External backups now restore protected metadata without replacing the live
+    lock inode, and the tracked child execs the validator directly. The final
+    approved success case passed after both repairs. Supplemental probes verify
+    lock contention, stale-worker-record preservation, restored calls and full
+    metadata equality, and no delayed validation write after cancellation.

@@ -34,6 +34,7 @@ case "$i_store/" in "${i_root%/}/"*) i_die 'install: store must be outside consu
 for i_name in $(git rev-parse --local-env-vars); do unset "$i_name"; done
 i_tmp=$(mktemp -d "${TMPDIR:-/tmp}/sobaya-manage.XXXXXX")
 trap 'rm -rf "$i_tmp"' EXIT
+. "$i_lib/management-locks.sh"
 i_write() {
   local source=$1 dest=$2
   [ ! -L "$dest" ] || i_die "connection: symlink conflict: $dest"
@@ -87,6 +88,7 @@ i_dispatch() {
   export SOBAYA_WORKSPACE_ROOT="$i_root" SOBAYA_CONNECTION_MODE="$i_mode" SOBAYA_CONNECTION_STORE="$i_store"
   export SOBAYA_SELECTED_CONFIG_SHA="$i_config_digest" SOBAYA_SELECTED_LOCK_SHA="$i_lock_digest"
   if [ "$i_command" = gate ]; then
+    im_lock "$i_meta/lock.shell"
     config_stamp=$(i_pin_stamp "$i_root/sobaya.json"); lock_stamp=$(i_pin_stamp "$i_root/sobaya.lock")
     [ "${config_stamp#*:}" = "$i_config_digest" ] && [ "${lock_stamp#*:}" = "$i_lock_digest" ] || i_die 'protected workspace pin changed before gate runtime selection completed'
     gate_rc=0
@@ -113,6 +115,7 @@ i_init() {
     [ ! -L "$private_dir" ] || i_die 'connection: metadata directory is a symlink'
     [ ! -e "$private_dir" ] || [ -d "$private_dir" ] || i_die 'connection: metadata directory conflict'
   done
+  im_lock "$(git -C "$i_root" rev-parse --absolute-git-dir)/sobaya-management.lock"
   printf '%s\n' 'Use the workspace sobaya.json and sobaya.lock to select the installed runtime.' 'The runtime supplies its exact tdd-set/AGENTS.md path to each worker; existing app instructions remain authoritative.' > "$i_tmp/instructions"
   if [ -e "$i_meta/connection.md" ] || [ -L "$i_meta/connection.md" ]; then
     [ -f "$i_meta/connection.md" ] && [ ! -L "$i_meta/connection.md" ] && cmp -s "$i_tmp/instructions" "$i_meta/connection.md" || i_die 'connection: local instructions conflict'
@@ -137,6 +140,7 @@ i_init() {
     jq --arg app "$i_app" '.+[$app]|unique' "$registry" > "$i_tmp/registry"
   else jq -n --arg app "$i_app" '[$app]' > "$i_tmp/registry"; fi
   ih_prepare
+  im_lock "$i_meta/lock.shell"
   if [ ! -e "$i_root/sobaya.json" ]; then i_write "$i_tmp/config" "$i_root/sobaya.json"; i_write "$i_tmp/lock" "$i_root/sobaya.lock"; fi
   i_write "$i_tmp/connection" "$i_meta/connection.json"
   i_write "$i_tmp/registry" "$registry"
@@ -157,6 +161,7 @@ i_sync() {
 case "$i_command" in
   init) i_init ;;
   sync) i_sync ;;
+  bump) . "$i_lib/bump.sh"; i_bump ;;
   doctor|approve|step|loop|gate|status|next|review|usage) i_dispatch ;;
   __hook)
     i_config; i_select_app; i_connection_check
