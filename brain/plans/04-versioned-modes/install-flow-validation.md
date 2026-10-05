@@ -18,3 +18,10 @@ controls; Git, Node, archive validation and existing acceptance gates are real.
    coherent installer; later rejection entries may already be green.
 
 No later entry has been accepted yet. No v1 release or PR merge performed.
+
+2. install_rejects_identity_and_unsafe_payload: ALREADY GREEN from the safe
+   extraction implemented for entry 1. Wrong manifest/tuple/hash/commit and all
+   eight malformed payload shapes rejected. Independent probes additionally
+   found invalid retained metadata and missing launcher backing; both were
+   repaired, reprobed, and reviewed without remaining findings. Entries 1–2
+   and the complete existing suite passed at this production revision.

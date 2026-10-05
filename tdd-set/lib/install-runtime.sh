@@ -107,12 +107,13 @@ ir_tree() {
   )
 }
 ir_existing() {
-  local dest=$1 manifest=$2 stage=$3
+  local dest=$1 manifest=$2 stage=$3 retained
   [ -d "$dest" ] && [ ! -L "$dest" ] && [ -d "$dest/runtime" ] && [ ! -L "$dest/runtime" ] || ir_die 'install: destination already exists'
   for name in manifest.json archive.tar.gz; do
     [ -f "$dest/$name" ] && [ ! -L "$dest/$name" ] || ir_die 'install: incomplete destination'
   done
-  [ "$(jq -cS .runtime "$dest/manifest.json")" = "$(jq -cS .runtime <<< "$manifest")" ] || ir_die 'install: different release identity already exists'
+  retained=$(ir_manifest "$dest/manifest.json" "$(jq -r .runtime.version <<< "$manifest")") || ir_die 'install: invalid retained manifest'
+  [ "$(jq -cS .runtime <<< "$retained")" = "$(jq -cS .runtime <<< "$manifest")" ] || ir_die 'install: different release identity already exists'
   [ "$(ir_hash "$dest/archive.tar.gz")" = "$(jq -r .runtime.sha256 <<< "$manifest")" ] || ir_die 'install: retained archive is altered'
   ir_tree "$dest/runtime" "$stage" > "$stage/actual"
   ir_tree "$stage/runtime" "$stage" > "$stage/expected"
@@ -159,6 +160,9 @@ ir_install() (
     [ -f "$store/launcher-version" ] && [ ! -L "$store/launcher-version" ] && [ ! -L "$store/bin/sobaya" ] && [ -f "$store/bin/sobaya" ] && [ -x "$store/bin/sobaya" ] || ir_die 'install: launcher conflict'
     ir_launcher "$store" "$(cat "$store/launcher-version")" > "$stage/launcher"
     cmp -s "$stage/launcher" "$store/bin/sobaya" || ir_die 'install: launcher conflict'
+    anchor=$store/runtimes/$(cat "$store/launcher-version")
+    ir_manifest "$anchor/manifest.json" "$(cat "$store/launcher-version")" >/dev/null || ir_die 'install: incomplete launcher runtime'
+    [ -d "$anchor" ] && [ ! -L "$anchor" ] && [ -d "$anchor/runtime" ] && [ ! -L "$anchor/runtime" ] && [ -f "$anchor/runtime/bin/sobaya" ] && [ ! -L "$anchor/runtime/bin/sobaya" ] && [ -x "$anchor/runtime/bin/sobaya" ] || ir_die 'install: incomplete launcher runtime'
   elif [ -e "$store/launcher-version" ] || [ -L "$store/launcher-version" ] || [ -e "$dest" ]; then ir_die 'install: incomplete launcher'; fi
   if [ -n "$archive" ]; then cp "$archive" "$stage/archive.tar.gz" || ir_die 'archive: cannot read local file'
   else
