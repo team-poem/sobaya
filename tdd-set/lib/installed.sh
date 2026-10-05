@@ -5,6 +5,7 @@ set -o pipefail
 i_lib=$(cd "$(dirname "$0")" && pwd -P)
 . "$i_lib/install-runtime.sh"
 . "$i_lib/../../scripts/tools-common.sh"
+. "$i_lib/connection-hooks.sh"
 i_die() { printf 'ERROR: %s\n' "$*" >&2; exit 2; }
 [ "$#" -gt 0 ] || i_die 'usage: sobaya COMMAND --root PATH --install-root STORE'
 i_command=$1; shift
@@ -66,6 +67,10 @@ i_select_app() {
   i_app=$(tools_repo "$i_app") || i_die 'connection: app repository required'
   i_meta=$(git -C "$i_app" rev-parse --absolute-git-dir)/sobaya
 }
+i_connection_check() {
+  [ -f "$i_meta/connection.json" ] && [ ! -L "$i_meta" ] && [ ! -L "$i_meta/connection.json" ] || i_die 'connection: app is not connected'
+  jq -e --arg root "$i_root" --arg store "$i_store" --arg app "$i_app" --arg mode "$i_mode" '.connection_version==1 and .root==$root and .store==$store and .app==$app and .mode==$mode' "$i_meta/connection.json" >/dev/null || i_die 'connection: workspace/store does not match local connection'
+}
 i_init() {
   [ "${#i_args[@]}" -eq 0 ] && [ -z "$i_manifest$i_archive" ] || i_die 'init: unexpected arguments'
   [ -n "$i_version" ] || i_die 'init: version is required'
@@ -102,13 +107,21 @@ i_init() {
     jq -e 'type=="array" and all(.[];type=="string")' "$registry" >/dev/null || i_die 'connection: invalid registry'
     jq --arg app "$i_app" '.+[$app]|unique' "$registry" > "$i_tmp/registry"
   else jq -n --arg app "$i_app" '[$app]' > "$i_tmp/registry"; fi
+  ih_prepare
   if [ ! -e "$i_root/sobaya.json" ]; then i_write "$i_tmp/config" "$i_root/sobaya.json"; i_write "$i_tmp/lock" "$i_root/sobaya.lock"; fi
   i_write "$i_tmp/connection" "$i_meta/connection.json"
   i_write "$i_tmp/registry" "$registry"
   i_write "$i_tmp/instructions" "$i_meta/connection.md"
+  ih_apply
   jq -cn --arg mode "$i_mode" --arg app "$i_app" --argjson pin "$i_pin" '{mode:$mode,app:$app,runtime:$pin}'
 }
 case "$i_command" in
   init) i_init ;;
+  __hook)
+    i_config; i_select_app; i_connection_check
+    i_runtime=$(ir_verified_path "$i_store" "$i_version" "$(jq -c .runtime <<< "$i_config_json")")
+    unset SOBAYA_WORKER_RECORD
+    . "$i_runtime/tdd-set/lib/contract.sh"
+    contract_hygiene "$i_app" ;;
   *) i_die "unimplemented installed command: $i_command" ;;
 esac

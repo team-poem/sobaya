@@ -41,3 +41,12 @@ No later entry has been accepted yet. No v1 release or PR merge performed.
    symlink and late instruction-conflict checks; preflight now refuses these
    before publication. Seven supplemental conflict probes preserved the whole
    consumer and outside targets; review reported no remaining init findings.
+
+5. connected_hooks_preserve_original_behavior: RED because lint was bypassed
+   by the untouched old hook path, then GREEN with original pre-commit first,
+   Sobaya hygiene second, preserved commit-msg argv, original files and links.
+   Entries 1–5 and the complete legacy suite passed. Focused review prompted
+   rejection of unsupported executable hooks and shared multi-worktree hook
+   configuration without worktreeConfig. Wrappers also respect later disabling
+   of original executable hooks. Final independent completion review remains
+   required after all entries; no acceptance criteria changed.
