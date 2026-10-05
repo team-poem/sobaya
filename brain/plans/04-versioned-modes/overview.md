@@ -4,7 +4,8 @@ Status: architecture, four configuration-check entries, and four local release
 packaging entries authorized on 2026-10-02 and implemented. See the exact
 approval records ([configuration](config-approval.md), [packaging](release-approval.md))
 and validation evidence ([configuration](config-validation.md), [packaging](release-validation.md)).
-Installation, init, dispatch and bump still require reviewed executable tests.
+Installation, init, dispatch and bump tests were subsequently approved on
+2026-10-05; their implementation is recorded in install-flow-validation.md.
 The detailed human-facing decisions are in
 [the Korean design](../../../docs/plans/sobaya-v1-design.md).
 
@@ -109,8 +110,9 @@ The human explicitly requested resuming installation, mode connection and bump
 on 2026-10-04. New executable tests for all three stages are being prepared as
 one review packet: [plan](install-flow-plan.md), [draft](draft-install-flow-tests.sh),
 [Korean review](../../../docs/plans/sobaya-v1-install-flow-review.md).
-The new exact test inputs have not yet been approved; production runtime and
-the existing approved suites remain unchanged. Missing installer is NOT PROBED.
+The exact twelve entries and shared support were approved on 2026-10-05 after
+PR #8's complete review view; see [approval](install-flow-approval.md).
+Implementation proceeds one named entry at a time with full-suite evidence.
 
 After that packet: upgrade
 failure recovery and 0.9/1.0/0.9 state+hook

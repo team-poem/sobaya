@@ -32,3 +32,12 @@ No later entry has been accepted yet. No v1 release or PR merge performed.
    rejected without changing preserved state. No production bytes changed
    after checkpoint 2; its just-completed full-suite evidence applies to this
    identical runtime, with entry 3 additionally executed before this checkpoint.
+
+4. init_connects_both_modes_without_rewriting_contracts: RED at the old
+   config-only CLI, then GREEN for both modes. Existing instructions, spec,
+   plan, nested consumer layout and project brain are preserved. Repeated init
+   is byte/permission/path stable and creates no approval. Entries 1–4 and the
+   complete existing suite passed. Independent review found metadata-parent
+   symlink and late instruction-conflict checks; preflight now refuses these
+   before publication. Seven supplemental conflict probes preserved the whole
+   consumer and outside targets; review reported no remaining init findings.

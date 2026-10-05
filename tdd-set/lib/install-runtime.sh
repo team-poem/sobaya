@@ -124,6 +124,23 @@ ir_launcher() {
   printf '%q' "$1/runtimes/$2/runtime/bin/sobaya"
   printf ' "$@"\n'
 }
+ir_verified_path() (
+  set -eu; set -o pipefail
+  local store=$1 version=$2 expected=${3:-} manifest stage dest
+  dest=$store/runtimes/$version
+  [ -d "$dest" ] && [ ! -L "$dest" ] && [ -f "$dest/manifest.json" ] && [ ! -L "$dest/manifest.json" ] || ir_die 'install: selected runtime is not installed'
+  manifest=$(ir_manifest "$dest/manifest.json" "$version")
+  if [ -n "$expected" ]; then
+    [ "$(jq -cS .runtime <<< "$manifest")" = "$(jq -cS . <<< "$expected")" ] || ir_die 'install: lock does not match installed identity'
+  fi
+  stage=$(mktemp -d "${TMPDIR:-/tmp}/sobaya-verify.XXXXXX")
+  trap 'rm -rf "$stage"' EXIT
+  [ -f "$dest/archive.tar.gz" ] && [ ! -L "$dest/archive.tar.gz" ] || ir_die 'install: retained archive missing'
+  cp "$dest/archive.tar.gz" "$stage/archive.tar.gz"
+  ir_unpack "$stage/archive.tar.gz" "$manifest" "$stage"
+  ir_existing "$dest" "$manifest" "$stage"
+  printf '%s\n' "$dest/runtime"
+)
 ir_install() (
   set -eu; set -o pipefail
   local_root= store= version= manifest_path= archive=

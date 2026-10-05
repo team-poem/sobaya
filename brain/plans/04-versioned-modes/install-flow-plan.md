@@ -1,12 +1,10 @@
 # Installed runtime, mode connection and bump
 
-Status: implementation requested; exact new test inputs awaiting review.
-On 2026-10-04 the human explicitly requested "승인한 구현 진행햐".
-Automatic approval review rejected materializing and committing this draft as
-approved because the exact new inputs had not yet been shown to the human.
-The rejected command did not run. Complete one concrete review packet for
-all three stages, then request approval of those inputs once; do not restart
-the agreed architecture discussion or infer a new approval record.
+Status: approved on 2026-10-05 after the complete PR #8 review packet.
+The human replied "승인환다" to the exact twelve-test/shared-support approval
+request. See install-flow-approval.md and install-flow-validation.md. The earlier
+2026-10-04 automatic review rejection was resolved by presenting the exact
+inputs and receiving this direct approval; no implementation preceded it.
 
 Remote preflight: PR #6 merged at 3c9456d; PR #7 remains open at f6e0766.
 origin/main still points to 3c9456d. Continue from f6e0766 on
