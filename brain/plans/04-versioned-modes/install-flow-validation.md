@@ -50,3 +50,11 @@ No later entry has been accepted yet. No v1 release or PR merge performed.
    configuration without worktreeConfig. Wrappers also respect later disabling
    of original executable hooks. Final independent completion review remains
    required after all entries; no acceptance criteria changed.
+
+6. connection_keeps_linked_worktree_hooks_isolated: ALREADY GREEN from the
+   explicitly scoped hook configuration in entry 5. Actual commits used each
+   worktree's original hook; only the connected one ran Sobaya hygiene. Shared
+   and main-worktree Git configs were unchanged. No production change after
+   checkpoint 5, so its full-suite evidence applies to this identical runtime.
+   Independent hook review additionally passed nine preservation/forwarding
+   probes, including argv, binary stdin, cwd, environment, streams and status.
