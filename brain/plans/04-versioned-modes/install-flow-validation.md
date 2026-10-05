@@ -96,3 +96,10 @@ Entries below record subsequent acceptance. No v1 release or PR merge performed.
     approved success case passed after both repairs. Supplemental probes verify
     lock contention, stale-worker-record preservation, restored calls and full
     metadata equality, and no delayed validation write after cancellation.
+
+11. bump_failure_and_active_entry_keep_previous_pin: ALREADY GREEN from the
+    transaction and active-entry guard in entry 10. Real candidate-suite and
+    lint failures restore both documents and all approval metadata exactly;
+    an interrupted protected-input entry rejects bump before changing state.
+    No runtime bytes changed after checkpoint 10; its full-suite evidence and
+    final focused repair probes apply to this unchanged implementation.
