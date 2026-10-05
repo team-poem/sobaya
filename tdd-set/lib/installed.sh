@@ -144,8 +144,19 @@ i_init() {
   ih_apply
   jq -cn --arg mode "$i_mode" --arg app "$i_app" --argjson pin "$i_pin" '{mode:$mode,app:$app,runtime:$pin}'
 }
+i_sync() {
+  [ "${#i_args[@]}" -eq 0 ] && [ -z "$i_mode$i_version$i_app$i_manifest" ] || i_die 'sync: unexpected arguments'
+  i_config
+  jq -n --argjson pin "$(jq -c .runtime <<< "$i_config_json")" '{manifest_version:1,artifact:("sobaya-"+$pin.version+".tar.gz"),runtime:$pin}' > "$i_tmp/sync-manifest.json"
+  if [ -n "$i_archive" ]; then
+    ir_install --root "$i_root" --install-root "$i_store" --version "$i_version" --manifest "$i_tmp/sync-manifest.json" --archive "$i_archive"
+  else
+    ir_install --root "$i_root" --install-root "$i_store" --version "$i_version" --manifest "$i_tmp/sync-manifest.json"
+  fi
+}
 case "$i_command" in
   init) i_init ;;
+  sync) i_sync ;;
   doctor|approve|step|loop|gate|status|next|review|usage) i_dispatch ;;
   __hook)
     i_config; i_select_app; i_connection_check

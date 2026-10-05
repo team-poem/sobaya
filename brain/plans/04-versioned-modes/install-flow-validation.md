@@ -79,3 +79,9 @@ Entries below record subsequent acceptance. No v1 release or PR merge performed.
    mutation during gate/review, and mutation while taking the gate's initial
    stamp. Each rejected without advancing approval; the last race stopped
    before any suite or worker execution. No remaining scoped review finding.
+
+9. sync_uses_reviewed_lock_without_repinning: RED at the missing sync command,
+   then GREEN installing the reviewed tuple into a second store. A wrong
+   archive fails its hash check without publication; both paths preserve the
+   entire consumer, including connection and approval metadata. Entries 1–9,
+   the full existing suite, Bash 3.2 syntax and ShellCheck error checks passed.
