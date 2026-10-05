@@ -25,3 +25,10 @@ No later entry has been accepted yet. No v1 release or PR merge performed.
    found invalid retained metadata and missing launcher backing; both were
    repaired, reprobed, and reviewed without remaining findings. Entries 1–2
    and the complete existing suite passed at this production revision.
+
+3. install_preserves_existing_paths_and_failed_downloads: ALREADY GREEN.
+   Existing directories/files/live and dangling symlinks, contained stores,
+   failed partial downloads, conflicting identity and tampered executables all
+   rejected without changing preserved state. No production bytes changed
+   after checkpoint 2; its just-completed full-suite evidence applies to this
+   identical runtime, with entry 3 additionally executed before this checkpoint.
