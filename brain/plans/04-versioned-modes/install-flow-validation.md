@@ -103,3 +103,48 @@ Entries below record subsequent acceptance. No v1 release or PR merge performed.
     an interrupted protected-input entry rejects bump before changing state.
     No runtime bytes changed after checkpoint 10; its full-suite evidence and
     final focused repair probes apply to this unchanged implementation.
+
+12. project_bump_checks_every_connected_app: RED at the explicit unsupported
+    project bump, then GREEN after validating and locking every registered
+    app. Both apps execute the candidate's real suite; second-app failure
+    restores the preceding pin. Workspace metadata participates in preservation
+    and locking alongside app metadata. The unchanged twelve-case suite is
+    now registered additively in tests/run.sh.
+
+## Final integration and review
+
+The complete integrated command passed on macOS with Bash 3.2:
+
+```
+TMPDIR=/private/tmp \
+SOBAYA_TEST_VITEST_ROOT=/Users/kangminkim/lunch/sobaya/apps/bdad-mentor-match \
+/bin/bash tests/run.sh
+```
+
+This includes all twelve installed-flow entries, existing contract/runner/tools,
+configuration/release tests, and next/probe/verbatim-gate regressions. Log:
+/tmp/sobaya-install-final-integrated.log. Real Go, Node and local Vitest ran;
+workers and acquisition were controlled fixtures, with no provider/network call
+or forbidden interpreter. Bash syntax, ShellCheck error checks, guide command
+syntax and git diff --check also passed.
+
+Independent completion review found a compatibility mismatch: config check
+accepts mixed-case hexadecimal identities but installed comparisons did not.
+Internal comparison now normalizes only hexadecimal case, preserving reviewed
+lock bytes. Direct config/sync/status probes pass with an uppercase lock.
+Another probe showed a successful candidate could disable hooks through Git
+config. Bump now snapshots and restores common config and config.worktree,
+including original absence and permissions. Both normal and actual linked
+worktree mutation probes reject and restore the original selected hooks.
+
+Draft and materialized source SHA-256 remain
+b27ddd26f4d6e13f8a11d11d5df2cab5278547445082e5462de5797d580080c0.
+The annotated view remains
+dece32c30ea8a0893e81e21284308601282d9daf994c6bdfbc28b845a1ff8253;
+removing only inserted review explanation lines recovers the source exactly.
+No existing test body, spec or acceptance command was edited.
+
+Revision-bound completion review is recorded after the final checkpoint.
+Actual Linux flock was unavailable on this host. Live published-asset tests,
+real v0.9/v1/v0.9 compatibility, crash recovery and model performance comparison
+remain release work, not claims established by these local fixtures.

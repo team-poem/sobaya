@@ -1,6 +1,7 @@
 #!/bin/bash
 # Explicit candidate validation, with reviewable pins and unchanged approval.
 ib_metas=()
+ib_configs=()
 ib_mode() {
   local mode
   if mode=$(stat -f '%Lp' "$1" 2>/dev/null) && [[ $mode =~ ^[0-7]+$ ]]; then :; else mode=$(stat -c '%a' "$1") || return; fi
@@ -27,6 +28,39 @@ ib_restore() {
     rm -f "$i_root/$name" && cp -p "$i_tmp/original-$name" "$i_root/$name" || rc=1
   done
   ib_restore_metadata || rc=1
+  ib_restore_configs || rc=1
+  return "$rc"
+}
+ib_collect_configs() {
+  local app gitdir common path n found
+  for app in "${ib_repos[@]}"; do
+    gitdir=$(git -C "$app" rev-parse --absolute-git-dir) || return
+    common=$(git -C "$app" rev-parse --git-common-dir) || return
+    case "$common" in /*) ;; *) common=$app/$common ;; esac
+    common=$(ir_abs "$common") || return
+    for path in "$common/config" "$gitdir/config.worktree"; do
+      [ ! -L "$path" ] && { [ ! -e "$path" ] || [ -f "$path" ]; } || return 1
+      found=false
+      for ((n=0;n<${#ib_configs[@]};n++)); do [ "${ib_configs[$n]}" != "$path" ] || found=true; done
+      [ "$found" = true ] || ib_configs+=("$path")
+    done
+  done
+}
+ib_backup_configs() {
+  local n path
+  for ((n=0;n<${#ib_configs[@]};n++)); do
+    path=${ib_configs[$n]}
+    [ ! -f "$path" ] || cp -p "$path" "$i_tmp/git-config-$n" || return
+  done
+}
+ib_restore_configs() {
+  local n path rc=0
+  for ((n=0;n<${#ib_configs[@]};n++)); do
+    path=${ib_configs[$n]}
+    if [ -d "$path" ] && [ ! -L "$path" ]; then rc=1; continue; fi
+    rm -f "$path" || { rc=1; continue; }
+    [ ! -f "$i_tmp/git-config-$n" ] || cp -p "$i_tmp/git-config-$n" "$path" || rc=1
+  done
   return "$rc"
 }
 ib_backup_metadata() {
@@ -71,7 +105,7 @@ ib_path() {
   jq -cn --arg path "$file" --arg value "$value" '{path:$path,value:$value}'
 }
 ib_snapshot() {
-  local app meta file
+  local app meta file n
   for app in "${ib_repos[@]}"; do
     git -C "$app" rev-parse HEAD || return
     git -C "$app" ls-files --stage -z | shasum -a 256 || return
@@ -86,6 +120,7 @@ ib_snapshot() {
       while IFS= read -r -d '' file; do ib_path "$file" || return; done < "$i_tmp/paths"
     fi
   done
+  for ((n=0;n<${#ib_configs[@]};n++)); do ib_path "${ib_configs[$n]}" || return; done
 }
 ib_validate() {
   im_close_fds
@@ -103,15 +138,31 @@ ib_validate() {
 }
 i_bump() {
   [ "${#i_args[@]}" -eq 0 ] && [ -z "$i_mode$i_app" ] && [ -n "$i_version" ] && [ -f "$i_manifest" ] || i_die 'bump: version and trusted manifest are required'
-  local target=$i_version original_config original_lock app meta rc=0
+  local target=$i_version original_config original_lock app meta registry rc=0
   i_config
   original_config=$i_config_digest; original_lock=$i_lock_digest
   tools_repo "$i_root" >/dev/null || i_die 'bump: workspace repository required'
   im_lock "$(git -C "$i_root" rev-parse --absolute-git-dir)/sobaya-management.lock"
-  [ "$i_mode" = dependency ] || i_die 'bump: project validation is not implemented'
-  i_select_app; i_connection_check
-  ib_apps=("$i_app"); ib_repos=("$i_root")
-  im_lock "$i_meta/lock.shell"
+  ib_apps=(); ib_repos=("$i_root")
+  if [ "$i_mode" = dependency ]; then
+    i_select_app; i_connection_check; ib_apps=("$i_app")
+  else
+    registry=$(git -C "$i_root" rev-parse --absolute-git-dir)/sobaya/connections.json
+    [ -f "$registry" ] && [ ! -L "$registry" ] && [ ! -L "$(dirname "$registry")" ] || i_die 'connection: missing project registry'
+    jq -es 'length==1 and (.[0]|type)=="array" and (.[0]|length)>0 and all(.[0][];type=="string" and length>0 and (explode|all(.>=32)))' "$registry" >/dev/null || i_die 'connection: invalid project registry'
+    jq -j 'unique[]+"\u0000"' "$registry" > "$i_tmp/apps"
+    while IFS= read -r -d '' app; do
+      i_app=$app; i_select_app; i_connection_check
+      [ "$i_app" = "$app" ] || i_die 'connection: registry paths must be canonical'
+      ib_apps+=("$i_app"); ib_repos+=("$i_app")
+    done < "$i_tmp/apps"
+  fi
+  # Workspace registration is frozen; now own all repositories before any pin changes.
+  for app in "${ib_repos[@]}"; do
+    meta=$(git -C "$app" rev-parse --absolute-git-dir)/sobaya
+    [ -d "$meta" ] && [ ! -L "$meta" ] || i_die 'connection: invalid metadata path'
+    im_lock "$meta/lock.shell"
+  done
   [ "$original_config" = "$(ir_hash "$i_root/sobaya.json")" ] && [ "$original_lock" = "$(ir_hash "$i_root/sobaya.lock")" ] || i_die 'protected: workspace pin changed before bump acquired locks'
   . "$i_lib/contract.sh"
   for app in "${ib_apps[@]}"; do
@@ -129,8 +180,10 @@ i_bump() {
   cp -p "$i_root/sobaya.lock" "$i_tmp/candidate-sobaya.lock"
   jq --arg version "$target" '.runtime.version=$version' "$i_root/sobaya.json" > "$i_tmp/candidate-sobaya.json"
   jq --argjson pin "$(jq -c .runtime "$i_tmp/candidate.json")" '.runtime=$pin' "$i_root/sobaya.lock" > "$i_tmp/candidate-sobaya.lock"
+  ib_collect_configs || i_die 'validation: unsupported Git config path'
   ib_snapshot > "$i_tmp/before" || i_die 'validation: cannot snapshot consumer'
   ib_backup_metadata || i_die 'validation: cannot preserve approval metadata'
+  ib_backup_configs || i_die 'validation: cannot preserve hook configuration'
   ib_pending=true
   cp -p "$i_tmp/candidate-sobaya.json" "$i_root/sobaya.json"
   cp -p "$i_tmp/candidate-sobaya.lock" "$i_root/sobaya.lock"

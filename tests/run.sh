@@ -44,7 +44,7 @@ while IFS= read -r -d '' file; do
 done < "$TEMP/shell-sources"
 
 for suite in tests/test-contract.sh tests/test-runner.sh tests/test-tools.sh \
-  tests/test-config.sh tests/test-release.sh \
+  tests/test-config.sh tests/test-release.sh tests/test-install-flow.sh \
   tdd-set/tests/next-entry.sh tdd-set/tests/probe-go-imports.sh tdd-set/tests/gate-verbatim.sh; do
   printf '\nRunning %s\n' "$suite"
   bash "$ROOT/$suite"

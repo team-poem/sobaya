@@ -20,7 +20,7 @@ ir_abs() {
 }
 ir_manifest() {
   jq -ces --arg version "$2" '
-    def hex($n): type=="string" and test("\\A[0-9a-f]{\($n)}\\z");
+    def hex($n): type=="string" and test("\\A[0-9a-fA-F]{\($n)}\\z");
     def version: type=="string" and test("\\A(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-(0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(\\.(0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?\\z");
     if length==1 and (.[0]|type)=="object" then .[0] else error("one manifest object required") end
     | select(.manifest_version==1 and .artifact==("sobaya-"+$version+".tar.gz")
@@ -28,6 +28,7 @@ ir_manifest() {
       and (.runtime.commit|hex(40)) and (.runtime.sha256|hex(64)))
   ' "$1" || ir_die 'manifest: invalid release identity'
 }
+ir_identity() { jq -cS '.commit|=ascii_downcase | .sha256|=ascii_downcase'; }
 ir_hash() { shasum -a 256 "$1" | awk '{print $1}'; }
 ir_allowed() {
   case "$1" in
@@ -43,11 +44,11 @@ ir_unpack() {
   local archive=$1 manifest=$2 stage=$3 expected commit name detail type permission path
   unset TAR_OPTIONS
   export LC_ALL=C
-  expected=$(jq -r .runtime.sha256 <<< "$manifest")
+  expected=$(jq -r '.runtime.sha256|ascii_downcase' <<< "$manifest")
   [ "$(ir_hash "$archive")" = "$expected" ] || ir_die 'hash: archive does not match manifest'
   gzip -cd "$archive" > "$stage/raw.tar" || ir_die 'archive: invalid gzip stream'
   commit=$(git get-tar-commit-id < "$stage/raw.tar") || ir_die 'archive: missing Git commit marker'
-  [ "$commit" = "$(jq -r .runtime.commit <<< "$manifest")" ] || ir_die 'archive: commit marker mismatch'
+  [ "$commit" = "$(jq -r '.runtime.commit|ascii_downcase' <<< "$manifest")" ] || ir_die 'archive: commit marker mismatch'
   tar -tf "$stage/raw.tar" > "$stage/names" || ir_die 'archive: cannot list members'
   tar -tvf "$stage/raw.tar" > "$stage/details" || ir_die 'archive: cannot inspect types'
   [ -s "$stage/names" ] || ir_die 'archive: empty payload'
@@ -117,8 +118,8 @@ ir_existing() {
     [ -f "$dest/$name" ] && [ ! -L "$dest/$name" ] || ir_die 'install: incomplete destination'
   done
   retained=$(ir_manifest "$dest/manifest.json" "$(jq -r .runtime.version <<< "$manifest")") || ir_die 'install: invalid retained manifest'
-  [ "$(jq -cS .runtime <<< "$retained")" = "$(jq -cS .runtime <<< "$manifest")" ] || ir_die 'install: different release identity already exists'
-  [ "$(ir_hash "$dest/archive.tar.gz")" = "$(jq -r .runtime.sha256 <<< "$manifest")" ] || ir_die 'install: retained archive is altered'
+  [ "$(jq .runtime <<< "$retained" | ir_identity)" = "$(jq .runtime <<< "$manifest" | ir_identity)" ] || ir_die 'install: different release identity already exists'
+  [ "$(ir_hash "$dest/archive.tar.gz")" = "$(jq -r '.runtime.sha256|ascii_downcase' <<< "$manifest")" ] || ir_die 'install: retained archive is altered'
   ir_tree "$dest/runtime" "$stage" > "$stage/actual"
   ir_tree "$stage/runtime" "$stage" > "$stage/expected"
   cmp -s "$stage/actual" "$stage/expected" || ir_die 'install: installed runtime is altered'
@@ -135,7 +136,7 @@ ir_verified_path() (
   [ -d "$dest" ] && [ ! -L "$dest" ] && [ -f "$dest/manifest.json" ] && [ ! -L "$dest/manifest.json" ] || ir_die 'install: selected runtime is not installed'
   manifest=$(ir_manifest "$dest/manifest.json" "$version")
   if [ -n "$expected" ]; then
-    [ "$(jq -cS .runtime <<< "$manifest")" = "$(jq -cS . <<< "$expected")" ] || ir_die 'install: lock does not match installed identity'
+    [ "$(jq .runtime <<< "$manifest" | ir_identity)" = "$(ir_identity <<< "$expected")" ] || ir_die 'install: lock does not match installed identity'
   fi
   stage=$(mktemp -d "${TMPDIR:-/tmp}/sobaya-verify.XXXXXX")
   trap "rm -rf -- $(printf '%q' "$stage")" EXIT
@@ -171,7 +172,8 @@ ir_install() (
   # Refuse incomplete/conflicting paths before downloading or publishing.
   if [ -e "$dest" ] || [ -L "$dest" ]; then
     [ -d "$dest" ] && [ ! -L "$dest" ] && [ -f "$dest/manifest.json" ] && [ ! -L "$dest/manifest.json" ] || ir_die 'install: destination already exists'
-    [ "$(jq -cS .runtime "$dest/manifest.json")" = "$(jq -cS .runtime <<< "$manifest")" ] || ir_die 'install: conflicting release identity'
+    retained=$(ir_manifest "$dest/manifest.json" "$version")
+    [ "$(jq .runtime <<< "$retained" | ir_identity)" = "$(jq .runtime <<< "$manifest" | ir_identity)" ] || ir_die 'install: conflicting release identity'
   fi
   for path in "$store/runtimes" "$store/bin"; do
     [ ! -L "$path" ] || ir_die 'install: managed path is a symlink'

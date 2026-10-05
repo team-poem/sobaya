@@ -127,7 +127,7 @@ i_init() {
   if [ -e "$i_root/sobaya.json" ] || [ -L "$i_root/sobaya.json" ] || [ -e "$i_root/sobaya.lock" ] || [ -L "$i_root/sobaya.lock" ]; then
     wanted_mode=$i_mode; wanted_version=$i_version
     i_config
-    [ "$i_mode" = "$wanted_mode" ] && [ "$i_version" = "$wanted_version" ] && [ "$(jq -cS .runtime <<< "$i_config_json")" = "$(jq -cS . <<< "$i_pin")" ] || i_die 'connection: existing configuration conflicts; use explicit bump'
+    [ "$i_mode" = "$wanted_mode" ] && [ "$i_version" = "$wanted_version" ] && [ "$(jq .runtime <<< "$i_config_json" | ir_identity)" = "$(ir_identity <<< "$i_pin")" ] || i_die 'connection: existing configuration conflicts; use explicit bump'
   fi
   jq -n --arg root "$i_root" --arg store "$i_store" --arg mode "$i_mode" --arg app "$i_app" '{connection_version:1,root:$root,store:$store,mode:$mode,app:$app}' > "$i_tmp/connection"
   if [ -e "$i_meta/connection.json" ] || [ -L "$i_meta/connection.json" ]; then
@@ -140,6 +140,7 @@ i_init() {
     jq --arg app "$i_app" '.+[$app]|unique' "$registry" > "$i_tmp/registry"
   else jq -n --arg app "$i_app" '[$app]' > "$i_tmp/registry"; fi
   ih_prepare
+  im_lock "$root_meta/lock.shell"
   im_lock "$i_meta/lock.shell"
   if [ ! -e "$i_root/sobaya.json" ]; then i_write "$i_tmp/config" "$i_root/sobaya.json"; i_write "$i_tmp/lock" "$i_root/sobaya.lock"; fi
   i_write "$i_tmp/connection" "$i_meta/connection.json"
