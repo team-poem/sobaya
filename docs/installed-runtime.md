@@ -1,6 +1,6 @@
 # 설치된 Sobaya 사용하기
 
-v1 설치 흐름의 사용 안내입니다. 아래 `1.0.0-rc.1`과 `1.0.0-rc.2`는 명령 예시이며, 해당 버전이 공개됐다는 뜻이 아닙니다. 실제로 확보하고 신뢰한 배포 파일의 버전과 경로로 바꾸세요.
+설치형 시험판 [`v1.0.0-rc.1`](https://github.com/team-poem/sobaya/releases/tag/v1.0.0-rc.1)의 사용 안내입니다. 안정판은 `v0.9.0`입니다. 아래 bump 예시의 `1.0.0-rc.2`는 설명용이며 아직 공개된 버전이 아닙니다.
 
 모드와 버전은 **Sobaya를 사용하는 각 작업 공간**의 `sobaya.json`과 `sobaya.lock`으로 정합니다. 같은 설치 저장소를 쓰는 다른 작업 공간의 모드·버전까지 바뀌지 않습니다. 개인 설치 경로는 이 두 공유 파일에 기록하지 않습니다.
 
@@ -9,6 +9,8 @@ v1 설치 흐름의 사용 안내입니다. 아래 `1.0.0-rc.1`과 `1.0.0-rc.2`�
 실행기에는 Bash 3.2, jq, Git, 표준 Unix 도구가 필요합니다. 설치에는 `tar`, `gzip`, `shasum`을 사용하며 다운로드할 때는 `curl`도 필요합니다. 개발 실행의 잠금에는 macOS/BSD의 `shlock` 또는 Linux의 `flock`이 필요합니다. 앱의 테스트 도구·의존성과 정책에 지정한 작업자 실행기는 별도로 준비합니다.
 
 부트스트랩 스크립트와 릴리스 매니페스트는 별도로 신뢰할 수 있는 경로에서 확보합니다. 설치기는 매니페스트를 원격에서 자동으로 가져와 신뢰하지 않습니다.
+
+처음 설치할 때는 [시험판 릴리스 페이지](https://github.com/team-poem/sobaya/releases/tag/v1.0.0-rc.1)에서 `install-runtime.sh`, `sobaya-1.0.0-rc.1.json`, `sobaya-1.0.0-rc.1.tar.gz`를 받습니다. 릴리스 노트에 기록한 SHA-256과 비교하고 아래 경로를 받은 파일에 맞춥니다. GitHub의 자동 생성 Source code 압축 파일은 설치용 아카이브가 아닙니다.
 
 ```bash
 consumer_root="/absolute/path/to/existing-consumer"
