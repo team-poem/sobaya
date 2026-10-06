@@ -1,9 +1,10 @@
 # Versioned project and dependency modes
 
-Status: architecture and the first four configuration-check entries authorized
-on 2026-10-02. See [the exact approval record](config-approval.md). All four
-entries are implemented and the integrated full suite passes. Later tranches
-remain unapproved drafts. See [validation evidence](config-validation.md).
+Status: architecture, four configuration-check entries, and four local release
+packaging entries authorized on 2026-10-02 and implemented. See the exact
+approval records ([configuration](config-approval.md), [packaging](release-approval.md))
+and validation evidence ([configuration](config-validation.md), [packaging](release-validation.md)).
+Installation, init, dispatch and bump still require reviewed executable tests.
 The detailed human-facing decisions are in
 [the Korean design](../../../docs/plans/sobaya-v1-design.md).
 
@@ -61,10 +62,52 @@ current review view now use language-appropriate `// ┎` or `# ┎` comments.
 Removing only the added review explanations still reproduces the approved
 source exactly; no runtime stripping or approved-test edit was introduced.
 
+## Implemented release packaging tranche
+
+PR #6 was merged as 3c9456d. The human requested continuation. Read-only
+inspection found that init needs actual distribution commit/hash evidence
+before it can create a meaningful lock. The existing hook embeds a checkout
+path and doctor assumes a Git workspace, so introducing local init first
+would either fake release identity or prematurely redesign dispatch.
+
+Implement a local release packer before mode integration. See
+[approved executable source](draft-release-tests.sh) and
+[Korean annotated review](../../../docs/plans/sobaya-v1-release-review.md).
+Four approved entries cover the pinned runtime archive and sidecar manifest,
+repeatability/source isolation, invalid identity or payload, and preserving
+existing outputs/source state. The human explicitly approved implementation
+after the issue #4 rewrite; approval and verbatim materialization are c0afa00.
+scripts/package-release.sh implements these entries and tests/run.sh includes
+tests/test-release.sh. The approved test and review code remain unchanged.
+
+The packer uses an explicit source root, exact release version, full commit,
+matching local version tag, and a new output directory outside the source.
+Its allowlist excludes workspace content and uses canonical tdd-set skills.
+The manifest retains the existing runtime version/commit/sha256 tuple. A
+checksum establishes identity, not authenticity. Full init/doctor/hook
+usability and trusted release retrieval still need subsequent tests.
+
+Draft checks: Bash 3.2 syntax and annotation/source equivalence pass; the
+missing package-release.sh is NOT PROBED, not RED/GREEN. All four entries
+reject an always-successful no-op control. No live network or model work
+is part of these probes. Independent draft review found permission-bit and
+output-symlink-target snapshot gaps plus a Git prerequisite-order issue.
+All were fixed before approval; adversarial controls now fail as intended,
+while a non-mutating diagnostic control can traverse the error fixtures.
+Re-review found no remaining findings at draft SHA-256
+bdc855b56d44cbb1dc60fdc1e256fa647a55dcb560a76906521a27e680473f24.
+Those were test-draft checks, not packer RED/GREEN evidence. The subsequent
+actual failures and full-suite checkpoints are recorded in release-validation.md.
+The private shared clone overrides export attributes without changing source
+configuration. Temporary files are staged beside the output, then mkdir claims
+a new output directory. This does not guarantee crash-atomic visibility of both
+files or safety under concurrent source mutation/object pruning.
+
 ## Subsequent work
 
-Mode-specific init and hook/instruction composition; versioned distribution,
-locked dispatch and bump; upgrade failure recovery and 0.9/1.0/0.9 state+hook
+Verified installation and mode-specific
+init with hook/instruction composition; locked dispatch and bump; upgrade
+failure recovery and 0.9/1.0/0.9 state+hook
 compatibility; performance comparison; prerelease consumer validation. Keep
 runtime installations immutable during active runs. State version 1, approval
 baselines, accumulated calls and interrupted entries need compatibility tests.
@@ -78,7 +121,9 @@ cloud-native-go repository is still unknown and does not block core planning.
 
 ## Workspace
 
-Work on codex/sobaya-v1-design in the attached sobaya-v1-plan managed worktree.
+The configuration PR was merged. Continue on codex/sobaya-v1-release-plan
+from origin/main in the existing sobaya-v1-plan managed worktree.
 The original checkout contains unrelated user changes and must remain intact.
-The first four entries are approved; no app approval/checkpoint state is being
-changed. Further test proposals remain drafts until separately reviewed.
+The four configuration and four packaging entries are approved; no app
+approval/checkpoint state is being changed. Further test proposals remain
+drafts until separately reviewed.
