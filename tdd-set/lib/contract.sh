@@ -7,7 +7,8 @@ contract_index_safe() {
   local listing hidden
   # -v lowercases assume-unchanged entries; S marks skip-worktree. These
   # flags can make git status and git add hide a different working file.
-  listing=$(set -o pipefail; git -C "$1" ls-files -v -z | jq -Rs 'split("\u0000")[:-1]') || return 1
+  # jq 1.6 raw slurp trims terminal NULs; keep a disposable final record.
+  listing=$(set -o pipefail; { git -C "$1" ls-files -v -z || exit; printf '.'; } | jq -Rs 'split("\u0000")[:-1]') || return 1
   hidden=$(printf '%s' "$listing" | jq -r '.[]|select(test("^[a-zS] "))') || return 1
   [ -z "$hidden" ] || { sb_error "Unsafe index flags hide tracked files (skip-worktree/assume-unchanged): $hidden"; return 1; }
 }
@@ -78,9 +79,10 @@ contract_protected() {
   return 1
 }
 _contract_test_source() { case "$1" in *_test.go|*_test.py|test_*.py|*/test_*.py|*.test.*|*.spec.*) return 0;; esac; return 1; }
-_contract_tree() {
-  git -C "$1" ls-tree -rz "$2" | jq -Rs 'split("\u0000")[:-1]|map(capture("^(?<mode>[^ ]+) (?<kind>[^ ]+) (?<oid>[^\t]+)\t(?<path>.*)$";"s"))|map({key:.path,value:{mode,kind,oid}})|from_entries'
-}
+_contract_tree() (
+  set -o pipefail
+  { git -C "$1" ls-tree -rz "$2" || exit; printf '.'; } | jq -Rs 'split("\u0000")[:-1]|map(capture("^(?<mode>[^ ]+) (?<kind>[^ ]+) (?<oid>[^\t]+)\t(?<path>.*)$";"s"))|map({key:.path,value:{mode,kind,oid}})|from_entries'
+)
 _contract_additions() {
   local name=$1 old=$2 new=$3 explicit=$4 tmp=$5 total first bytes last
   cmp -s "$old" "$new" && return 0
@@ -131,7 +133,10 @@ contract_sources() (
     [ "$matches" = true ] || { sb_error "Approved test is not verbatim in its committed file: $name"; exit 1; }
   done < <(jq -c '.[]|select(.checked)' "$entries")
 )
-_contract_words() { awk -f "$CONTRACT_LIB/shell-words.awk" "$1" | jq -Rs 'split("\u0000")[:-1]'; }
+_contract_words() (
+  set -o pipefail
+  { awk -f "$CONTRACT_LIB/shell-words.awk" "$1" || exit; printf '.'; } | jq -Rs 'split("\u0000")[:-1]'
+)
 _contract_command() (
   set -o pipefail
   local app=$1 tmp argv exe second script extras
