@@ -74,6 +74,10 @@ r_acquire() {
     else
         r_die 'Install shlock (macOS/BSD) or flock (Linux) for an atomic process lock.'
     fi
+    if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then
+        [ -f "$SOBAYA_WORKSPACE_ROOT/sobaya.json" ] && [ ! -L "$SOBAYA_WORKSPACE_ROOT/sobaya.json" ] && [ -f "$SOBAYA_WORKSPACE_ROOT/sobaya.lock" ] && [ ! -L "$SOBAYA_WORKSPACE_ROOT/sobaya.lock" ] || r_die 'Protected workspace pin changed before acquiring the app lock.'
+        [ "$(r_hash < "$SOBAYA_WORKSPACE_ROOT/sobaya.json")" = "$SOBAYA_SELECTED_CONFIG_SHA" ] && [ "$(r_hash < "$SOBAYA_WORKSPACE_ROOT/sobaya.lock")" = "$SOBAYA_SELECTED_LOCK_SHA" ] || r_die 'Protected workspace pin changed before acquiring the app lock; retry explicit runtime selection.'
+    fi
     sb_assert_no_orphan "$r_meta/worker.json" || r_die 'Prior worker group is still alive or cannot be verified; inspect worker.json before continuing.'
 }
 r_hash() {
@@ -83,6 +87,7 @@ r_snapshot() {
     local protected=${1:-false} name value mode targets
     targets=$(contract_plan "$r_app" | jq -c '[.[].target|select(.!=null)]') || return 1
     r_git ls-files -z --cached --others --exclude-standard > "$r_tmp/snapshot-paths" || return 1
+    {
     while IFS= read -r -d '' name; do
         if [ "$protected" = true ]; then
             case "/$name" in
@@ -98,7 +103,19 @@ r_snapshot() {
         elif [ -e "$r_app/$name" ]; then value=directory
         else value=missing; fi
         jq -nc --arg key "$name" --arg value "$value" '{key:$key,value:$value}'
-    done < "$r_tmp/snapshot-paths" | jq -sc 'from_entries'
+    done < "$r_tmp/snapshot-paths"
+    if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then
+        for name in "$SOBAYA_WORKSPACE_ROOT/sobaya.json" "$SOBAYA_WORKSPACE_ROOT/sobaya.lock"; do
+            if [ -L "$name" ]; then value="symlink:$(readlink "$name")"
+            elif [ -f "$name" ]; then
+                if mode=$(stat -f '%Lp' "$name" 2>/dev/null) && [[ "$mode" =~ ^[0-7]+$ ]]; then :; else mode=$(stat -c '%a' "$name"); fi
+                value="$((8#$mode)):$(r_hash < "$name")"
+            elif [ -e "$name" ]; then value=directory
+            else value=missing; fi
+            jq -nc --arg key "$name" --arg value "$value" '{key:$key,value:$value}'
+        done
+    fi
+    } | jq -sc 'from_entries'
 }
 r_same() { jq -e --argjson b "$2" '.==$b' <<< "$1" >/dev/null; }
 r_verify_active() {
@@ -191,6 +208,9 @@ r_checked_suite() {
 }
 r_prompt() {
     local name=$1 role=$2 entry=$3
+    if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then
+        printf 'Installed connection (%s): read %s/tdd-set/AGENTS.md, %s/AGENTS.md and %s/AGENTS.md. The workspace selects the pinned runtime; preserve its sobaya.json and sobaya.lock.\n' "$SOBAYA_CONNECTION_MODE" "$r_root" "$SOBAYA_WORKSPACE_ROOT" "$r_app"
+    fi
     if [ "$role" = review ]; then
         printf 'Read %s/AGENTS.md and the app AGENTS.md. Independently review the diff in %s from %s to HEAD. Use a fresh review context. Read only; do not edit or commit. Refute correctness, scope, test coverage and requirements. Return done only if no actionable findings remain, defect for concrete findings, handoff if review cannot finish. Include file/line evidence in summary. Return JSON with status, summary, reason.\n' "$r_root" "$r_app" "$(jq -r .baseline <<< "$r_state")"
     else
@@ -265,6 +285,9 @@ r_commit_active() {
         head=$(r_git rev-parse HEAD)
     fi
     [ "$(r_git rev-list --parents -n 1 "$head")" = "$head $old" ] && [ "$(r_git rev-parse 'HEAD^{tree}')" = "$(jq -r .active.tree <<< "$r_state")" ] || r_die 'Committed tree or parent differs from the verified checkpoint; inspect without resetting baseline.'
+    if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then
+        r_same "$(r_snapshot)" "$(jq -c .active.verified_content <<< "$r_state")" || r_die 'Protected checkpoint content changed during commit hooks; inspect preserved edits.'
+    fi
     contract_gate "$r_app" "$(jq -r .baseline <<< "$r_state")" false false >/dev/null
     r_state=$(jq --arg head "$head" '.receipts += [(.active.receipt+{head:$head,before:.active.head})] | .active=null | .review=null | .status="checkpoint"' <<< "$r_state"); r_save
     printf 'Checkpoint %s: %s\n' "$name" "$head"
@@ -336,7 +359,11 @@ r_review() {
     local worker=$1 head before
     r_clean
     jq -e '.active==null' <<< "$r_state" >/dev/null || r_die 'Cannot review an unfinished entry.'
+    if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then before=$(r_snapshot); fi
     contract_gate "$r_app" "$(jq -r .baseline <<< "$r_state")" true true > "$r_tmp/gate.json"
+    if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then
+        r_same "$before" "$(r_snapshot)" || r_die 'Protected workspace pin or source changed during final gate.'
+    fi
     head=$(r_git rev-parse HEAD)
     if [ "$(jq -r '.review.head//empty' <<< "$r_state")" = "$head" ]; then printf 'PASS — existing independent review matches HEAD.\n'; return; fi
     before=$(r_snapshot)
@@ -378,8 +405,14 @@ case "$r_command" in
     status) r_load; jq --arg head "$(r_git rev-parse HEAD)" --argjson entries "$(contract_plan "$r_app")" --arg dirty "$(r_git status --porcelain)" '.+{head:$head,pending:[$entries[]|select(.checked|not)|.name],dirty:($dirty!="")}' <<< "$r_state"; exit;;
     doctor)
         r_policy_load
-        bash "$r_root/scripts/workspace-check.sh" "$r_root"
-        bash "$r_root/scripts/setup.sh" "$r_root" --check --app "$r_app"
+        if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then
+            if [ "$SOBAYA_CONNECTION_MODE" = project ]; then
+                bash "$r_root/scripts/workspace-check.sh" "$SOBAYA_WORKSPACE_ROOT" --app "$r_app"
+            fi
+        else
+            bash "$r_root/scripts/workspace-check.sh" "$r_root"
+            bash "$r_root/scripts/setup.sh" "$r_root" --check --app "$r_app"
+        fi
         while IFS= read -r arg; do (cd "$r_app" && command -v "$arg" >/dev/null) || r_die "Worker executable unavailable: $arg"; done < <(jq -r '.workers[]|if .adapter=="codex" then "codex" else .command[0] end' <<< "$r_policy")
         r_clean; printf 'Local setup checks passed. No paid worker call was made.\n'; exit;;
     approve|step|loop|review) ;;

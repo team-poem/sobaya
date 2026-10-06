@@ -67,7 +67,7 @@ tdd-set/bin/gate.sh apps/example
 [`economy.example.json`](tdd-set/policies/economy.example.json)은 Sol로 구현하고
 진단 인계가 있을 때 Astra로 전환하며, 최종 리뷰는 Astra가 맡는 예제입니다.
 
-## 작업 공간 설정 검사 (v1 개발 중)
+## 버전별 설치 (v1 개발 중)
 
 `bin/sobaya config check --root PATH`는 작업 공간의 `sobaya.json`과 JSON
 형식의 `sobaya.lock`을 읽습니다. 명시한 `project`/`dependency` 모드, 정확한
@@ -81,9 +81,19 @@ tdd-set/bin/gate.sh apps/example
 [승인한 명령과 파일 범위](docs/plans/sobaya-v1-release-review.md)를 참고하세요.
 원본과 기존 출력 경로를 보존하며 게시나 설치는 수행하지 않습니다.
 
-검증한 파일 설치, 최초 연결, 고정 실행기 호출과 버전 bump는
-[v1 설계](docs/plans/sobaya-v1-design.md)의 후속 작업이며,
-개발에는 위의 기존 명령을 사용합니다.
+`bash tdd-set/lib/install-runtime.sh`는 별도로 신뢰한 매니페스트와 배포 파일을
+검증해 소비 작업 공간 밖에 버전별로 설치합니다. 설치된 `bin/sobaya`는 `init`,
+`sync`, 기존 실행 명령, 명시적 `bump`를 지원하며 각각 `--root`와
+`--install-root`를 받습니다. 프로젝트 모드는 기존 `apps/<name>` 저장소를,
+종속 모드는 소비 저장소 자체를 연결합니다. 모드와 고정 버전은 작업 공간별입니다.
+
+`bump`는 연결된 모든 앱의 전체 테스트와 포맷·린트 검사로 후보 버전을 검증하고,
+승인·사용량 기록을 보존합니다. 성공하면 설정 두 파일을 검토용 변경으로 남기고,
+검증 실패 시 복구하며, 진행 중인 항목이 있으면 거부합니다. 기존 지침과 지원하는
+Git 훅도 보존합니다. 명령과 제약은 [설치 안내](docs/installed-runtime.md)에
+있습니다. 위의 소스 체크아웃 방식도 계속 사용할 수 있습니다. v1은 아직
+출시하지 않았으며 실제 v0.9 왕복 호환성·소비 측 시험·성능 비교는 출시 전
+검증으로 남습니다.
 
 ## 보호하는 경계
 

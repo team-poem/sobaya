@@ -67,7 +67,7 @@ call. See the runtime reference for explicit Go missing-symbol RED approval and
 [`economy.example.json`](tdd-set/policies/economy.example.json) for Sol execution
 with diagnostic handoff to Astra and an Astra review.
 
-## Workspace configuration (v1 development)
+## Versioned installations (v1 development)
 
 `bin/sobaya config check --root PATH` reads the workspace's `sobaya.json`
 and JSON `sobaya.lock`. It validates the explicit `project`/`dependency` mode,
@@ -82,9 +82,21 @@ SHA-256 manifest in a new directory outside the source. See the
 [approved command and file scope](docs/plans/sobaya-v1-release-review.md).
 The source and existing output paths are preserved; it does not publish or install.
 
-Verified installation, initialization, pinned runtime dispatch and version bumps
-are subsequent parts of the [v1 design](docs/plans/sobaya-v1-design.md);
-the existing commands above remain the development workflow.
+`bash tdd-set/lib/install-runtime.sh` verifies a separately trusted manifest and
+release archive, then installs an isolated version outside the consumer. The
+installed `bin/sobaya` supports `init`, `sync`, the existing runtime commands,
+and explicit `bump`; each takes `--root` and `--install-root`. Project mode
+connects existing `apps/<name>` repositories; dependency mode connects the
+consumer repository itself. Modes and pins belong to each consumer workspace.
+
+`bump` validates the candidate with every connected app's full suite and hygiene
+checks, preserving approval and usage. It leaves the two pin files for review
+on success, restores them on validation failure, and refuses active entries.
+Existing instructions and supported Git hooks are preserved. See the
+[installation guide](docs/installed-runtime.md) for commands and constraints.
+The source-checkout workflow above remains available. v1 is not yet published;
+real v0.9 round-trip compatibility, consumer trials and performance comparison
+remain release checks.
 
 ## What is protected
 

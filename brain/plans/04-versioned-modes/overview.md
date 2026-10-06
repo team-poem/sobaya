@@ -4,7 +4,8 @@ Status: architecture, four configuration-check entries, and four local release
 packaging entries authorized on 2026-10-02 and implemented. See the exact
 approval records ([configuration](config-approval.md), [packaging](release-approval.md))
 and validation evidence ([configuration](config-validation.md), [packaging](release-validation.md)).
-Installation, init, dispatch and bump still require reviewed executable tests.
+Installation, init, dispatch and bump tests were subsequently approved on
+2026-10-05; their implementation is recorded in install-flow-validation.md.
 The detailed human-facing decisions are in
 [the Korean design](../../../docs/plans/sobaya-v1-design.md).
 
@@ -103,11 +104,29 @@ configuration. Temporary files are staged beside the output, then mkdir claims
 a new output directory. This does not guarantee crash-atomic visibility of both
 files or safety under concurrent source mutation/object pruning.
 
-## Subsequent work
+## Installed runtime tranche
 
-Verified installation and mode-specific
-init with hook/instruction composition; locked dispatch and bump; upgrade
-failure recovery and 0.9/1.0/0.9 state+hook
+The human explicitly requested resuming installation, mode connection and bump
+on 2026-10-04. Tests for all three stages were presented as
+one review packet: [plan](install-flow-plan.md), [draft](draft-install-flow-tests.sh),
+[Korean review](../../../docs/plans/sobaya-v1-install-flow-review.md).
+The exact twelve entries and shared support were approved on 2026-10-05 after
+PR #8's complete review view; see [approval](install-flow-approval.md).
+The implementation provides the standalone verified installer, workspace-local
+project/dependency connections, original hook forwarding and worktree isolation,
+exact installed dispatch, reviewed-lock sync, and candidate-runtime bump checks
+across all connected apps. Shared locks coordinate init, runtime and bump.
+Candidate failure restores pins, protected approval metadata and Git hook
+configuration; active entries cannot bump. No automatic commit or reapproval.
+The source, review and materialized tests remain byte-identical after removing
+only review explanations. Checkpoint and final-review evidence is recorded in
+[install-flow-validation.md](install-flow-validation.md); the practical Korean
+guide is [installed-runtime.md](../../../docs/installed-runtime.md).
+
+## Remaining release work
+
+After the installed-flow packet: crash
+recovery and actual 0.9/1.0/0.9 state+hook
 compatibility; performance comparison; prerelease consumer validation. Keep
 runtime installations immutable during active runs. State version 1, approval
 baselines, accumulated calls and interrupted entries need compatibility tests.
@@ -121,9 +140,11 @@ cloud-native-go repository is still unknown and does not block core planning.
 
 ## Workspace
 
-The configuration PR was merged. Continue on codex/sobaya-v1-release-plan
-from origin/main in the existing sobaya-v1-plan managed worktree.
+The configuration PR was merged. Remote checks on 2026-10-04 found PR #7 open
+at f6e0766 and main still at 3c9456d. Continue on codex/sobaya-v1-install-plan
+from f6e0766 in the existing sobaya-v1-plan managed worktree; stack its draft PR
+on PR #7 without claiming either a merge or a v1 release.
 The original checkout contains unrelated user changes and must remain intact.
-The four configuration and four packaging entries are approved; no app
-approval/checkpoint state is being changed. Further test proposals remain
-drafts until separately reviewed.
+The four configuration, four packaging and twelve installed-flow entries are
+approved. No real consumer app approval/checkpoint state is being changed.
+Further test proposals remain drafts until separately reviewed.
