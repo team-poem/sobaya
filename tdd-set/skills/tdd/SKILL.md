@@ -55,43 +55,40 @@ why it is already satisfied. Do not silently repair a human test.
 ## Human review view
 
 Apply this presentation to every initial draft, revised draft, and replacement
-proposal during a TDD run. Keep executable headers and test bodies in the plan
-without the added review explanations. Necessary source comments remain part
-of the executable inputs and are protected on approval.
+proposal during a TDD run. Show each complete original source block continuously,
+then explain its design in Korean outside the code. Identify the plan entry and
+destination. Preserve code, comments, whitespace, and order; never insert review
+comments, line numbers, or explanations into the code.
 
-Create the human-facing copy from those exact executable blocks. Label it
-"검토용 — 설명 주석은 실행 코드에 포함되지 않음" and identify the plan entry
-and destination file. Insert standalone Korean explanation comments marked
-with `┎` immediately above each meaningful code line: test declaration, inputs,
-setup, actions, branches, and assertions. Explain multiline expressions at their meaningful
-parts; blank lines and closing delimiters do not need explanations. Explain
-behavior and concrete expectations rather than translating syntax. State what
-fixtures, mocks, clocks, and helpers assume or bypass. Include shared headers
-and required support in the review, explaining shared code once before its
-entries and pointing to it from dependent tests. Use the language's comment
-syntax (`// ┎ 설명` for Go/JavaScript, `# ┎ 설명` for Bash), keeping the marker
-aligned with the following code line's indentation.
+Account for every physical line with contiguous, nonoverlapping ranges, including
+headers, helpers, fixtures, blank lines, and closing delimiters. Assign blanks and
+delimiters to a neighboring range. Grouping setup/action/assertion is optional;
+neither grouping nor an importance judgment may omit lines or hide distinct
+choices in a generic summary. Explain shared support once and explicitly link
+every dependent entry to it. Inventory all required source blocks before review;
+line coverage of one block does not establish that the inventory is complete.
 
-Preserve all original code, source comments, whitespace, and ordering in this
-copy; do not abbreviate, rename, reformat, or replace code with pseudocode.
-Before showing it, compare it with the executable input: removing only the
-newly inserted explanation lines must recover the exact original block.
-Check that each explanation describes what the adjacent code actually does
-or verifies; a response-status assertion does not prove a visible UI message.
-Surface unresolved expectations for the human instead of asserting them as
-settled requirements.
+For each range, explain what it does, why it is designed that way, the basis of
+its values, conditions, mocks, and expectations, and its contribution to the
+test's evidence and limits. Distinguish requirements from illustrative choices,
+assumptions, and unresolved expectations. Do not invent a rationale or claim
+evidence beyond the actual assertions. A response-status check does not prove a
+visible UI message.
 
-Deliver this view in the conversation or a separate review document, never as
-extra executable fences in `failed-test.md`. Probe, approve, and materialize
-only the underlying executable inputs. Approval is of the code shown through
-this view; do not strip comments from or otherwise rewrite approved inputs.
-Any subsequent code change requires an updated view and renewed approval.
+Read [`references/human-review.md`](references/human-review.md) when preparing
+this view: it defines the source inventory, rationale fields, and
+`tdd-set/bin/review-view.sh SOURCE NOTES_JSON OUTPUT.md`. The helper creates a
+separate Markdown document and checks source identity and complete line coverage;
+it cannot judge the rationale or discover omitted source blocks. Deliver the
+view in conversation or a separate document, never as extra executable fences
+in `failed-test.md`. Probe, approve, and materialize the exact executable inputs;
+the runtime never strips comments or reformats them.
 
-For a replacement, explain why it is needed and which expectations change,
-then show the complete proposed blocks with the same annotations. Keep the
-current approved baseline intact until the human approves the replacement.
-An implementation or environment failure alone does not require test changes
-or another approval. See the Korean presentation example in
+For a replacement, state why it is needed and which expectations change, then
+show the same complete code and rationale review. Preserve the current approved
+plan, tests, and support until the human approves the changed inputs and baseline.
+Any subsequent code change needs an updated view and renewed approval; an
+implementation or environment failure alone does not. See the Korean example in
 [`docs/guide.md`](../../../docs/guide.md#주석으로-테스트-검토하기).
 
 ## After approval
