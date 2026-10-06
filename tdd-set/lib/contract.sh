@@ -81,7 +81,7 @@ contract_protected() {
 _contract_test_source() { case "$1" in *_test.go|*_test.py|test_*.py|*/test_*.py|*.test.*|*.spec.*) return 0;; esac; return 1; }
 _contract_tree() (
   set -o pipefail
-  { git -C "$1" ls-tree -rz "$2" || exit; printf '.'; } | jq -Rs 'split("\u0000")[:-1]|map(capture("^(?<mode>[^ ]+) (?<kind>[^ ]+) (?<oid>[^\t]+)\t(?<path>.*)$";"s"))|map({key:.path,value:{mode,kind,oid}})|from_entries'
+  { git -C "$1" ls-tree -rz "$2" || exit; printf '.'; } | jq -Rs 'split("\u0000")[:-1]|map(capture("^(?<mode>[^ ]+) (?<kind>[^ ]+) (?<oid>[^\t]+)\t(?<path>.*)$";"m"))|map({key:.path,value:{mode,kind,oid}})|from_entries'
 )
 _contract_additions() {
   local name=$1 old=$2 new=$3 explicit=$4 tmp=$5 total first bytes last
