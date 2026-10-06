@@ -35,8 +35,10 @@ existing policy validity, exact-input protection and draft-probe classification.
 Independent review found no remaining runtime issues at exact 8ce4f1d2 and no
 new actionable documentation issue. It confirmed the unchanged approved hashes,
 Linux final suite and supplementary evidence, and bounded migration/performance
-claims. The final macOS result was subsequently confirmed below; final document
-revision binding follows documentation commit.
+claims. Final completion review at 2d249fb447c9fbd2d8ce3bca5c860df055a06777
+confirmed the macOS/Linux suite results, cross-platform artifact installation,
+unchanged runtime bytes, clean checkout and accurate release/adoption limits;
+no actionable findings remained. The subsequent edit only records this receipt.
 
 ## Integrated results
 
