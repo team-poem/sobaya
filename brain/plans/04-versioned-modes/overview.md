@@ -125,7 +125,7 @@ guide is [installed-runtime.md](../../../docs/installed-runtime.md).
 
 ## Release preparation
 
-PR #7 and #8 were merged; main is 2d425116. Release exploration is recorded in
+PR #7/#8/#9 were merged; the rc.1 source is d0638454. Release exploration is recorded in
 [the Korean readiness report](../../../docs/plans/sobaya-v1-release-readiness.md).
 The actual v0.9 project-mode completed-state round trip preserved approval,
 calls and usage with manual restoration of the original hooksPath. Active
@@ -157,14 +157,26 @@ migration PR for connections, hook/worktree handling, lock ownership and
 upstream release notifications. The template's own shell suites are outside
 the current Go/Node/Vitest contract; supporting generated apps and treating the
 template itself as an app are separate decisions. Do not invent main-branch
-spec/plan approval. The first consumer selection and exact cloud-native-go
-address are pending; no consumer mutation has been performed.
+spec/plan approval. The user authorized proceeding after PR #9. Poem is the stated
+first candidate; its main has advanced to 1ebbf5f3 and unchanged suites pass
+84/48/32 cases. A scope question is pending: generated Go/Node projects first,
+or adding support for the template's own shell suite. The exact cloud-native-go
+address remains unknown. No consumer implementation or real approval has been performed.
+
+## Published prerelease
+
+v1.0.0-rc.1 was published on 2026-10-06 from d06384544e81cd373d81e2a940ab336868e04854,
+with independently reviewed, freshly rebuilt archive/manifest/bootstrap. Draft
+downloads match local bytes; unauthenticated public downloads and the installer's
+real archive retrieval pass. v0.9.0 remains latest stable. See
+[rc1-publication.md](rc1-publication.md) for exact identity and verification.
+Actual consumer integration and real-model comparison remain pending.
 
 ## Workspace
 
-Continue release preparation on codex/sobaya-v1-release-readiness in the
-existing sobaya-v1-plan managed worktree. v0.9.0 remains the published release;
-local prerelease archives and isolated tags are diagnostics, not publication.
+Continue publication documentation on codex/sobaya-rc1-publication in the
+existing sobaya-v1-plan managed worktree. The public rc.1 is distinct from the
+earlier local diagnostic candidates, which used different commits and hashes.
 The original checkout contains unrelated user changes and must remain intact.
 The four configuration, four packaging and twelve installed-flow entries are
 approved. No real consumer app approval/checkpoint state is being changed.
