@@ -59,6 +59,12 @@ Evidence: /private/tmp/sobaya-rc1-publish.LZ5rI2/ contains source, reviewed
 assets/notes, repeat receipts, draft-download, public-download, published.json,
 published-tag.json, latest.json and public-install.json.
 
+Final independent documentation/evidence review at
+3c0e5d94518455168727941f506cbf550354338e found no actionable findings. It verified
+the published bytes, both-mode fixture receipts and unchanged approved inputs.
+Its own live API was unavailable, so it used the primary agent's captured live
+publication assertions and downloaded bytes for remote-state conclusions.
+
 ## Consumer preflight and next decision
 
 Poem main is 1ebbf5f350be98d0d4c9fd8915cde753d90a66ce. Its unchanged suites pass
