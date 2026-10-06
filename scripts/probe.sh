@@ -86,7 +86,7 @@ elif [ "$vitest" = 1 ]; then
 else
   execute "$root" node --check "$probe"
   [ "$rc" = 0 ] || { cat "$tmp/combined"; error 'Node syntax/runtime error'; }
-  execute "$root" node --test "--test-name-pattern=^$pattern\$" "${probe#"$root/"}"
+  execute "$root" node --test --test-reporter=spec "--test-name-pattern=^$pattern\$" "${probe#"$root/"}"
   cp "$tmp/combined" "$tmp/diagnostics"
 fi
 cat "$tmp/diagnostics"

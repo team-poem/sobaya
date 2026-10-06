@@ -48,7 +48,7 @@ r_load() {
 r_policy_load() {
     r_policy=$(jq -e '
       def positive: type=="number" and floor==. and .>0;
-      def string: type=="string" and test("\\S") and (contains("\u0000")|not);
+      def string: type=="string" and test("\\S") and ((explode|index(0))==null);
       select(type=="object" and .version==1 and (.mode=="selected" or .mode=="quality" or .mode=="economy"))
       | select((.max_calls|positive) and (.timeout_seconds|positive))
       | select((.workers|type)=="object" and (.workers|length)>0)

@@ -123,27 +123,48 @@ only review explanations. Checkpoint and final-review evidence is recorded in
 [install-flow-validation.md](install-flow-validation.md); the practical Korean
 guide is [installed-runtime.md](../../../docs/installed-runtime.md).
 
-## Remaining release work
+## Release preparation
 
-After the installed-flow packet: crash
-recovery and actual 0.9/1.0/0.9 state+hook
-compatibility; performance comparison; prerelease consumer validation. Keep
-runtime installations immutable during active runs. State version 1, approval
-baselines, accumulated calls and interrupted entries need compatibility tests.
-No performance threshold or guarantee has been invented; measure the existing
-baseline, then expose comparison evidence before release.
+PR #7 and #8 were merged; main is 2d425116. Release exploration is recorded in
+[the Korean readiness report](../../../docs/plans/sobaya-v1-release-readiness.md).
+The actual v0.9 project-mode completed-state round trip preserved approval,
+calls and usage with manual restoration of the original hooksPath. Active
+entries reject cross-version resume before another worker call; same-origin
+resume still works. Installed snapshots add workspace pin paths. Existing v0.9
+managed hooks remain live dependencies and cause duplicate hygiene under the
+v1 forwarding hook. This is not a demonstrated dependency-mode round trip or
+an installable v0.9 downgrade. Do not erase snapshots or reapprove to bypass it.
 
-Consumer evidence: poem-collaboration-harness-template already records repo/sha
-in harness/sobaya.lock, but sync currently pulls its branch and only warns on
-lock mismatch. Its integration must later be updated separately. The exact
-cloud-native-go repository is still unknown and does not block core planning.
+Three interleaved source-workflow measurements per revision passed the exact
+unchanged runner fixture. Medians: v0.9 4.099s, main 4.274s. Small sample,
+overlapping ranges and concurrent VM setup prevent a performance verdict.
+Installed dispatch and real-model cost/quality remain unmeasured. No threshold
+has been invented. Crash-atomic two-document recovery is outside the current
+approved implementation; normal failure/cancellation recovery is separate.
+
+An isolated Linux VM runs genuine flock with jq 1.6. Existing approved tests
+exposed valid-policy rejection caused by contains(NUL), fixed at 9de5e450
+without changing tests. Follow-up fixes preserve terminal NUL records, protect
+newline-named fixtures and stabilize Node 22/26 probe reporting. Both Linux and
+macOS full suites pass at 8ce4f1d2. The exact Mac-built local candidate also installs
+and reinstalls on Linux; the dedicated VM is stopped. Evidence
+is in [release-readiness-validation.md](release-readiness-validation.md).
+
+Consumer audit at poem-collaboration-harness-template 3db86615 found no committed
+legacy lock: attach generates repo/sha/checked at harness/sobaya.lock. Sync
+currently pulls a source branch and injects adapters. First adoption needs a
+migration PR for connections, hook/worktree handling, lock ownership and
+upstream release notifications. The template's own shell suites are outside
+the current Go/Node/Vitest contract; supporting generated apps and treating the
+template itself as an app are separate decisions. Do not invent main-branch
+spec/plan approval. The first consumer selection and exact cloud-native-go
+address are pending; no consumer mutation has been performed.
 
 ## Workspace
 
-The configuration PR was merged. Remote checks on 2026-10-04 found PR #7 open
-at f6e0766 and main still at 3c9456d. Continue on codex/sobaya-v1-install-plan
-from f6e0766 in the existing sobaya-v1-plan managed worktree; stack its draft PR
-on PR #7 without claiming either a merge or a v1 release.
+Continue release preparation on codex/sobaya-v1-release-readiness in the
+existing sobaya-v1-plan managed worktree. v0.9.0 remains the published release;
+local prerelease archives and isolated tags are diagnostics, not publication.
 The original checkout contains unrelated user changes and must remain intact.
 The four configuration, four packaging and twelve installed-flow entries are
 approved. No real consumer app approval/checkpoint state is being changed.
