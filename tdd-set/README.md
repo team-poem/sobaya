@@ -34,6 +34,7 @@ integrate them explicitly before activation.
 | `bin/status.sh APP` | Inspect approval, progress, and recovery/review state |
 | `bin/doctor.sh APP` | Check Git/hooks, workspace, policy, worker executable availability, and clean app state |
 | `bin/probe.sh TARGET - [HEADER]` | Probe a draft candidate supplied on stdin |
+| `bin/review-view.sh SOURCE NOTES_JSON OUTPUT.md` | Create a new Markdown human review view from exact source and complete range rationale |
 | `bin/usage.sh summary APP [RUN_ID]` | Summarize recorded worker usage |
 
 Approval is an explicit human decision, not a worker inference. An agent
@@ -66,11 +67,14 @@ an explicit `// file:` header can include package/import declarations.
 Keep every approved body and header verbatim. Required setup should be
 reviewed before the baseline is frozen, not repaired by a worker later.
 
-Initial and replacement drafts use the annotated human review view defined in
-[`skills/tdd/SKILL.md`](skills/tdd/SKILL.md). Korean explanations are added only
-to that presentation. The plan, probes, approval baseline, and materialized tests
-use the exact underlying executable blocks, preserving necessary source comments;
-there is no runtime comment-removal step.
+Initial and replacement drafts use the human review view defined in
+[`skills/tdd/SKILL.md`](skills/tdd/SKILL.md): complete original code followed by
+Korean design rationale for every source range. The
+[`review-view.sh reference`](skills/tdd/references/human-review.md) describes
+the source inventory, notes schema, and identity/coverage checks. The helper
+creates a separate document; it does not establish semantic correctness or
+approval. The plan, probes, approval baseline, and materialized tests preserve
+the exact executable blocks, including source comments and formatting.
 
 By default RED must be an executed named test failure. For a new Go API, the
 human may approve `bin/approve.sh APP --allow-go-undefined-red`. This records

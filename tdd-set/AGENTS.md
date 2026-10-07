@@ -9,11 +9,12 @@ The app's command lines and `Skills:` select its stack-specific checks.
 Draft tests may be proposed and probed before approval. A RED probe proves
 that a candidate fails; it does not prove its expectation is correct.
 The human reviews the specification, tests, and required test support.
-For initial drafts and replacement proposals, show a review-only copy with
-Korean explanations immediately above each meaningful code line, following
-`skills/tdd/SKILL.md`. Derive it from the exact executable headers and bodies;
-keep added review explanations outside the plan and test files. Approval binds
-the underlying executable inputs. The runtime never strips approved comments.
+For initial drafts and replacement proposals, show complete original code
+continuously, with Korean design rationale outside it, following
+`skills/tdd/SKILL.md`. Explain every source range, including headers, helpers,
+and fixtures; do not select only important lines. Keep review explanations
+outside the plan and test files. Approval binds the exact executable inputs;
+the runtime never strips comments or reformats them.
 Record approval with the harness before implementation. Do not edit the
 approved plan or baseline to accommodate an implementation. New defects
 or incorrect tests need a separate proposal and human approval.

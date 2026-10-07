@@ -38,8 +38,9 @@ flowchart LR
 
 1. Install the app contract and fill `spec.md` with the intended behavior.
 2. Draft `failed-test.md`, probe candidates, and review every expectation.
-   Initial and replacement drafts are shown with line-by-line Korean review
-   comments; the plan and TDD runtime use the underlying executable code.
+   Initial and replacement drafts show complete original code, followed by
+   Korean design rationale covering every line, including required support.
+   The plan and TDD runtime preserve the exact executable inputs.
    Generated tests remain drafts until the human approves them.
 3. Commit the reviewed inputs and record approval with `approve.sh`.
 4. Run one `step.sh` or continue with `loop.sh`. Workers implement source;

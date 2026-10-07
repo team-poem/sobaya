@@ -11,10 +11,11 @@ failure, and checks the box only after the full suite passes. Do not edit
 approved entries during implementation; changed criteria need renewed approval.
 
 These fences contain executable inputs, including any necessary source comments.
-For human review, derive a separate copy with line-by-line Korean explanations
-as described in `tdd-set/skills/tdd/SKILL.md`; use the same view for replacements.
-Keep added review explanations and duplicate review fences out of this plan.
-Approval binds the exact underlying code; the runtime does not remove comments.
+For human review, show complete original code followed by Korean design rationale
+for every source range, including headers and support, as described in
+`tdd-set/skills/tdd/SKILL.md`; use the same view for replacements. Keep review
+explanations and duplicate review fences out of this plan. Approval binds the
+exact executable inputs; the runtime does not remove comments or reformat code.
 
 ## Go example
 
