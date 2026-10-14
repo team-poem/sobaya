@@ -16,6 +16,15 @@ that approval, materializes one test, observes RED, delegates implementation,
 and validates GREEN before committing progress. Projects live in independent
 Git repositories at `apps/<name>`.
 
+![A soba cook cuts and checks a small batch, pauses to wipe the knife and reflect, then cuts again with a clean blade. Arrows connect the three scenes into a repeating rhythm.](docs/assets/sobaya-rhythm.png)
+
+**Make a little and check it. Pause to learn and tidy. Make the next change.**
+
+Like a soba cook who wipes the knife between cuts, we alternate between
+building features and restoring room for change. Tests check the result;
+reflection and small structural improvements make the next change easier.
+This rhythm draws on [Kent Beck's kitchen metaphor](https://www.rise8.us/videos/kent-beck-software-engineering-in-the-age-of-ai).
+
 The harness runtime and its tests use Bash 3.2, jq, Git, and standard Unix
 tools. App test runners (Go, Node, or local Vitest) are separate dependencies.
 Run the full local harness suite with `bash tests/run.sh`; it blocks Python
