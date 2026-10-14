@@ -1,9 +1,9 @@
-# Draft an app test plan
+# List behavioral scenarios
 
-Provider-neutral task reference. Replace `APP` with `apps/<name>`; this
-file does not require a host slash-command registration.
+Provider-neutral task reference; APP means apps/<name>.
 
-Read the app spec and `tdd-set/skills/tdd/SKILL.md`. Draft and probe meaningful
-cases, show the concrete plan to the human, and record approval only when
-explicitly authorized. Do not implement or edit spec.md. Use `approve.sh APP`
-after reviewed inputs are committed. Agent-generated tests remain drafts.
+Read the app spec and tdd-set/skills/tdd/SKILL.md. List desired behavioral
+scenarios in failed-test.md, select the next useful case, and concretize only
+that test. Tests need no separate human approval. Ask only about unclear or
+changed product intent. Observe RED before implementation; update future
+choices as learning warrants.

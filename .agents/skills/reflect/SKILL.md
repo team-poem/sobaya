@@ -1,13 +1,14 @@
 ---
 name: reflect
-description: Use at the end of substantial work sessions, after completing an app milestone, or immediately after the user corrects a mistake — captures session learnings into the brain, skills, or structure.
+description: Review outcomes and learning between features, after substantial work or a milestone, or after a user correction. Connect learning to the next decision and retain only durable knowledge.
 ---
 
 # Reflect
 
 Scan the session, keep what's durable, route it to the strongest encoding.
 Root maintenance is role-neutral and follows the authorized task scope.
-Do not use reflection to change human-owned specs or approved tests.
+Do not use reflection to override human-owned product intent. Tests and
+scenarios may evolve from learning within that intent.
 Low-quality or speculative content degrades everything downstream — when in
 doubt, drop it.
 
@@ -20,6 +21,14 @@ Look through the session for:
 - Workspace/app knowledge that isn't written anywhere yet
 - Tool and harness quirks (gotchas that cost turns)
 - Friction: repeated manual steps, missing templates, unclear conventions
+- Outcomes: what the user actually experienced, what only implementation
+  checks established, and what still needs real feedback
+- Decisions: which expectation changed and whether that alters the next
+  scenario, a design choice, or the value of a small GREEN tidy
+
+Apply the feature-boundary pause from `tdd-set/AGENTS.md` before selecting
+more work. Prefer earlier feedback when cleanup would delay learning without
+a concrete benefit. Reflection does not require a code change or new note.
 
 ## 2. Durability test
 
@@ -49,6 +58,7 @@ both.
 
 ## 4. Report
 
-Four lines: **Brain** (files written), **Skills** (files edited),
-**Structural** (mechanisms added/changed), **Todos** (items filed).
-"Nothing durable this session" is a valid outcome — say it and stop.
+Briefly state the useful learning, remaining uncertainty and next decision.
+Mention Brain, Skills, Structural or Todos only when something was actually
+changed there. Do not manufacture four categories of output or a new TODO.
+"No new durable lesson" and "no useful refactor" are valid outcomes.

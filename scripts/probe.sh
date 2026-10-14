@@ -93,7 +93,7 @@ cat "$tmp/diagnostics"
 if [ "$rc" = 0 ]; then
   if [ "$isgo" = 1 ] && { ! grep -qx pass "$tmp/actions" || grep -qx skip "$tmp/actions"; }; then error 'candidate test did not run'; fi
   grep -qE '\[no tests to run\]|\[no test files\]|No test files found|(^|[^a-z])tests 0([^0-9]|$)|(^|[^a-z])pass 0([^0-9]|$)|Tests[[:space:]]+[0-9]+ skipped' "$tmp/diagnostics" && error 'candidate test did not run'
-  printf 'GREEN  %s  (already passes — do not add to failed-test.md)\n' "$name"; exit 1
+  printf 'GREEN  %s  (already passes — record existing behavior; no implementation or invented RED is needed)\n' "$name"; exit 1
 fi
 infrastructure='SyntaxError|syntax error|Cannot find (module|package)|ERR_MODULE_NOT_FOUND|Failed to resolve import|no required module provides package|missing go.sum|cannot find package|no such file or directory|permission denied|No test files found|ENOTFOUND|ECONNREFUSED|go: (downloading|errors parsing)|error TS[0-9]+|is not a function|ERR_UNKNOWN_FILE_EXTENSION|ERR_UNSUPPORTED'
 grep -qiE "$infrastructure" "$tmp/diagnostics" && error 'candidate could not run; fix syntax/dependencies/environment before recording it'

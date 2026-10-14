@@ -163,7 +163,7 @@ case "$i_command" in
   init) i_init ;;
   sync) i_sync ;;
   bump) . "$i_lib/bump.sh"; i_bump ;;
-  doctor|approve|step|loop|gate|status|next|review|usage) i_dispatch ;;
+  doctor|approve|step|loop|gate|status|next|review|usage|migrate|restart) i_dispatch ;;
   __hook)
     i_config; i_select_app; i_connection_check
     i_runtime=$(ir_verified_path "$i_store" "$i_version" "$(jq -c .runtime <<< "$i_config_json")")

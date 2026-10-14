@@ -1,38 +1,32 @@
-# Model-neutral checkpoint integrity
+# Model-neutral execution evidence
 
-Sobaya's September 2026 migration replaces provider-specific instructions and
-model-exclusive maintenance with a shared AGENTS.md contract and a deterministic
-shell runtime. Model policies affect the chosen worker and guidance; they never
-change the approved spec, test bodies, headers, or acceptance commands.
+The human's 2026-10-14 decision retired exact-test approvals, permanently
+frozen test baselines and mandatory independent completion/checkpoint reviews.
+The current authority is the Canon TDD cycle in `tdd-set/AGENTS.md`, not the
+historical approval rules from the September harness migration.
 
-The important failures were at transitions, not prompt wording. A successful
-worker exit or checked box did not establish test execution. Repeated runs could
-lose the original baseline, and cancellation could release a writer lock while
-its child continued modifying files. Commit hooks could fail after GREEN or
-change the staged tree, making a naive retry repeat implementation or accept
-untested content. Regression fixtures now exercise those failures with real Git
-and actual test runners, while deterministic workers avoid paid model calls.
+Model policies choose workers and guidance; they do not change product intent.
+A successful worker exit or checked box still does not establish execution.
+The optional runner snapshots tests and commands only for the active
+RED-to-GREEN attempt and verifies the full suite before recording progress.
+At GREEN the orchestrator can refactor source and tests while preserving
+behavior, then select another case without a reviewer or approval ritual.
 
-Approval is stored in worktree-local Git metadata and survives repeated commands.
-The runner materializes one approved entry, saves protected content, observes
-named RED (or an explicitly approved and narrowly classified Go build RED), and
-verifies the full suite before committing. Already passing entries are recorded
-honestly without a worker call. Checkpoint recovery binds to the verified content,
-parent commit, and resulting tree. Worker and test-runner cancellation terminates
-the process group before the writer boundary is released. An orphan record blocks
-a new writer after abrupt coordinator death while the previous group remains alive.
+The useful transition protections remain: failed commits resume against the
+verified content, parent and tree; worker cancellation terminates its process
+group before releasing the writer lock; live orphan records block another
+writer. Call budgets remain cumulative through restart and migration.
+Old v1 records are archived with original plans instead of being reused as
+current authority. Optional reviewers are read-only and cannot change Git state.
 
-Fresh review context is independent even when it uses the same model. Completion
-requires a final gate and a read-only review bound to HEAD. Call budgets accumulate
-per approval, including review; structured diagnostic handoff is required before
-configured escalation. Token reports are evidence, not a guaranteed money cap.
+GREEN checks may start with uncommitted refactoring, but must compare content
+and Git state before and after execution. A test can import correct code,
+overwrite it with broken code and still pass; its exit status cannot certify
+the checkout that remains. No-op commands must not claim fresh GREEN evidence.
 
-Configuration files do not prove active integration. `scripts/setup.sh --check`
-verifies real Git hook resolution; `doctor.sh` checks declared worker executables.
-Neither proves model credentials or live API behavior. This migration was tested
-with fixture adapters, including Codex argv/schema/usage handling, not a live model
-session. Ordinary Git hooks improve feedback; acceptance checks must also run
-inside the deterministic engine so a missing hook cannot silently bypass them.
+Configuration files do not prove active integration. `setup.sh --check` checks
+real hook resolution, and `doctor.sh` checks configured executables, not live
+credentials or API behavior. Harness tests use real Git and test runners with
+fake workers; they do not establish a model's judgment or user value.
 
-See [[principles/encode-lessons-in-structure]] and
-[[archive/codebase/legacy-loop-cost-measurement]].
+See [[principles/prove-it-works]] and [[principles/encode-lessons-in-structure]].

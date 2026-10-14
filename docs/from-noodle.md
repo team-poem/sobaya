@@ -6,11 +6,11 @@ This is a source mapping, not a claim of runtime compatibility.
 
 | Source idea | Current Sobaya adaptation |
 |---|---|
-| Work orders and staged execution | Human-approved `failed-test.md`, one verified entry, final gate and independent review |
-| Context brief | Relevant brain notes, app status, acceptance state, and a bounded work brief |
+| Work orders and staged execution | Mutable scenario list, one RED-to-GREEN test, optional refactoring and review |
+| Context brief | Relevant brain notes, app status, execution evidence, and a bounded work brief |
 | Worker processes | Explicit worker policies; default Codex/Astra and a generic command adapter |
 | Deliverable differs from process exit | Runtime verifies protected inputs, tests, and checkpoints independently of worker reports |
-| Recovery and adoption | Recorded approval and progress; inspect preserved state before explicit resume |
+| Recovery and adoption | Recorded execution and archived attempts; inspect preserved state before explicit resume |
 | Worktree isolation | One writer per checkout, isolated parallel changes, sequential verified integration |
 | Diagnosis before retry | Structured diagnostic handoff; no unconfigured model upgrade |
 | Brain, reflect, meditate | Durable memory, selective loading, evidence-based maintenance |

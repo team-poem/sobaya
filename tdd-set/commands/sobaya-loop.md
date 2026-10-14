@@ -1,10 +1,9 @@
-# Complete an approved app plan
+# Continue learning one test at a time
 
-Provider-neutral task reference. Replace `APP` with `apps/<name>`; this
-file does not require a host slash-command registration.
+Provider-neutral task reference; APP means apps/<name>.
 
-Run `tdd-set/bin/loop.sh APP [max_iterations]` with the selected worker
-policy. Continue through validated entries, the final gate, and independent
-review. Respect call/time limits and protected inputs. On failure inspect
-status and diagnostics; explicit resume follows diagnosis, not a blind retry.
-Report completion only when both gate and revision-bound review succeed.
+Apply the TDD skill repeatedly within the authorized feature. After each
+GREEN result, consider refactoring and revise the scenario list before choosing
+again. Do not prewrite a batch or wait for test-by-test approval. The shell
+loop.sh APP is now a compatibility alias for one step, not an autonomous batch
+executor. At a feature boundary assess outcomes and learning before continuing.

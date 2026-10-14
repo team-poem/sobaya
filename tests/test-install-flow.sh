@@ -1,5 +1,5 @@
 #!/bin/bash
-# DRAFT: installation, connection and bump inputs require human review.
+# Installation, connection, Canon execution and version-change integration.
 set -eu
 set -o pipefail
 for tool in git jq tar gzip shasum node mkfifo; do command -v "$tool" >/dev/null || { printf 'NOT PROBED: missing %s\n' "$tool" >&2; exit 2; }; done
@@ -376,19 +376,20 @@ connection_keeps_linked_worktree_hooks_isolated() {
   [ ! -e "$main/.git/sobaya/state.json" ] || fail 'connection created main approval'
   assert_no_network
 }
-installed_modes_execute_approved_cycle() {
+installed_modes_execute_canon_cycle() {
   install_version "$V1"
   for mode in dependency project; do
     CONSUMER="$WORK/run-$mode"; mkdir "$CONSUMER"; export FIXTURE_ROOT="$CONSUMER"
     app_fixture "$mode"; connect; seal_connection
     baseline=$(git -C "$APP" rev-parse HEAD)
     runtime_cli doctor --policy "$WORK/policy.json"; okay
-    runtime_cli approve; okay
     runtime_cli loop --policy "$WORK/policy.json"; okay
-    contains "$WORK/stdout" RED; contains "$WORK/stdout" PASS
+    contains "$WORK/stdout" RED; contains "$WORK/stdout" GREEN
     runtime_cli gate; okay
     head=$(git -C "$APP" rev-parse HEAD)
-    jq -e --arg baseline "$baseline" --arg head "$head" '.version==1 and .baseline==$baseline and .calls==2 and .status=="complete" and .review.head==$head' "$META/state.json" >/dev/null || fail 'checkpoint/review/usage continuity failed'
+    jq -e --arg baseline "$baseline" --arg head "$head" '.version==2 and .baseline==$baseline and .calls==1 and .status=="checkpoint" and .review==null and .receipts[-1].head==$head' "$META/state.json" >/dev/null || fail 'one-step execution/usage continuity failed'
+    runtime_cli review --policy "$WORK/policy.json"; okay
+    jq -e --arg head "$head" '.calls==2 and .review.head==$head' "$META/state.json" >/dev/null || fail 'explicit review was not recorded'
     contains "$APP/failed-test.md" '[x] installedAdds'
     contains "$FIXTURE_PROMPTS" "$STORE/runtimes/$V1/runtime/tdd-set/AGENTS.md"
     contains "$FIXTURE_PROMPTS" "$APP/AGENTS.md"
@@ -399,7 +400,7 @@ installed_modes_execute_approved_cycle() {
 }
 dispatch_rejects_pin_drift_and_worker_mutation() {
   install_version "$V1"; install_version "$V2"; app_fixture dependency; connect; seal_connection
-  runtime_cli approve; okay; baseline=$(git -C "$APP" rev-parse HEAD)
+  baseline=$(git -C "$APP" rev-parse HEAD)
   cp "$CONSUMER/sobaya.lock" "$WORK/lock.saved"; snapshot "$META" "$WORK/state.before"
   jq '.runtime.sha256=("0"*64)' "$WORK/lock.saved" > "$CONSUMER/sobaya.lock"
   runtime_cli status
@@ -411,7 +412,7 @@ dispatch_rejects_pin_drift_and_worker_mutation() {
   [ "$RC" -ne 0 ] || fail 'worker changed pinned version and passed checkpoint'
   grep -iq protect "$WORK/stderr" || fail 'pin mutation did not report protected-input rejection'
   [ "$(git -C "$APP" rev-parse HEAD)" = "$baseline" ] || fail 'pin mutation was committed'
-  jq -e --arg baseline "$baseline" '.baseline==$baseline and .calls==1 and .active.entry=="installedAdds"' "$META/state.json" >/dev/null || fail 'pin mutation reset or advanced approval'
+  jq -e --arg baseline "$baseline" '.baseline==$baseline and .calls==1 and .active.entry=="installedAdds"' "$META/state.json" >/dev/null || fail 'pin mutation reset or advanced execution'
   contains "$APP/failed-test.md" '[ ] installedAdds'
   assert_no_network
 }
@@ -430,9 +431,9 @@ sync_uses_reviewed_lock_without_repinning() {
   snapshot "$CONSUMER" "$WORK/consumer.after"; same "$WORK/consumer.before" "$WORK/consumer.after"
   assert_no_network
 }
-bump_validates_candidate_and_preserves_approval() {
+bump_validates_candidate_and_preserves_execution() {
   install_version "$V1"; app_fixture dependency; connect; seal_connection
-  runtime_cli approve; okay; runtime_cli loop --policy "$WORK/policy.json"; okay
+  runtime_cli loop --policy "$WORK/policy.json"; okay
   jq '.custom={keep:"yes"}' "$CONSUMER/sobaya.json" > "$WORK/config.new"; mv "$WORK/config.new" "$CONSUMER/sobaya.json"; commit_app
   snapshot "$META" "$WORK/state.before"; cp "$CONSUMER/sobaya.json" "$WORK/config.saved"; cp "$CONSUMER/sobaya.lock" "$WORK/lock.saved"
   before=$(git -C "$APP" rev-parse HEAD)
@@ -443,7 +444,7 @@ bump_validates_candidate_and_preserves_approval() {
   contains "$FIXTURE_LOG" lint
   jq -e --arg version "$V2" '.runtime.version==$version and .mode=="dependency" and .custom.keep=="yes"' "$CONSUMER/sobaya.json" >/dev/null || fail 'bump damaged configuration'
   snapshot "$META" "$WORK/state.after"; same "$WORK/state.before" "$WORK/state.after"
-  [ "$(git -C "$APP" rev-parse HEAD)" = "$before" ] || fail 'bump committed or reapproved automatically'
+  [ "$(git -C "$APP" rev-parse HEAD)" = "$before" ] || fail 'bump committed or reset execution automatically'
   git -C "$APP" diff --name-only | LC_ALL=C sort > "$WORK/changed"
   printf 'sobaya.json\nsobaya.lock\n' > "$WORK/expected-changed"; same "$WORK/changed" "$WORK/expected-changed"
   runtime_cli status; okay
@@ -451,7 +452,6 @@ bump_validates_candidate_and_preserves_approval() {
 }
 bump_failure_and_active_entry_keep_previous_pin() {
   install_version "$V1"; app_fixture dependency; connect; seal_connection
-  runtime_cli approve; okay
   cp "$CONSUMER/sobaya.json" "$WORK/config.saved"; cp "$CONSUMER/sobaya.lock" "$WORK/lock.saved"; snapshot "$META" "$WORK/state.before"
   for failure in suite lint; do
     export FIXTURE_SUITE=pass FIXTURE_LINT=pass
@@ -503,9 +503,62 @@ SECOND_TEST
   same "$CONSUMER/sobaya.json" "$WORK/config.saved"; same "$CONSUMER/sobaya.lock" "$WORK/lock.saved"
   assert_no_network
 }
+legacy_state() {
+  jq -n --arg baseline "$(git -C "$APP" rev-parse HEAD)" '{version:1,baseline:$baseline,calls:3,active:null,receipts:[],status:"ready",approved_at:1}' > "$META/state.json"
+}
+installed_migration_and_restart_preserve_history() {
+  install_version "$V1"
+  for mode in dependency project; do
+    CONSUMER="$WORK/migrate-$mode"; mkdir "$CONSUMER"; export FIXTURE_ROOT="$CONSUMER"
+    app_fixture "$mode"; connect; seal_connection; legacy_state
+    cp "$APP/failed-test.md" "$WORK/plan.saved"; cp "$META/state.json" "$WORK/legacy.saved"
+    cp "$APP/suite.test.js" "$WORK/tests.saved"
+    runtime_cli migrate; okay
+    archive_dir=$(jq -er '.legacy_history[-1]' "$META/state.json")
+    same "$archive_dir/state.json" "$WORK/legacy.saved"; same "$archive_dir/failed-test.md" "$WORK/plan.saved"
+    same "$APP/suite.test.js" "$WORK/tests.saved"
+    jq -e '.version==2 and .calls==3 and .active==null' "$META/state.json" >/dev/null || fail 'migration reset execution history'
+    ! grep -q '^```' "$APP/failed-test.md" || fail 'migration left future executable tests'
+    cp "$WORK/plan.saved" "$APP/failed-test.md"; cp "$CONSUMER/sobaya.json" "$WORK/pin.saved"
+    export FIXTURE_TAMPER=1
+    runtime_cli step --policy "$WORK/policy.json"
+    [ "$RC" -ne 0 ] || fail 'expected a failed active attempt'
+    cp "$WORK/pin.saved" "$CONSUMER/sobaya.json"
+    cp "$APP/impl.js" "$WORK/impl.saved"; cp "$APP/suite.test.js" "$WORK/attempt-test.saved"
+    runtime_cli restart; okay
+    jq -e '.version==2 and .calls==4 and .active==null and (.attempt_history|length)==1' "$META/state.json" >/dev/null || fail 'restart lost calls or attempt history'
+    same "$APP/impl.js" "$WORK/impl.saved"; same "$APP/suite.test.js" "$WORK/attempt-test.saved"
+  done
+  assert_no_network
+}
+project_migration_rejects_commit_hook_pin_mutation() {
+  install_version "$V1"; app_fixture project
+  mkdir "$WORK/migration-hooks"
+  cat > "$WORK/migration-hooks/pre-commit" <<'HOOK'
+#!/bin/bash
+set -eu
+if [ "${FIXTURE_MIGRATION_TAMPER:-0}" = 1 ]; then
+  jq '.custom="hook edit"' "$FIXTURE_ROOT/sobaya.json" > "$FIXTURE_ROOT/pin.tmp"
+  mv "$FIXTURE_ROOT/pin.tmp" "$FIXTURE_ROOT/sobaya.json"
+fi
+HOOK
+  chmod +x "$WORK/migration-hooks/pre-commit"
+  git -C "$APP" config core.hooksPath "$WORK/migration-hooks"
+  connect; seal_connection; legacy_state
+  cp "$META/state.json" "$WORK/state.saved"; cp "$APP/failed-test.md" "$WORK/plan.saved"
+  export FIXTURE_MIGRATION_TAMPER=1
+  runtime_cli migrate
+  [ "$RC" -ne 0 ] || fail 'migration accepted a commit hook workspace pin mutation'
+  contains "$WORK/stderr" 'Protected workspace pin'
+  same "$META/state.json" "$WORK/state.saved"
+  jq -e '.custom=="hook edit"' "$CONSUMER/sobaya.json" >/dev/null || fail 'hook edit was discarded'
+  archive_dir=$(find "$META/history" -mindepth 1 -maxdepth 1 -type d)
+  same "$archive_dir/state.json" "$WORK/state.saved"; same "$archive_dir/failed-test.md" "$WORK/plan.saved"
+  assert_no_network
+}
 if [ "${1:-}" = __case ]; then setup; "$2"; exit; fi
 failures=0
-for name in install_pins_real_release_and_transport install_rejects_identity_and_unsafe_payload install_preserves_existing_paths_and_failed_downloads init_connects_both_modes_without_rewriting_contracts connected_hooks_preserve_original_behavior connection_keeps_linked_worktree_hooks_isolated installed_modes_execute_approved_cycle dispatch_rejects_pin_drift_and_worker_mutation sync_uses_reviewed_lock_without_repinning bump_validates_candidate_and_preserves_approval bump_failure_and_active_entry_keep_previous_pin project_bump_checks_every_connected_app; do
+for name in install_pins_real_release_and_transport install_rejects_identity_and_unsafe_payload install_preserves_existing_paths_and_failed_downloads init_connects_both_modes_without_rewriting_contracts connected_hooks_preserve_original_behavior connection_keeps_linked_worktree_hooks_isolated installed_modes_execute_canon_cycle dispatch_rejects_pin_drift_and_worker_mutation sync_uses_reviewed_lock_without_repinning bump_validates_candidate_and_preserves_execution bump_failure_and_active_entry_keep_previous_pin project_bump_checks_every_connected_app installed_migration_and_restart_preserve_history project_migration_rejects_commit_hook_pin_mutation; do
   if /bin/bash "$0" __case "$name"; then printf 'PASS: %s\n' "$name"; else printf 'FAIL: %s\n' "$name"; failures=$((failures+1)); fi
 done
 [ "$failures" -eq 0 ]

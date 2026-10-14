@@ -1,8 +1,13 @@
 # Sobaya
 
-Sobaya is a failing-test-first engineering workspace. The human owns the
-specification and approves the tests. Workers implement one approved entry
-at a time; the harness validates the result before advancing.
+Sobaya follows Kent Beck's Canon TDD and augmented coding practice. The human
+owns product intent; agents select and write one test at a time within that
+intent, observe RED, implement GREEN, then consider refactoring. Tests need
+no separate approval.
+Keep future scenarios as a list, concretize the next test when needed, and
+use GREEN checkpoints to consider small structural improvements. Pause at
+feature boundaries to review outcomes and learning before the next choice;
+`tdd-set/AGENTS.md` defines this cycle and its current runtime limits.
 
 ## Shared contract
 
@@ -12,18 +17,18 @@ at a time; the harness validates the result before advancing.
   App source languages remain app-specific.
 - **Canonical instructions:** this `AGENTS.md`, the app's `AGENTS.md`, and
   `tdd-set/AGENTS.md`. Provider adapters do not redefine acceptance rules.
-- **Human-owned inputs:** never edit `spec.md`. Agent-generated tests are
-  drafts until the human approves them. Preserve the approved plan, test
-  bodies, headers, existing tests, helpers, and fixtures. A wrong test
-  requires a human-reviewed replacement baseline; do not weaken it to pass.
-- **Evidence before progress:** a worker's exit code, report, commit, or
-  checked box is not acceptance. Use the harness checkpoint, final gate, and independent completion review.
-  Run the full declared suite at validated checkpoints. Never claim green
-  when tests could not run.
+- **Human intent:** never edit `spec.md`. Ask about ambiguous or changed
+  product intent, not every test or implementation choice. Scenarios and test
+  code evolve as understanding improves. Never delete/disable assertions or
+  copy actual output into expectations just to manufacture GREEN.
+- **Evidence before progress:** a worker report, commit, or checked box is
+  not proof. Observe failure and run the full declared suite after implementation
+  and structural changes. Independent review is optional when useful or requested,
+  not a mandatory transition gate. Never claim GREEN when tests could not run.
 - **Authorized completion:** carry authorized, reversible work through
   implementation and verification without asking for repeated permission.
   Ask when new authority or a human decision is required, including changed
-  acceptance criteria. Diagnose failures before retrying or changing models.
+  expected product behavior. Diagnose failures before retrying or changing models.
 - **Role-neutral maintenance:** any authorized agent may maintain the root
   harness. Model names and commit trailers do not grant authority. Preserve
   user changes, stay within the task's scope, and verify harness changes.

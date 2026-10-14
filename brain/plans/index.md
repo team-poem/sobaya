@@ -10,3 +10,4 @@ longer app design docs live in the app repo (`apps/<name>/docs/plans/`).
 - [x] [[archive/plans/03-shell-harness/overview]]
 
 - [ ] [[plans/04-versioned-modes/overview]]
+- [x] [[archive/plans/04-incremental-tdd/overview]] — historical approval model replaced by the verified [[archive/plans/04-incremental-tdd/canon-transition]].

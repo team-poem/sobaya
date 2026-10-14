@@ -1,9 +1,8 @@
-# Validate an app feature
+# Check current code
 
-Provider-neutral task reference. Replace `APP` with `apps/<name>`; this
-file does not require a host slash-command registration.
+Provider-neutral task reference; APP means apps/<name>.
 
-Run `tdd-set/bin/gate.sh APP` and report its actual result. Gate success
-is required evidence, but independent review of the resulting HEAD is also
-required before feature completion. Use `review.sh APP` when review remains
-pending. Do not change tests or approval state to obtain a pass.
+Run gate.sh APP and report actual full-suite/hygiene evidence. This command
+can check uncommitted GREEN tidying and has no approval baseline or mandatory
+review prerequisite. Passing tests do not prove user value. Independent review
+is available when useful or requested; do not weaken tests to obtain GREEN.

@@ -1,9 +1,10 @@
-# <feature> — spec
+# <feature> — product intent
 
-Human-written. Agents read this file and never edit it. It exists so Phase 0 can
-enumerate the right tests; the tests in failed-test.md are the real spec.
+Human-owned. Agents read this file and never edit it. Test scenarios express
+our current understanding and may evolve as we learn; ask about unclear or
+changed product expectations.
 
-## Goal (one paragraph)
+## Goal
 <what must be true when this is done>
 
 ## Must
@@ -14,6 +15,6 @@ enumerate the right tests; the tests in failed-test.md are the real spec.
 - <constraint / out of scope>
 
 ## Done when
-- every entry in failed-test.md is checked and a test with its name exists in the suite
-- full test suite is green
-- no existing test line was modified or removed (gate.sh enforces)
+- <observable user outcome>
+- relevant behavioral scenarios are covered and the full suite passes
+- remaining uncertainty and what was actually observed are reported

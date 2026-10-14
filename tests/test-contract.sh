@@ -47,10 +47,8 @@ test_plan_exact() {
 }
 test_plan_malformed() {
   cp "$app/failed-test.md" "$case_dir/original"
-  for kind in empty missing duplicate unclosed upper; do
+  for kind in duplicate unclosed upper; do
     case "$kind" in
-      empty) printf '# Plan\n' >"$app/failed-test.md";;
-      missing) printf '%s\n' '- [x] TestAdd' >"$app/failed-test.md";;
       duplicate) cat "$case_dir/original" "$case_dir/original" >"$app/failed-test.md";;
       unclosed) sed '$d' "$case_dir/original" >"$app/failed-test.md";;
       upper) sed 's/^- \[ \]/- [X]/' "$case_dir/original" >"$app/failed-test.md";;
@@ -63,103 +61,39 @@ test_go_plan_exact() {
   contract_plan "$app" >"$case_dir/entries"
   jq -e '.[0]|.name=="TestAdd" and .checked==false and .language=="go" and .heading=="## Add" and .target==null and .header=="" and .code=="func TestAdd(t *testing.T) {}\n"' "$case_dir/entries" >/dev/null
 }
-test_changed_header() {
-  green
-  awk '/import \{add\}/{print "// altered header"} {print}' "$app/failed-test.md" >"$case_dir/plan"; cp "$case_dir/plan" "$app/failed-test.md"; commit
-  expect_rc 1 contract_gate "$app" "$baseline"; contains '[Aa]pproved plan'
-}
 test_index_flags_hide_broken_head() {
   green; printf 'export const add=()=>0;\n' >"$app/calc.js"; commit
   for flag in skip-worktree assume-unchanged; do
     g update-index "--$flag" calc.js
     printf 'export const add=(a,b)=>a+b;\n' >"$app/calc.js"
     test -z "$(g status --porcelain)"
-    expect_rc 1 contract_gate "$app" "$baseline"
+    expect_rc 1 contract_gate "$app"
     contains 'index flags'
     g update-index "--no-$flag" calc.js
     g checkout -- calc.js
   done
 }
-test_valid_gate() { green; expect_rc 0 contract_gate "$app" "$baseline"; jq -e '.passed|index("addAdds: positive sum")!=null' "$case_dir/result" >/dev/null; }
-test_pending() { expect_rc 1 contract_gate "$app" "$baseline"; contains '[Uu]nchecked'; }
-test_weakened_plan() {
-  green
-  sed 's/add(1,2),3/add(1,2),0/' "$app/failed-test.md" >"$case_dir/weakened"; cp "$case_dir/weakened" "$app/failed-test.md"
-  sed 's/add(1,2),3/add(1,2),0/' "$app/calc.test.js" >"$case_dir/weakened"; cp "$case_dir/weakened" "$app/calc.test.js"; commit
-  expect_rc 1 contract_gate "$app" "$baseline"; contains '[Aa]pproved plan'
-}
-test_deleted_plan() { printf '# Plan\n' >"$app/failed-test.md"; commit; expect_rc 1 contract_gate "$app" "$baseline"; }
-test_frozen_spec_commands() {
-  green; good=$(g rev-parse HEAD)
-  printf changed >"$app/spec.md"; commit; expect_rc 1 contract_gate "$app" "$baseline"; contains '[Aa]pproved spec'
-  g reset --hard -q "$good"; printf '%s\n' '- Test: `true`' >"$app/AGENTS.md"; commit
-  expect_rc 1 contract_gate "$app" "$baseline"; contains '[Aa]pproved AGENTS'
-}
-test_frozen_header_checkbox() {
-  awk '/import \{add\}/{print "const markdown = `\n- [ ] literal\n`;"} {print}' "$app/failed-test.md" >"$case_dir/plan"; cp "$case_dir/plan" "$app/failed-test.md"; commit; baseline=$(g rev-parse HEAD)
-  sed 's/- \[ \] literal/- [x] literal/' "$app/failed-test.md" >"$case_dir/plan"; cp "$case_dir/plan" "$app/failed-test.md"; commit
-  expect_rc 1 contract_validate "$app" "$baseline"; contains '[Aa]pproved plan'
-}
-test_invalid_baseline_missing_plan() { green; expect_rc 1 contract_gate "$app" nonexistent; g rm -q failed-test.md; commit; expect_rc 1 contract_gate "$app" "$baseline"; }
-test_dirty_head() { green; printf 'export const add=()=>0;\n' >"$app/calc.js"; commit; printf 'export const add=(a,b)=>a+b;\n' >"$app/calc.js"; expect_rc 1 contract_gate "$app" "$baseline"; contains clean; }
-test_index_untracked() { green; printf changed >"$app/calc.js"; g add calc.js; expect_rc 1 contract_gate "$app" "$baseline"; g reset --hard -q HEAD; printf new >"$app/untracked"; expect_rc 1 contract_gate "$app" "$baseline"; }
-test_negative_binary_fixtures() {
-  mkdir "$app/tests"; printf '%s\n' -3 >"$app/tests/expected"; printf '\000old' >"$app/tests/binary"; commit; baseline=$(g rev-parse HEAD); green; good=$(g rev-parse HEAD)
-  printf '%s\n' -0 >"$app/tests/expected"; commit; expect_rc 1 contract_gate "$app" "$baseline"; contains '[Pp]rotected'
-  g reset --hard -q "$good"; printf '\000new' >"$app/tests/binary"; commit; expect_rc 1 contract_gate "$app" "$baseline"; contains '[Pp]rotected'
-}
-test_rename() { green; g mv calc.test.js renamed.test.js; commit; expect_rc 1 contract_gate "$app" "$baseline"; contains '[Pp]rotected'; }
-test_commented() { green; { cat "$case_dir/header"; printf '/*\n'; cat "$case_dir/code"; printf '*/\n'; } >"$app/calc.test.js"; commit; expect_rc 1 contract_gate "$app" "$baseline"; contains executed; }
-test_skipped() {
-  sed "s/positive sum', ()/positive sum', {skip:true}, ()/" "$case_dir/code" >"$case_dir/skip"; cp "$case_dir/skip" "$case_dir/code"
-  sed "s/positive sum', ()/positive sum', {skip:true}, ()/" "$app/failed-test.md" >"$case_dir/plan"; cp "$case_dir/plan" "$app/failed-test.md"; commit; baseline=$(g rev-parse HEAD); green
-  expect_rc 1 contract_gate "$app" "$baseline"; contains executed
-}
-test_unsupported_runner() { printf '%s\n' '- Test: `true`' >"$app/AGENTS.md"; commit; baseline=$(g rev-parse HEAD); green; expect_rc 1 contract_gate "$app" "$baseline"; contains '[Uu]nsupported'; }
-test_appended_unapproved() {
-  green; printf '\n- [ ] addZero — zero\n```js\ntest("addZero", () => {});\n```\n' >>"$app/failed-test.md"; commit
-  expect_rc 0 contract_validate "$app" "$baseline"; expect_rc 1 contract_gate "$app" "$baseline"
-  sed 's/- \[ \] addZero/- [x] addZero/' "$app/failed-test.md" >"$case_dir/plan"; cp "$case_dir/plan" "$app/failed-test.md"; commit; expect_rc 1 contract_validate "$app" "$baseline"; contains '[Uu]napproved'
-}
-test_explicit_target() {
-  g mv calc.test.js checks.js
-  for file in AGENTS.md failed-test.md; do sed 's/calc.test.js/checks.js/g' "$app/$file" >"$case_dir/edit"; cp "$case_dir/edit" "$app/$file"; done
-  sed 's/calc.test.js/checks.js/g' "$case_dir/header" >"$case_dir/newheader"; cp "$case_dir/newheader" "$app/checks.js"; commit; baseline=$(g rev-parse HEAD)
-  printf 'export const add=(a,b)=>a+b;\n' >"$app/calc.js"; cat "$case_dir/newheader" "$case_dir/code" >"$app/checks.js"
-  sed 's/^- \[ \] addAdds/- [x] addAdds/' "$app/failed-test.md" >"$case_dir/plan"; cp "$case_dir/plan" "$app/failed-test.md"; commit; expect_rc 0 contract_gate "$app" "$baseline"
-}
-test_npm_frozen_script() {
-  printf '%s\n' '- Test: `npm test`' >"$app/AGENTS.md"; printf '{"type":"module","scripts":{"test":"node --test calc.test.js"}}\n' >"$app/package.json"; commit; baseline=$(g rev-parse HEAD); green
-  expect_rc 0 contract_gate "$app" "$baseline"
-  printf '{"type":"module","scripts":{"test":"true"}}\n' >"$app/package.json"; commit; expect_rc 1 contract_gate "$app" "$baseline"; contains '[Aa]pproved package'
-}
+test_valid_gate() { green; expect_rc 0 contract_gate "$app"; jq -e '.passed|index("addAdds: positive sum")!=null' "$case_dir/result" >/dev/null; }
+test_unsupported_runner() { printf '%s\n' '- Test: `true`' >"$app/AGENTS.md"; commit; baseline=$(g rev-parse HEAD); green; expect_rc 1 contract_gate "$app"; contains '[Uu]nsupported'; }
 test_real_red_build_error() {
   cat "$case_dir/header" "$case_dir/code" >"$app/calc.test.js"; expect_rc 10 contract_suite "$app"; jq -e '.failed|index("addAdds: positive sum")!=null' "$case_dir/result" >/dev/null
   printf 'not valid JS !!!\n' >"$app/calc.test.js"; expect_rc 11 contract_suite "$app"
 }
 test_timeout() { printf 'setInterval(()=>{},1000);\n' >"$app/calc.test.js"; expect_rc 1 contract_suite "$app" 0.1; contains 'timed out'; }
-test_side_effect() { green; printf "import {writeFileSync} from 'node:fs'; writeFileSync('leftover','side effect'); export const add=(a,b)=>a+b;\n" >"$app/calc.js"; commit; expect_rc 1 contract_gate "$app" "$baseline"; contains clean; }
-test_uncheck_complete() { green; baseline=$(g rev-parse HEAD); sed 's/- \[x\]/- [ ]/' "$app/failed-test.md" >"$case_dir/plan"; cp "$case_dir/plan" "$app/failed-test.md"; commit; expect_rc 1 contract_validate "$app" "$baseline"; contains completed; }
-test_saved_baseline() {
-  green; expect_rc 1 contract_saved_baseline "$app"
-  printf '%s' "$baseline" >"$app/.git/sobaya-loop-start"; expect_rc 1 contract_saved_baseline "$app"
-  mkdir "$app/.git/sobaya"; printf '{bad' >"$app/.git/sobaya/state.json"; expect_rc 1 contract_saved_baseline "$app"
-}
-test_worktree() { green; g worktree add -q -b linked "$case_dir/linked"; metadata=$(contract_git_dir "$case_dir/linked"); mkdir -p "$metadata/sobaya"; jq -n --arg baseline "$baseline" '{baseline:$baseline}' >"$metadata/sobaya/state.json"; expect_rc 0 /bin/bash "$ROOT/tdd-set/bin/gate.sh" "$case_dir/linked"; grep -q PASS "$case_dir/result"; }
 test_hygiene_hooks_disabled() {
   initial=$baseline
   for kind in Format Lint; do
     g reset --hard -q "$initial"; printf '%s\n' '- Test: `node --test calc.test.js`' "- $kind: \`false\`" >"$app/AGENTS.md"; commit; baseline=$(g rev-parse HEAD); green
-    expect_rc 1 contract_gate "$app" "$baseline"; contains "$kind"
+    expect_rc 1 contract_gate "$app"; contains "$kind"
   done
 }
 test_hygiene_output_mutation() {
   printf '%s\n' '- Test: `node --test calc.test.js`' '- Format: `printf format-checked`' '- Lint: `printf lint-checked`' >"$app/AGENTS.md"; commit; baseline=$(g rev-parse HEAD); green
-  expect_rc 0 contract_gate "$app" "$baseline"; contains format-checked; contains lint-checked
-  printf '%s\n' '- Test: `node --test calc.test.js`' '- Format: `printf changed > newfile`' >"$app/AGENTS.md"; commit; baseline=$(g rev-parse HEAD); expect_rc 1 contract_gate "$app" "$baseline"; contains clean
+  expect_rc 0 contract_gate "$app"; contains format-checked; contains lint-checked
+  printf '%s\n' '- Test: `node --test calc.test.js`' '- Format: `printf changed > newfile`' >"$app/AGENTS.md"; commit; baseline=$(g rev-parse HEAD); expect_rc 1 contract_gate "$app"; contains "changed source"
 }
-test_gofmt() { command -v gofmt >/dev/null || return 0; printf '%s\n' '- Test: `node --test calc.test.js`' '- Format: `gofmt -l ugly.go`' >"$app/AGENTS.md"; printf 'package calc\nfunc f( ){}\n' >"$app/ugly.go"; commit; baseline=$(g rev-parse HEAD); green; expect_rc 1 contract_gate "$app" "$baseline"; contains Format; }
-test_quoted_gofmt() { command -v gofmt >/dev/null || return 0; printf '%s\n' '- Test: `node --test calc.test.js`' '- Format: `"gofmt" "-l" ugly.go`' >"$app/AGENTS.md"; printf 'package calc\nfunc f( ){}\n' >"$app/ugly.go"; commit; baseline=$(g rev-parse HEAD); green; expect_rc 1 contract_gate "$app" "$baseline"; contains Format; }
+test_gofmt() { command -v gofmt >/dev/null || return 0; printf '%s\n' '- Test: `node --test calc.test.js`' '- Format: `gofmt -l ugly.go`' >"$app/AGENTS.md"; printf 'package calc\nfunc f( ){}\n' >"$app/ugly.go"; commit; baseline=$(g rev-parse HEAD); green; expect_rc 1 contract_gate "$app"; contains Format; }
+test_quoted_gofmt() { command -v gofmt >/dev/null || return 0; printf '%s\n' '- Test: `node --test calc.test.js`' '- Format: `"gofmt" "-l" ugly.go`' >"$app/AGENTS.md"; printf 'package calc\nfunc f( ){}\n' >"$app/ugly.go"; commit; baseline=$(g rev-parse HEAD); green; expect_rc 1 contract_gate "$app"; contains Format; }
 test_go_evidence() {
   command -v go >/dev/null || return 0
   printf '%s\n' '- Test: `go test ./...`' >"$app/AGENTS.md"; printf 'module fixture\n\ngo 1.22\n' >"$app/go.mod"; printf 'package calc\nfunc Add(a,b int)int{return a+b}\n' >"$app/calc.go"
@@ -167,13 +101,6 @@ test_go_evidence() {
   expect_rc 0 contract_suite "$app"; jq -e '.passed|index("TestAdd")!=null' "$case_dir/result" >/dev/null
   sed 's/!=3/!=4/' "$app/calc_test.go" >"$case_dir/go"; cp "$case_dir/go" "$app/calc_test.go"; expect_rc 10 contract_suite "$app"
   sed 's/Add(1,2)/Missing(1,2)/' "$app/calc_test.go" >"$case_dir/go"; cp "$case_dir/go" "$app/calc_test.go"; expect_rc 11 contract_suite "$app"; jq -e '.output|contains("undefined:")' "$case_dir/result" >/dev/null
-}
-test_go_import_additions() {
-  printf 'package calc\nimport "testing"\nfunc TestOld(t *testing.T) {}\n' >"$case_dir/old"
-  printf 'package calc\nimport "testing"\nimport "fmt"\nfunc TestOld(t *testing.T) {}\nfunc TestNew(t *testing.T) {}\n' >"$case_dir/new"
-  _contract_additions calc_test.go "$case_dir/old" "$case_dir/new" false "$case_dir"
-  printf 'package calc\nimport "testing"\nfunc TestOld(t *testing.T) { t.Skip() }\n' >"$case_dir/new"
-  expect_rc 1 _contract_additions calc_test.go "$case_dir/old" "$case_dir/new" false "$case_dir"
 }
 test_vitest_evidence() {
   [ -n "${SOBAYA_TEST_VITEST_ROOT:-}" ] || { echo 'skip: set SOBAYA_TEST_VITEST_ROOT for actual Vitest'; return 0; }
@@ -231,9 +158,6 @@ EOF
   test "$cancelled_rc" -eq 130; ! sb_group_alive "$child"
 }
 if [ "${1:-}" = __case ]; then set -e; fixture; "$2"; exit; fi
-for test in test_plan_exact test_plan_malformed test_valid_gate test_pending test_weakened_plan test_deleted_plan test_frozen_spec_commands test_frozen_header_checkbox test_invalid_baseline_missing_plan test_dirty_head test_index_untracked test_negative_binary_fixtures test_rename test_commented test_skipped test_unsupported_runner test_appended_unapproved test_explicit_target test_npm_frozen_script test_real_red_build_error test_timeout test_side_effect test_uncheck_complete test_saved_baseline test_worktree test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_go_import_additions test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation; do run_case "$test"; done
-run_case test_go_plan_exact
-run_case test_changed_header
-run_case test_index_flags_hide_broken_head
+for test in test_plan_exact test_plan_malformed test_go_plan_exact test_index_flags_hide_broken_head test_valid_gate test_unsupported_runner test_real_red_build_error test_timeout test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation; do run_case "$test"; done
 printf '%s tests, %s failures\n' "$count" "$failures"
 [ "$failures" -eq 0 ]

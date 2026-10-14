@@ -43,10 +43,10 @@ while IFS= read -r -d '' file; do
   fi
 done < "$TEMP/shell-sources"
 
-for suite in tests/test-contract.sh tests/test-runner.sh tests/test-tools.sh \
+for suite in tests/test-contract.sh tests/test-runner.sh tests/test-canon.sh tests/test-tools.sh \
   tests/test-config.sh tests/test-release.sh tests/test-install-flow.sh \
   tests/test-review-view.sh \
-  tdd-set/tests/next-entry.sh tdd-set/tests/probe-go-imports.sh tdd-set/tests/gate-verbatim.sh; do
+  tdd-set/tests/next-entry.sh tdd-set/tests/probe-go-imports.sh; do
   printf '\nRunning %s\n' "$suite"
   bash "$ROOT/$suite"
 done
