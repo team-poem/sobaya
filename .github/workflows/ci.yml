@@ -1,0 +1,85 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      OCI_TRUSTED_SOURCE: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    steps:
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "22"
+      # Public forks never receive this token or access to an OCI runner.
+      - name: Create private CI dispatch token
+        if: env.OCI_TRUSTED_SOURCE == 'true'
+        id: oci-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        with:
+          client-id: ${{ secrets.CAIRN_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.CAIRN_BOT_PRIVATE_KEY }}
+          owner: team-poem
+          repositories: oci-ci
+          permission-contents: write
+          permission-actions: read
+      - name: Check out pinned CI relay
+        if: env.OCI_TRUSTED_SOURCE == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: team-poem/oci-ci
+          ref: 4747e2fe7fff1782fc77c5b017d137f555b4e874
+          token: ${{ steps.oci-token.outputs.token }}
+          path: .oci-ci-tools
+          persist-credentials: false
+      - name: Verify on OCI and mirror its result
+        if: env.OCI_TRUSTED_SOURCE == 'true'
+        env:
+          GH_TOKEN: ${{ steps.oci-token.outputs.token }}
+          OCI_SOURCE_REPOSITORY: ${{ github.repository }}
+          OCI_SOURCE_SHA: ${{ github.sha }}
+          OCI_SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          OCI_SOURCE_PR_NUMBER: ${{ github.event.pull_request.number || 0 }}
+          OCI_SOURCE_REF: ${{ github.head_ref && format('refs/heads/{0}', github.head_ref) || github.ref }}
+        run: node .oci-ci-tools/scripts/relay.mjs
+      - name: Check out hosted verification source
+        if: env.OCI_TRUSTED_SOURCE != 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Set up Go for fixture checks
+        if: env.OCI_TRUSTED_SOURCE != 'true'
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: "1.23.x"
+          cache: false
+      - name: Check harness prerequisites
+        if: env.OCI_TRUSTED_SOURCE != 'true'
+        run: |
+          bash --version
+          git --version
+          jq --version
+          node --version
+          go version
+      - name: Run the complete shell harness suite
+        if: env.OCI_TRUSTED_SOURCE != 'true'
+        run: bash tests/run.sh
+      - name: Check the generated brain index
+        if: env.OCI_TRUSTED_SOURCE != 'true'
+        run: bash scripts/brain-index.sh . --check
+      - name: Check workspace boundaries
+        if: env.OCI_TRUSTED_SOURCE != 'true'
+        run: bash scripts/workspace-check.sh .
