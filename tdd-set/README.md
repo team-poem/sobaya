@@ -1,139 +1,150 @@
 # tdd-set
 
-Sobaya's provider-neutral development runtime. The shared contract is
-[`../AGENTS.md`](../AGENTS.md); the development rules are
-[`AGENTS.md`](AGENTS.md). The human owns acceptance. Workers implement;
-the runtime materializes tests, validates progress, and commits checkpoints.
+Optional shell helpers for the Canon TDD cycle in [AGENTS.md](AGENTS.md).
+Human intent stays in `spec.md`; `failed-test.md` is an evolving scenario list.
+The agent may run the cycle directly or use these helpers. No exact-test
+approval, permanently frozen tests, prewritten future batch or mandatory
+independent review is required.
 
-The canonical implementation is shell: Bash 3.2, jq, Git, and standard Unix
-tools. Go/Node/Vitest execute app tests, not the harness coordinator. Changing
-the harness runtime language needs explicit user approval; agreement on the
-architecture does not supply that approval.
-
-Writer locking uses `shlock` on macOS/BSD or `flock` on Linux. Version-1
-approval state and usage records remain compatible, including existing call
-counts, fractional timestamps, and an unfinished entry resumed explicitly.
+The runtime uses Bash 3.2, jq, Git and standard Unix tools. Go/Node/local
+Vitest run app tests. A different harness runtime language still needs explicit
+user approval. Locks use shlock on macOS/BSD or flock on Linux; each checkout
+has one writer. Do not edit runtime scripts while an invocation is active.
 
 ## Commands
 
-Paths in the table are relative to `tdd-set/`; from the Sobaya root, prefix
-them with `tdd-set/`. `APP` means `apps/<name>`. First activate root Git hooks
-with `bash scripts/setup.sh .`. Existing conflicting hooks are preserved;
-integrate them explicitly before activation.
+Run from the workspace root; prefix paths below with `tdd-set/`.
+`APP` means an independent app repository, normally `apps/<name>`.
 
 | Command | Purpose |
 |---|---|
-| `bin/install.sh APP` | Prepare an independent app repo and missing contract/templates |
-| `bin/approve.sh APP` | Record human approval of committed spec, plan, and app acceptance contract |
-| `bin/approve.sh APP --replace` | Explicitly replace approval after human review; preserve the prior baseline history |
-| `bin/next.sh APP` | Read the next unchecked entry (draft or approved); never change a checkbox |
-| `bin/step.sh APP [--policy PATH]` | Materialize and validate one entry with an implementation worker |
-| `bin/loop.sh APP [max_iterations] [--policy PATH]` | Continue through checkpoints, final gate, and independent review |
-| `bin/gate.sh APP` | Verify final acceptance against the recorded baseline |
-| `bin/review.sh APP [--policy PATH] [--worker NAME]` | Run a separate read-only reviewer against the current revision |
-| `bin/status.sh APP` | Inspect approval, progress, and recovery/review state |
-| `bin/doctor.sh APP` | Check Git/hooks, workspace, policy, worker executable availability, and clean app state |
-| `bin/probe.sh TARGET - [HEADER]` | Probe a draft candidate supplied on stdin |
-| `bin/review-view.sh SOURCE NOTES_JSON OUTPUT.md` | Create a new Markdown human review view from exact source and complete range rationale |
-| `bin/usage.sh summary APP [RUN_ID]` | Summarize recorded worker usage |
+| `bin/install.sh APP` | Install missing app templates and the real Git hook |
+| `bin/next.sh APP` | Read the next unchecked scenario without mutation |
+| `bin/step.sh APP [--policy PATH] [--worker NAME]` | Materialize one concrete test, observe RED, implement and verify GREEN |
+| `bin/loop.sh APP [--policy PATH]` | Compatibility alias for one step; returns to the orchestrator for learning |
+| `bin/gate.sh APP` | Check current full suite and hygiene, including uncommitted tidying |
+| `bin/review.sh APP [--policy PATH] [--worker NAME]` | Optional read-only review of current committed work; pending scenarios are allowed |
+| `bin/status.sh APP` | Inspect current attempt, pending scenarios and legacy state |
+| `bin/migrate.sh APP` | Archive a legacy plan/state and convert executable batches into mutable scenarios |
+| `bin/restart.sh APP` | Archive an active attempt while preserving edits and cumulative worker calls |
+| `bin/doctor.sh APP` | Check local tools, hooks, policy and workspace without a paid call |
+| `bin/probe.sh TARGET - [HEADER]` | Diagnose one candidate supplied on stdin |
+| `bin/review-view.sh SOURCE NOTES_JSON OUTPUT.md` | Optional source-and-rationale view for a useful human review |
+| `bin/usage.sh summary APP [RUN_ID]` | Read recorded worker usage, including historical runs |
 
-Approval is an explicit human decision, not a worker inference. An agent
-may run `approve.sh` on the human's behalf only when those exact inputs
-have already been approved. A repeat loop invocation does not reset the
-baseline. `--replace` requires renewed approval of changed acceptance inputs.
+`approve.sh`, `--append`, `--replace`, `--checkpoint`, old loop iteration counts
+and gate baseline arguments are retired and return diagnostics. They do not
+silently grant approval or execute work. Product intent still comes from the
+human's request; a runnable test is not permission for an unrequested feature.
 
-## App contract and test representation
+## Scenario list and the next test
 
-The app has its own Git repository, `AGENTS.md`, `spec.md`, and
-`failed-test.md`. Shared rules and skills remain in Sobaya. Installation is
-idempotent; review the generated commands before approving the app.
+A plain list is sufficient when an agent works directly in app test files:
 
-The app `AGENTS.md` declares `- Test:`, optional `- Format:`, `- Lint:`,
-`- Bench:`, and `- Skills:`. `Test:` is the full acceptance suite, not a
-filtered test. Supported runners are direct `go test`, `node --test`, locally
-installed `vitest run`, and simple npm script wrappers around these commands.
-Shell chains, npm pre/post lifecycle hooks, and reporter overrides are rejected.
-Install dependencies explicitly; the harness does not download a test runner.
-Test/format/lint checks must succeed at validated checkpoints.
-Format commands succeed by exit status even if they print a success message;
-the `gofmt -l` adapter additionally rejects a nonempty unformatted-file list.
-Benchmarks report relevant performance evidence; they do not replace tests.
+```md
+- [ ] addPositive — add two positive integers
+- [ ] addZero — add zero
+```
 
-Each plan entry has an identifier, checkbox, and fenced test code. Section
-headers are approved test support, including their `// file:` destination.
-Node sections require an explicit destination and the imports/constants used
-by their test blocks. For Go, `- Test-File:` can name a relative destination;
-an explicit `// file:` header can include package/import declarations.
-Keep every approved body and header verbatim. Required setup should be
-reviewed before the baseline is frozen, not repaired by a worker later.
+The optional runner takes exactly one concrete candidate attached to the next
+unchecked scenario. Later unchecked scenarios must stay prose. Example:
 
-Initial and replacement drafts use the human review view defined in
-[`skills/tdd/SKILL.md`](skills/tdd/SKILL.md): complete original code followed by
-Korean design rationale for every source range. The
-[`review-view.sh reference`](skills/tdd/references/human-review.md) describes
-the source inventory, notes schema, and identity/coverage checks. The helper
-creates a separate document; it does not establish semantic correctness or
-approval. The plan, probes, approval baseline, and materialized tests preserve
-the exact executable blocks, including source comments and formatting.
+````md
+# Addition
+## Sum
+```js
+// file: sum.test.js
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const {add} = require('./sum.js');
+```
+- [ ] addPositive — 1 + 2 is 3
+```js
+test('addPositive', () => assert.equal(add(1,2),3));
+```
+- [ ] addZero — choose this test after the first result
+````
 
-By default RED must be an executed named test failure. For a new Go API, the
-human may approve `bin/approve.sh APP --allow-go-undefined-red`. This records
-an explicit exception: the existing suite must pass first, and compiler
-diagnostics must consist only of undefined symbols in the selected test file.
-Missing import qualifiers, syntax errors, and unrelated build failures remain
-errors. The receipt records `build-red`, and GREEN still requires the actual
-test to execute and pass. Without this exception, prepare reviewed runnable
-stubs. A preparation failure can resume after fixing implementation/environment;
-protected tests and headers remain immutable.
+Node targets need `// file:` plus imports/setup. Go can use an explicit header
+with package/imports, or `- Test-File:` in the app contract. Headers initialize
+new files; if a file already exists its required imports/setup must already
+be present. Prepare that support at GREEN rather than silently changing it
+inside a RED-to-GREEN implementation attempt.
 
-A probe RED is evidence of failure, not evidence that an expectation is
-correct. Missing dependencies, imports, and environment errors require
-diagnosis. The human reviews the test's meaning. Agent-generated cases
-remain drafts until approved; implementation cannot silently amend them.
+Only the plan may be dirty when starting `step.sh`; the behavioral commit
+includes that selected test and the updated scenario. Commit or isolate other
+existing work first, so the runner never sweeps unrelated edits into a commit.
+There is no requirement to commit a failing candidate or ask for approval.
 
-## Checkpoints, review, and recovery
+The runner snapshots tests/support, the plan, spec and commands only during
+an active attempt. It inserts the candidate, measures an actual named failure,
+then calls the implementation worker. A passing candidate is recorded as
+ALREADY GREEN and needs no implementation call. A missing Go symbol in the
+selected test may count as build RED after the previous suite passed; syntax,
+missing import/dependency and infrastructure errors do not count.
 
-The runtime selects one approved entry, adds its test, and observes RED.
-The implementation worker receives the current entry and needed contracts;
-it edits source only, does not alter tests/plan/acceptance commands, and does
-not commit. The runtime checks protected files and Git state, verifies the
-full suite is GREEN, then checks the entry and commits the behavioral change.
-A worker's successful exit or `done` report is never enough.
+Before advancement, the full suite and hygiene checks must pass. Worker
+reports alone cannot advance the checkbox. The runner commits a small
+behavioral change and returns; it does not choose another test or demand a
+review. `loop.sh` intentionally returns at the same boundary.
 
-If an approved entry already passes, the runtime records `ALREADY GREEN`,
-validates and commits its exact test without an implementation call. It does
-not invent RED evidence; final independent review still applies.
+At GREEN, refactor source and test code when useful, preserve behavior and
+assertion strength, run the suite after each change, and commit structure
+separately. Future scenarios and test interfaces can change without reapproval.
+The runtime does not prove that a test refactor preserves semantic coverage;
+the agent must inspect that judgment and involve the human for changed intent.
 
-`step.sh` completes one checkpoint. `loop.sh` continues to the final gate
-and a separate read-only review of the resulting HEAD. The reviewer uses
-a fresh context without the implementation conversation. It may use the
-same model; independence concerns context and role, not a different label.
-Review success is bound to the reviewed revision. Findings or unavailable
-review leave review pending; do not report the feature complete.
+## Checks and recovery
 
-Request structural refactoring as a separate task after the feature. It
-must preserve behavior, remain green, and use separate structural commits.
-The current implementation worker is not authorized to make refactor commits.
+App `AGENTS.md` declares `- Test:`, optional `- Format:`, `- Lint:`, `- Bench:`
+and `- Skills:`. Supported suite commands are direct `go test`, `node --test`,
+local `vitest run`, and simple npm script wrappers. No runner is downloaded.
+Shell chains, npm lifecycle hooks and reporter overrides are rejected.
+Format/lint must succeed; gofmt listing output identifies formatting failures.
 
-On failure, inspect status and diagnostics. The runtime preserves the
-workspace rather than automatically stashing or resetting it. Use the
-explicit `--resume` option on step/loop only after examining the preserved
-implementation state and cause. A changed test needs a separate draft,
-human review, committed inputs, and explicit `approve.sh APP --replace`.
-A failed checkpoint commit can resume without rerunning the worker when the
-verified content is unchanged. Interrupts and timeouts stop the worker process
-group before releasing its lock; abrupt coordinator death leaves an orphan
-record that blocks a second writer while that group is alive.
-Do not edit runtime scripts while a run is active.
+`gate.sh` reports current suite evidence, not product completion. It permits
+initially dirty files but rejects test/hygiene side effects that change code or
+Git state while checking. Review is an optional tool, with no cached approval
+needed for future work. Full-suite evidence and user feedback answer different
+questions; at feature boundaries expose outcomes, learning and the next choice.
 
-The logical boundary is a verified entry. Fresh sessions are the safe
-current default. This architecture does not require a new session for every
-future entry, but session reuse is not an implemented guarantee.
+On failure preserve edits, inspect diagnostics and use `step.sh APP --resume`
+for an unfinished implementation. Calls/timeouts remain bounded by policy;
+no automatic destructive reset or model upgrade is allowed. A failed commit
+can resume without another worker invocation when verified content is intact.
+
+For a test mistake, use `restart.sh APP` after diagnosis. It archives the
+attempt and does not erase code or tests. Correct the test within the intended
+behavior, restore a coherent GREEN starting revision, then select/probe the
+corrected test and measure evidence afresh. Do not use restart to invent RED
+for behavior that is already implemented; acknowledge ALREADY GREEN instead.
+Human consultation is for ambiguous or changed intent, not the restart command.
+
+## Migrating existing apps
+
+Use `migrate.sh APP` with a clean checkout and no active attempt. It works for
+an unstarted legacy plan with no test file yet: conversion changes metadata
+and plan text, and does not claim GREEN. Original plan and state are saved
+under the worktree Git directory's `sobaya/history/<run-id>/`. Existing test
+files, behavioral receipts, original origin commit, usage and cumulative
+calls remain; the plan retains scenario descriptions and checkboxes while
+removing executable fences. Pending tests are now revisable future choices.
+
+An unfinished v1 attempt must first be diagnosed. `restart.sh APP` archives
+its active evidence and preserves edits. Resolve/correct the work, record a
+coherent starting revision, and migrate before selecting the next test. No
+app repository is mass-migrated by updating Sobaya itself.
+
+State version 2 records execution history; `baseline` names the session origin
+for usage/optional review, not immutable acceptance authority. Archived v1
+state retains approval/review history. New runtime decisions never consume
+those historical approvals as permission. Migration and restart do not reset
+worker budgets.
 
 ## Worker policy
 
 Pass `--policy PATH` to select an explicit policy. The default is Astra
-through Codex. Model/provider changes never change acceptance criteria.
+through Codex. Model/provider changes never change intended behavior.
 
 ```json
 {
@@ -155,7 +166,7 @@ through Codex. Model/provider changes never change acceptance criteria.
 ```
 
 For a concrete lower-model path, inspect `policies/economy.example.json`: Sol
-implements with guided instructions, Astra reviews, and Astra implementation
+implements with guided instructions, Astra is available for optional review, and Astra implementation
 is allowed only after Sol returns a diagnostic handoff. Select it with
 `--policy tdd-set/policies/economy.example.json` from the workspace root.
 Use `mode: selected` with your chosen default when automatic escalation is
@@ -171,8 +182,8 @@ structured diagnostic handoff and an acceptable workspace state; failure
 alone never authorizes an automatic upgrade. `review_worker` optionally
 selects the reviewer; otherwise the selected worker is used in a fresh call.
 
-`max_calls` is cumulative for the approved baseline, including review calls.
-Repeated step/loop/resume does not reset it; leave capacity for final review.
+`max_calls` is cumulative for the execution session, including optional review calls.
+Repeated step/loop/resume, restart and migration do not reset it.
 `timeout_seconds` bounds a worker invocation. These are execution limits,
 not a currency budget. Usage records contain reported token/cost information;
 missing provider usage is unknown, not zero. No estimated dollar spend is
@@ -194,7 +205,7 @@ runtime supplies the prompt on stdin; the adapter must return the result as
 a **single JSON object on the final stdout line** (diagnostic lines may precede it):
 
 ```json
-{"status":"done","summary":"Implemented the approved entry.","reason":"","usage":{}}
+{"status":"done","summary":"Implemented the selected test.","reason":"","usage":{}}
 ```
 
 `status` is `done`, `handoff`, or `defect`. Include diagnostic `reason` for
@@ -202,25 +213,12 @@ handoffs and defects. The runtime still validates filesystem and test
 results independently. Policy files are executable authority: review the
 command argv and allowed workers before an unattended run.
 
-## Skills, prompts, and host integration
+## Skills and local validation
 
-`skills/tdd/` handles draft planning and approval. Stack skills are loaded
-only when relevant (`go-mistakes`, `nodejs`). `commands/` contains neutral
-task prompt references, not provider-specific slash-command registrations.
-`AGENTS.md` is canonical; there is no second provider instruction tree.
-
-Brain indexing and workspace checks are explicit scripts:
-
-```sh
-bash scripts/setup.sh .
-bash scripts/setup.sh . --check --app apps/example
-bash scripts/brain-index.sh . --check
-bash scripts/workspace-check.sh .
-```
-
-Host hooks may improve feedback, but acceptance is enforced by the runtime
-rather than assumed from a hook registration. Verify actual host wiring
-separately. `doctor.sh` verifies configured executables exist but does not
-validate credentials/model access or run the acceptance suite. Harness tests use temporary repositories and fake workers;
-they must not launch paid model sessions. Check the repository test runner
-for the maintained suite rather than treating old test counts as a contract.
+The TDD skill supports scenario selection and the learning cycle. Stack skills
+support relevant optional GREEN tidying. Commands are provider-neutral prompt
+references; adapters do not redefine the cycle. Use `bash tests/run.sh` for
+local deterministic fixtures; it makes no paid model calls. Historical
+approval-contract tests live in `tests/archive/approval-v1/` and are not active
+acceptance. Passing harness tests does not prove an arbitrary feature's user
+outcome or the quality of a live model's judgment.

@@ -1,60 +1,11 @@
-# <feature> — approved test plan
+# Behavioral scenarios
 
-Replace these examples with the human's reviewed acceptance cases. Keep only
-sections for the app's stack. Draft cases are not approved until the human
-reviews the committed spec, commands, exact headers, and test bodies.
+List desired behavior as checkbox items with a stable test identifier:
+`- [ ] caseName — concrete behavior and expected result`.
+Choose and write one executable test at a time. Future cases stay prose;
+add, split, reorder and revise them as you learn within the intended goal.
+The list is not an approval contract and an empty list is not proof of user value.
 
-Each entry is `- [ ] UniqueName — behavior`, followed by one fenced test.
-The section header names the destination with `// file:` and contains exact
-package/import/setup code. The runner appends each body verbatim, observes
-failure, and checks the box only after the full suite passes. Do not edit
-approved entries during implementation; changed criteria need renewed approval.
-
-These fences contain executable inputs, including any necessary source comments.
-For human review, show complete original code followed by Korean design rationale
-for every source range, including headers and support, as described in
-`tdd-set/skills/tdd/SKILL.md`; use the same view for replacements. Keep review
-explanations and duplicate review fences out of this plan. Approval binds the
-exact executable inputs; the runtime does not remove comments or reformat code.
-
-## Go example
-
-```go
-// file: add_test.go
-package example
-
-import "testing"
-```
-
-- [ ] TestAdd_SumsTwoPositives — 1 + 2 = 3.
-```go
-func TestAdd_SumsTwoPositives(t *testing.T) {
-	if got := Add(1, 2); got != 3 {
-		t.Fatalf("Add(1,2) = %d, want 3", got)
-	}
-}
-```
-
-## Node example
-
-```js
-// file: add.test.js
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { add } = require('./add.js');
-```
-
-- [ ] addAdds — 1 + 2 = 3.
-```js
-test('addAdds: 1 + 2 = 3', () => {
-  assert.equal(add(1, 2), 3);
-});
-```
-
-## Review notes
-
-Include meaningful boundaries, invalid inputs, and error cases relevant to the
-spec. Each identifier must match a real test registered by the declared suite.
-Probe draft candidates before approval; distinguish behavioral failures from
-missing runtimes, dependencies, syntax errors, and skipped tests. Never treat
-a successful shell command without executed tests as acceptance evidence.
+When using step.sh, attach only the next test's fenced body and its section's
+`// file:` header. See tdd-set/README.md for the format. Direct TDD work can
+write tests in the app test files and keep this entire list as prose.

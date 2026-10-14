@@ -3,7 +3,7 @@
 set -euo pipefail
 r_root=$(cd "$(dirname "$0")/../.." && pwd -P)
 . "$r_root/tdd-set/lib/contract.sh"
-r_state='' r_meta='' r_lock='' r_expected='' r_row='' r_started=0
+r_state='' r_meta='' r_lock='' r_expected='' r_row='' r_started=0 r_progress=false
 r_tmp=$(mktemp -d "${TMPDIR:-/tmp}/sobaya-runner.XXXXXX")
 r_die() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 r_atomic() {
@@ -33,7 +33,7 @@ r_cleanup() {
     exit "$status"
 }
 trap r_cleanup EXIT
-trap 'printf "Stopped; edits and approval preserved.\n" >&2; exit 130' INT TERM
+trap 'printf "Stopped; edits and execution evidence preserved.\n" >&2; exit 130' INT TERM
 r_git() { git -C "$r_app" "$@"; }
 r_clean() {
     [ "$(r_git rev-parse --show-toplevel)" = "$r_app" ] || r_die 'app must be the Git repository root'
@@ -41,10 +41,14 @@ r_clean() {
     [ -z "$(r_git status --porcelain=v1 --untracked-files=all)" ] || r_die 'A clean working tree and index are required (including untracked files).'
 }
 r_load() {
-    [ -f "$r_meta/state.json" ] || r_die 'No approved baseline. Review and commit spec.md / failed-test.md, then run approve.sh APP.'
-    r_state=$(jq -e 'select(type=="object" and .version==1 and (.baseline|type)=="string" and (.calls|type)=="number" and .calls>=0)' "$r_meta/state.json") || r_die 'Invalid approval state; inspect before replacing approval.'
-    r_git rev-parse --verify "$(jq -r .baseline <<< "$r_state")^{commit}" >/dev/null
+    if [ ! -f "$r_meta/state.json" ]; then
+        r_state=$(jq -nc --arg head "$(r_git rev-parse HEAD)" --argjson now "$(date +%s)" '{version:2,baseline:$head,started_at:$now,calls:0,active:null,receipts:[],status:"ready"}')
+        return
+    fi
+    r_state=$(jq -e 'select(type=="object" and (.version==1 or .version==2) and (.calls|type)=="number" and .calls>=0)' "$r_meta/state.json") || r_die 'Invalid execution state; inspect before continuing.'
+    [ "$(jq -r .version <<< "$r_state")" = 2 ] || r_die 'Legacy approval state: run migrate.sh APP to preserve history and convert future tests to scenarios.'
 }
+
 r_policy_load() {
     r_policy=$(jq -e '
       def positive: type=="number" and floor==. and .>0;
@@ -91,7 +95,7 @@ r_snapshot() {
     while IFS= read -r -d '' name; do
         if [ "$protected" = true ]; then
             case "/$name" in
-                /spec.md|/failed-test.md|/AGENTS.md|*/tests/*|*/test/*|*/__tests__/*|*/fixtures/*|*/testdata/*|*_test.go|*_test.py|*/test_*.py|*.test.*|*.spec.*|*conftest.py) ;;
+                /spec.md|/failed-test.md|/AGENTS.md|/package.json|*/tests/*|*/test/*|*/__tests__/*|*/fixtures/*|*/testdata/*|*_test.go|*_test.py|*/test_*.py|*.test.*|*.spec.*|*conftest.py) ;;
                 *) jq -e --arg path "$name" 'index($path)!=null' <<< "$targets" >/dev/null || continue ;;
             esac
         fi
@@ -123,28 +127,6 @@ r_verify_active() {
     [ "$(r_git rev-parse HEAD)" = "$(jq -r .active.head <<< "$r_state")" ] || r_die 'Worker changed HEAD; preserve and inspect its commits.'
     r_same "$(r_snapshot true)" "$(jq -c .active.protected <<< "$r_state")" || r_die 'Protected test, fixture, plan, or instruction content changed; edits preserved.'
 }
-r_approve() {
-    local head old
-    r_clean
-    contract_plan "$r_app" > "$r_tmp/entries.json"
-    [ -s "$r_app/spec.md" ] && grep -q '[^[:space:]]' "$r_app/spec.md" || r_die 'The human must fill spec.md before approval.'
-    if grep -Eq '<what must be true|<requirement 1>|<feature>|<name>' "$r_app/spec.md"; then r_die 'The human must fill spec.md before approval.'; fi
-    for name in AGENTS.md spec.md failed-test.md; do r_git cat-file -e "HEAD:$name"; done
-    head=$(r_git rev-parse HEAD)
-    if [ -e "$r_meta/state.json" ]; then
-        r_load
-        if [ "$r_replace" = false ]; then
-            if [ "$r_allow_build" = true ] && ! jq -e '.allow_go_undefined_red==true' <<< "$r_state" >/dev/null; then r_die 'Changing RED authorization requires human-reviewed approve --replace.'; fi
-            contract_validate "$r_app" "$(jq -r .baseline <<< "$r_state")" false >/dev/null
-            printf 'Approval retained: %s\n' "$(jq -r .baseline <<< "$r_state")"
-            return
-        fi
-        printf '%s\n' "$r_state" | r_atomic "$r_meta/approvals/$r_run_id.json"
-    fi
-    r_state=$(jq -nc --arg baseline "$head" --argjson now "$(date +%s)" --argjson allow "$r_allow_build" '{version:1,baseline:$baseline,approved_at:$now,calls:0,active:null,receipts:[],review:null,status:"approved",allow_go_undefined_red:$allow}')
-    r_save
-    printf 'Approved baseline %s. Acceptance criteria are identical for every worker.\n' "$head"
-}
 r_materialize() {
     local entry=$1 target lang packages segment cursor
     target=$(jq -r '.target//empty' <<< "$entry")
@@ -168,7 +150,7 @@ r_materialize() {
     mkdir -p "$(dirname "$r_app/$target")"
     if [ ! -e "$r_app/$target" ]; then jq -j .header <<< "$entry" > "$r_app/$target"; fi
     [ -f "$r_app/$target" ] || r_die 'Test target must be a regular file.'
-    # Read approved blocks directly with jq so shell substitution cannot trim them.
+    # Read the selected blocks directly with jq so shell substitution cannot trim them.
     if ! jq -e --rawfile existing "$r_app/$target" '.code as $code|$existing|contains($code)' <<< "$entry" >/dev/null; then
         if [ -s "$r_app/$target" ] && [ "$(tail -c 1 "$r_app/$target" | od -An -tu1 | tr -d ' ')" = 10 ]; then printf '\n' >> "$r_app/$target"; else printf '\n\n' >> "$r_app/$target"; fi
         jq -j .code <<< "$entry" >> "$r_app/$target"
@@ -212,21 +194,22 @@ r_prompt() {
         printf 'Installed connection (%s): read %s/tdd-set/AGENTS.md, %s/AGENTS.md and %s/AGENTS.md. The workspace selects the pinned runtime; preserve its sobaya.json and sobaya.lock.\n' "$SOBAYA_CONNECTION_MODE" "$r_root" "$SOBAYA_WORKSPACE_ROOT" "$r_app"
     fi
     if [ "$role" = review ]; then
-        printf 'Read %s/AGENTS.md and the app AGENTS.md. Independently review the diff in %s from %s to HEAD. Use a fresh review context. Read only; do not edit or commit. Refute correctness, scope, test coverage and requirements. Return done only if no actionable findings remain, defect for concrete findings, handoff if review cannot finish. Include file/line evidence in summary. Return JSON with status, summary, reason.\n' "$r_root" "$r_app" "$(jq -r .baseline <<< "$r_state")"
+        printf 'Read %s/AGENTS.md and the app AGENTS.md. Review %s from %s to HEAD. Read only; do not edit or commit. Examine correctness, scope and useful test coverage. Pending scenarios are future choices, not automatically missing requirements. Return JSON {status: done|handoff|defect, summary: string, reason: string} with concrete findings. This is an optional review, not a prerequisite for the next test.\n' "$r_root" "$r_app" "$r_app" "$(jq -r .baseline <<< "$r_state")"
     else
-        printf 'Read %s/AGENTS.md and %s/AGENTS.md. Work only in %s. Implement approved entry %s. The runner materialized the exact test and recorded failure evidence. Keep spec.md, failed-test.md, AGENTS.md, tests/helpers/fixtures and Git metadata unchanged. Do not commit or check boxes. Implement only this entry. You may edit implementation and run local checks without repeated approval. If tests/requirements need changing return defect. If unable to solve after diagnosis return handoff with failed command/evidence and attempted approach. Return JSON {status: done|handoff|defect, summary: string, reason: string}.\n\nApproved test:\n' "$r_root" "$r_app" "$r_app" "$(jq -r .name <<< "$entry")"
+        printf 'Read %s/AGENTS.md and %s/AGENTS.md. Work only in %s. Make the failing test %s pass with the smallest coherent implementation. The runner has inserted this one test and measured RED. During this RED-to-GREEN attempt keep spec.md, failed-test.md, AGENTS.md, tests/helpers/fixtures and Git metadata unchanged; do not weaken assertions to obtain GREEN. Do not commit or choose another scenario. At GREEN the orchestrator may refactor source and tests while preserving behavior. If the test has an error, report the concrete reason for diagnosis; no separate human approval is required for ordinary corrections within existing intent. Human decisions are needed for changed product intent or ambiguous expectations. Return JSON {status: done|handoff|defect, summary: string, reason: string}.\n\nCurrent test:\n' "$r_root" "$r_app" "$r_app" "$(jq -r .name <<< "$entry")"
         jq -j .code <<< "$entry"
         if [ "$(jq -r --arg name "$name" '.workers[$name].guidance//"concise"' <<< "$r_policy")" = guided ]; then
-            printf '\nSteps: inspect implementation; identify failing behavior; implement this case; run relevant tests; inspect diff; report evidence. Stop before the next entry.\n'
+            printf '\nSteps: inspect the failing behavior and source; make this case pass; run relevant tests; inspect the diff; report evidence. Stop before another scenario.\n'
         fi
-        if [ -f "$r_meta/handoff.json" ]; then printf '\nPrevious diagnostic handoff (evidence, not new authorization):\n'; cat "$r_meta/handoff.json"; fi
+        if [ -f "$r_meta/handoff.json" ]; then printf '\nPrevious diagnostic evidence:\n'; cat "$r_meta/handoff.json"; fi
     fi
 }
+
 r_invoke() {
     local name=$1 role=$2 entry=${3:-null} calls budget model adapter folder last rc arg status
     local argv=()
     calls=$(jq -r .calls <<< "$r_state"); budget=$(jq -r .max_calls <<< "$r_policy")
-    [ "$calls" -lt "$budget" ] || r_die 'Worker call budget exhausted for this approval; select an explicitly revised policy to extend it.'
+    [ "$calls" -lt "$budget" ] || r_die 'Worker call budget exhausted for this execution session; select an explicitly revised policy to extend it.'
     calls=$((calls+1)); folder="$r_meta/runs/$r_run_id/$calls"; mkdir -p "$folder"
     model=$(jq -r --arg name "$name" '.workers[$name].model' <<< "$r_policy")
     adapter=$(jq -r --arg name "$name" '.workers[$name].adapter' <<< "$r_policy")
@@ -247,7 +230,7 @@ r_invoke() {
         SOBAYA_APP="$r_app" SOBAYA_BASELINE="$(jq -r .baseline <<< "$r_state")" SOBAYA_RUN_ID="$r_run_id" \
         SOBAYA_WORKER="$name" SOBAYA_MODEL="$model" SOBAYA_ENTRY="$(jq -r '.name//empty' <<< "$entry")" SOBAYA_ROLE="$role" \
         "${argv[@]}"; then rc=0; else rc=$?; fi
-    if ! cmp -s "$r_expected" "$r_meta/state.json"; then r_save; r_log_finish; r_expected=''; r_die 'Worker changed protected approval state; original state restored, source edits preserved.'; fi
+    if ! cmp -s "$r_expected" "$r_meta/state.json"; then r_save; r_log_finish; r_expected=''; r_die 'Worker changed execution state; original state restored, source edits preserved.'; fi
     r_expected=''
     [ "$rc" -ne 130 ] || { r_log_finish; exit 130; }
     [ "$rc" -ne 124 ] || { r_log_finish; r_die "Worker timed out; inspect $folder."; }
@@ -270,12 +253,12 @@ r_invoke() {
 r_handoff() {
     local name=$1
     jq -n --argjson state "$r_state" --argjson result "$r_result" --arg worker "$name" --arg head "$(r_git rev-parse HEAD)" --arg diff "$(r_git diff HEAD --stat)" '{baseline:$state.baseline,head:$head,entry:$state.active.entry,worker:$worker,status:$result.status,summary:$result.summary,reason:$result.reason,diff:$diff}' | r_atomic "$r_meta/handoff.json"
-    r_state=$(jq --argjson result "$r_result" '.status=(if $result.status=="defect" then "needs_human" else "handoff" end)' <<< "$r_state"); r_save
+    r_state=$(jq --argjson result "$r_result" '.status="handoff"' <<< "$r_state"); r_save
 }
 r_commit_active() {
     local head old tree name
     contract_index_safe "$r_app"
-    r_same "$(r_snapshot)" "$(jq -c .active.verified_content <<< "$r_state")" || r_die 'Verified content changed after GREEN; inspect before replacing approval.'
+    r_same "$(r_snapshot)" "$(jq -c .active.verified_content <<< "$r_state")" || r_die 'Verified content changed after GREEN; inspect before resuming.'
     head=$(r_git rev-parse HEAD); old=$(jq -r .active.head <<< "$r_state"); name=$(jq -r .active.entry <<< "$r_state")
     if [ "$head" = "$old" ]; then
         r_git add --all
@@ -288,8 +271,9 @@ r_commit_active() {
     if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then
         r_same "$(r_snapshot)" "$(jq -c .active.verified_content <<< "$r_state")" || r_die 'Protected checkpoint content changed during commit hooks; inspect preserved edits.'
     fi
-    contract_gate "$r_app" "$(jq -r .baseline <<< "$r_state")" false false >/dev/null
+    r_clean
     r_state=$(jq --arg head "$head" '.receipts += [(.active.receipt+{head:$head,before:.active.head})] | .active=null | .review=null | .status="checkpoint"' <<< "$r_state"); r_save
+    r_progress=true
     printf 'Checkpoint %s: %s\n' "$name" "$head"
 }
 r_finish() {
@@ -314,33 +298,37 @@ r_finish() {
     r_state=$(jq --argjson protected "$(r_snapshot true)" --argjson verified "$(r_snapshot)" --argjson suite "$r_suite" --argjson result "$r_result" '.active.protected=$protected | .active.verified_content=$verified | .active.phase="committing" | .active.receipt={entry:.active.entry,red:.active.red,green:$suite.passed,summary:$result.summary}' <<< "$r_state")
     r_save; r_commit_active
 }
+# A candidate plan can be uncommitted; unrelated user edits must not be swept into a commit.
+r_ready() {
+    contract_index_safe "$r_app"
+    local paths
+    paths=$(r_git status --porcelain=v1 --untracked-files=all)
+    [ -z "$paths" ] || [ "$(printf '%s\n' "$paths" | cut -c4- | sort -u)" = failed-test.md ] || r_die 'Commit or isolate existing source edits before step; only the scenario plan may be uncommitted.'
+}
 r_step() {
-    local entry name entries approved target before choices choice
+    local entry name entries target before choices choice
     if jq -e '.active!=null' <<< "$r_state" >/dev/null; then
-        [ "$r_resume" = true ] || r_die 'An unfinished entry is preserved. Inspect status/handoff, then use --resume.'
+        [ "$r_resume" = true ] || r_die 'An unfinished attempt is preserved. Diagnose it, then use --resume; use restart.sh after correcting a test.'
         if [ "$(jq -r .active.phase <<< "$r_state")" = committing ]; then r_commit_active; return; fi
         r_verify_active
         name=$(jq -r .active.entry <<< "$r_state")
-        entry=$(contract_plan "$r_app" | jq -ce --arg name "$name" '.[]|select(.name==$name and (.checked|not))') || r_die 'Active entry changed; inspect checkpoint.'
-        case "$(jq -r .active.phase <<< "$r_state")" in preparing|implement) ;; *) r_die 'Invalid active phase.';; esac
+        entry=$(contract_plan "$r_app" | jq -ce --arg name "$name" '.[]|select(.name==$name and (.checked|not))') || r_die 'Active scenario changed; diagnose and restart the attempt.'
     else
-        r_clean
-        entries=$(contract_validate "$r_app" "$(jq -r .baseline <<< "$r_state")" false)
-        approved=$(contract_plan "$r_app" "$(jq -r .baseline <<< "$r_state")" | jq '[.[].name]')
-        jq -e --argjson approved "$approved" 'all(.[];.name as $name|$approved|index($name)!=null)' <<< "$entries" >/dev/null || r_die 'Plan has unapproved appended entries; human review and approve --replace required.'
-        entry=$(jq -ce '[.[]|select(.checked|not)][0]//empty' <<< "$entries") || return 0
+        r_ready
+        entries=$(contract_plan "$r_app")
+        jq -e '[.[]|select((.checked|not) and .code!="")]|length<=1' <<< "$entries" >/dev/null || r_die 'Future tests are prewritten. Run migrate.sh APP to retain scenarios and draft only the next test.'
+        entry=$(jq -ce '[.[]|select(.checked|not)][0]//empty' <<< "$entries") || { printf 'No pending scenarios. Assess the feature outcome and learning before choosing more work.\n'; return; }
         name=$(jq -r .name <<< "$entry")
-        if jq -e '.allow_go_undefined_red==true' <<< "$r_state" >/dev/null; then
-            before=$(r_snapshot); contract_suite "$r_app" "$r_timeout" >/dev/null
-            r_same "$before" "$(r_snapshot)" || r_die 'Baseline suite modified source files.'
-            r_clean
+        [ -n "$(jq -r .code <<< "$entry")" ] || r_die "Next scenario $name needs one concrete test. Write/probe it, then step; no test approval is required."
+        if [ "$(jq -r .language <<< "$entry")" = go ]; then
+            before=$(r_snapshot); contract_suite "$r_app" "$r_timeout" > "$r_tmp/baseline-suite.json" || { cat "$r_tmp/baseline-suite.json" >&2; r_die 'Establish GREEN before adding the Go test.'; }
+            r_same "$before" "$(r_snapshot)" || r_die 'Baseline tests modified source files.'
         fi
-        r_state=$(jq --arg name "$name" --arg head "$(r_git rev-parse HEAD)" --argjson protected "$(r_snapshot true)" '.active={entry:$name,head:$head,phase:"preparing",protected:$protected,red:null}' <<< "$r_state"); r_save
+        r_state=$(jq --arg name "$name" --arg head "$(r_git rev-parse HEAD)" --argjson protected "$(r_snapshot true)" '.active={entry:$name,head:$head,phase:"preparing",protected:$protected,red:null} | .status="working"' <<< "$r_state"); r_save
     fi
     if [ "$(jq -r .active.phase <<< "$r_state")" = preparing ]; then
         target=$(r_materialize "$entry")
         r_state=$(jq --argjson protected "$(r_snapshot true)" '.active.protected=$protected' <<< "$r_state"); r_save
-        jq -e '.allow_go_undefined_red==true' <<< "$r_state" >/dev/null || target=''
         r_checked_suite "$name" "$target"
         r_state=$(jq --arg verdict "$r_verdict" --argjson suite "$r_suite" '.active.red={status:$verdict,failed:$suite.failed,output:$suite.output} | .active.phase="implement"' <<< "$r_state"); r_save
         case "$r_verdict" in green) printf 'ALREADY GREEN %s\n' "$name"; r_result='{"summary":"Already green; no implementation change required."}'; r_finish "$entry"; return;; red) printf 'RED %s\n' "$name";; *) printf 'BUILD-RED %s\n' "$name";; esac
@@ -349,60 +337,100 @@ r_step() {
     while IFS= read -r choice; do
         r_invoke "$choice" implement "$entry"
         r_verify_active
-        if [ "$(jq -r .status <<< "$r_result")" = 'done' ]; then r_finish "$entry"; return; fi
+        if [ "$(jq -r .status <<< "$r_result")" = done ]; then r_finish "$entry"; return; fi
         r_handoff "$choice"
-        [ "$(jq -r .status <<< "$r_result")" != defect ] || r_die 'Worker found a requirement/test issue. Human review required; approved tests remain unchanged.'
+        [ "$(jq -r .status <<< "$r_result")" != defect ] || r_die 'Test/requirement issue preserved for diagnosis. Correct within existing intent and restart; ask the human only if intent is unclear or changing.'
     done < <(jq -r '.[]' <<< "$choices")
     r_die "Diagnostic handoff saved at $r_meta/handoff.json; resume explicitly with an allowed worker."
 }
 r_review() {
     local worker=$1 head before
     r_clean
-    jq -e '.active==null' <<< "$r_state" >/dev/null || r_die 'Cannot review an unfinished entry.'
-    if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then before=$(r_snapshot); fi
-    contract_gate "$r_app" "$(jq -r .baseline <<< "$r_state")" true true > "$r_tmp/gate.json"
-    if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then
-        r_same "$before" "$(r_snapshot)" || r_die 'Protected workspace pin or source changed during final gate.'
-    fi
-    head=$(r_git rev-parse HEAD)
-    if [ "$(jq -r '.review.head//empty' <<< "$r_state")" = "$head" ]; then printf 'PASS — existing independent review matches HEAD.\n'; return; fi
+    jq -e '.active==null' <<< "$r_state" >/dev/null || r_die 'Finish or diagnose the active attempt before review.'
     before=$(r_snapshot)
-    r_invoke "$worker" review null
-    r_same "$before" "$(r_snapshot)" && [ "$(r_git rev-parse HEAD)" = "$head" ] || r_die 'Review worker changed the repository; review rejected and edits preserved.'
+    contract_gate "$r_app" > "$r_tmp/gate.json"
+    r_same "$before" "$(r_snapshot)" || r_die 'Protected workspace pin or source changed during gate.'
+    head=$(r_git rev-parse HEAD); before=$(r_snapshot)
+    r_invoke "$worker" review
+    r_same "$before" "$(r_snapshot)" && [ "$(r_git rev-parse HEAD)" = "$head" ] || r_die 'Review changed the repository; edits preserved.'
     r_clean
-    if [ "$(jq -r .status <<< "$r_result")" != 'done' ]; then
-        r_handoff "$worker"; r_state=$(jq '.status="review_pending"' <<< "$r_state"); r_save
-        r_die 'Independent review needs attention; findings preserved in handoff.json.'
+    [ "$(jq -r .status <<< "$r_result")" = done ] || { r_handoff "$worker"; r_die 'Review findings preserved in handoff.json.'; }
+    r_state=$(jq --arg head "$head" --argjson result "$r_result" '.review={head:$head,summary:$result.summary}' <<< "$r_state"); r_save
+    printf 'PASS — optional review finished.\n'
+}
+r_archive() {
+    local folder="$r_meta/history/$r_run_id"
+    mkdir -p "$folder"
+    [ ! -f "$r_meta/state.json" ] || cp "$r_meta/state.json" "$folder/state.json"
+    cp "$r_app/failed-test.md" "$folder/failed-test.md"
+    printf '%s\n' "$folder"
+}
+r_restart() {
+    # Restart abandons execution evidence, not files. The next invocation measures RED anew.
+    jq -e '.active!=null' <<< "$r_state" >/dev/null || r_die 'No active attempt to restart.'
+    local archived
+    archived=$(r_archive)
+    r_state=$(jq --arg archived "$archived" '.attempt_history=(.attempt_history//[])+[{archive:$archived,active:.active}] | .active=null | .status="ready"' <<< "$r_state"); r_save
+    printf 'Attempt archived at %s; edits preserved. Correct the test and restore GREEN before preparing the next attempt.\n' "$archived"
+}
+r_migrate() {
+    local archived before tree head verified
+    r_clean
+    if [ -f "$r_meta/state.json" ]; then
+        r_state=$(jq -e 'select(.version==1 or .version==2)' "$r_meta/state.json") || r_die 'Invalid state; inspect before migration.'
+        jq -e '.active==null' <<< "$r_state" >/dev/null || r_die 'An active legacy attempt remains. Diagnose it and use restart.sh APP to archive its evidence without discarding edits, then restore a GREEN revision before migration.'
+    else
+        r_load
     fi
-    r_state=$(jq --arg head "$head" --arg worker "$worker" --argjson result "$r_result" --argjson now "$(date +%s)" '.review={head:$head,worker:$worker,summary:$result.summary,at:$now} | .status="complete"' <<< "$r_state"); r_save
-    printf 'PASS — exact commit validated and independently reviewed.\n'
+    contract_plan "$r_app" > "$r_tmp/scenarios.json"
+    archived=$(r_archive)
+    before=$(r_git rev-parse HEAD)
+    # Code remains in the archive and actual test files. Future expectations stay prose.
+    awk '/^```/{f=!f;next} !f{print} END{if(f)exit 1}' "$r_app/failed-test.md" > "$r_tmp/scenarios.md"
+    cp "$r_tmp/scenarios.md" "$r_app/failed-test.md"
+    r_git add -- failed-test.md
+    verified=$(r_snapshot)
+    tree=$(r_git write-tree)
+    if ! r_git diff --cached --quiet; then
+        r_git commit -m 'chore: keep future tests as scenarios'
+        head=$(r_git rev-parse HEAD)
+        [ "$(r_git rev-list --parents -n 1 "$head")" = "$head $before" ] && [ "$(r_git rev-parse 'HEAD^{tree}')" = "$tree" ] || r_die "Migration commit changed the intended plan-only tree or parent. Edits preserved; originals are in $archived."
+    fi
+    r_same "$verified" "$(r_snapshot)" || r_die "Protected workspace pin or source changed during migration hooks. Edits preserved; originals are in $archived."
+    r_clean
+    r_state=$(jq --arg archive "$archived" '.version=2 | .legacy_history=(.legacy_history//[])+[$archive] | .active=null | .status="ready" | del(.acceptance_head,.acceptance_history,.approved_at,.allow_go_undefined_red,.checkpoint_reviews,.review)' <<< "$r_state"); r_save
+    printf 'Converted the plan to mutable scenarios; original plan and state preserved at %s. No source or existing test file changed.\n' "$archived"
 }
 r_usage() {
     local id=${1:-} rows='[]'
     [ ! -f "$r_meta/usage.jsonl" ] || rows=$(jq -s . "$r_meta/usage.jsonl")
     jq --arg id "$id" '(( $id|select(.!=""))//.[-1].run_id) as $chosen | [.[]|select(.run_id==$chosen)] | {run_id:$chosen,calls:length,duration_seconds:([.[].duration_seconds]|add//0),usage:[.[]|.usage//{}]}' <<< "$rows"
 }
-# Parse flags without shell evaluation; policy command arrays remain argv arrays.
-[ "$#" -ge 2 ] || r_die 'usage: runner.sh COMMAND APP [LIMIT] [--policy PATH] [--worker NAME] [--resume] [--replace]'
+# Parse argv without shell evaluation. Commands never infer a paid model upgrade.
+[ "$#" -ge 2 ] || r_die 'usage: runner.sh COMMAND APP [--policy PATH] [--worker NAME] [--resume]'
 r_command=$1; r_app=$(cd "$2" && pwd -P); shift 2
-r_limit='' r_policy_path="$r_root/tdd-set/policies/default.json" r_worker='' r_explicit_worker=false r_resume=false r_replace=false r_allow_build=false
+r_policy_path="$r_root/tdd-set/policies/default.json" r_worker='' r_explicit_worker=false r_resume=false r_limit=''
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --policy|--worker) [ "$#" -ge 2 ] || r_die "Missing value for $1"; if [ "$1" = --policy ]; then r_policy_path=$2; else r_worker=$2; r_explicit_worker=true; fi; shift 2;;
-        --resume) r_resume=true; shift;; --replace) r_replace=true; shift;; --allow-go-undefined-red) r_allow_build=true; shift;;
-        --*) r_die "Unknown option $1";; *) [ -z "$r_limit" ] || r_die 'Unexpected positional argument'; r_limit=$1; shift;;
+        --resume) r_resume=true; shift;;
+        *) if [ "$r_command" = usage ] && [ -z "$r_limit" ]; then r_limit=$1; shift; continue; fi
+           r_die "Unsupported argument $1. Approval/append/replacement/checkpoint-review gates have been retired.";;
     esac
- done
+done
+if [ "$r_command" = approve ]; then r_die 'Test approval is retired. Select one scenario, write its test, and use step.sh APP.'; fi
 if [ "$r_command" = next ]; then
-    [ -z "$r_limit" ] || r_die 'Only the runner may check an entry after validated execution. Use step.sh APP.'
-    contract_plan "$r_app" | jq -er '[.[]|select(.checked|not)][0]//empty | (if .heading!="" then .heading+"\n" else "" end)+(if .header!="" then "```"+.language+"\n"+.header+"```\n" else "" end)+"- [ ] "+.name+"\n```"+.language+"\n"+.code+"```"' || exit 1
+    contract_plan "$r_app" | jq -er '[.[]|select(.checked|not)][0]//empty | (if .heading!="" then .heading+"\n" else "" end)+(if .header!="" and .code!="" then "```"+.language+"\n"+.header+"```\n" else "" end)+"- [ ] "+.name+" — "+.description+(if .code!="" then "\n```"+.language+"\n"+.code+"```" else "" end)' || exit 1
     exit 0
 fi
+[ "$(r_git rev-parse --show-toplevel)" = "$r_app" ] || r_die 'App must be its own Git repository root.'
 r_meta="$(r_git rev-parse --absolute-git-dir)/sobaya"
 r_run_id="$(date +%s)-$$-$RANDOM"
 case "$r_command" in
     usage) r_usage "$r_limit"; exit;;
-    status) r_load; jq --arg head "$(r_git rev-parse HEAD)" --argjson entries "$(contract_plan "$r_app")" --arg dirty "$(r_git status --porcelain)" '.+{head:$head,pending:[$entries[]|select(.checked|not)|.name],dirty:($dirty!="")}' <<< "$r_state"; exit;;
+    status)
+        if [ -f "$r_meta/state.json" ]; then r_state=$(cat "$r_meta/state.json"); else r_load; fi
+        jq --arg head "$(r_git rev-parse HEAD)" --argjson entries "$(contract_plan "$r_app")" --arg dirty "$(r_git status --porcelain)" '.+{head:$head,pending:[$entries[]|select(.checked|not)|.name],dirty:($dirty!=""),legacy:(.version==1)}' <<< "$r_state"; exit;;
     doctor)
         r_policy_load
         if [ -n "${SOBAYA_WORKSPACE_ROOT:-}" ]; then
@@ -414,30 +442,26 @@ case "$r_command" in
             bash "$r_root/scripts/setup.sh" "$r_root" --check --app "$r_app"
         fi
         while IFS= read -r arg; do (cd "$r_app" && command -v "$arg" >/dev/null) || r_die "Worker executable unavailable: $arg"; done < <(jq -r '.workers[]|if .adapter=="codex" then "codex" else .command[0] end' <<< "$r_policy")
-        r_clean; printf 'Local setup checks passed. No paid worker call was made.\n'; exit;;
-    approve|step|loop|review) ;;
+        r_ready; printf 'Local setup checks passed. No paid worker call was made.\n'; exit;;
+    step|loop|review|migrate|restart) ;;
     *) r_die "Unknown command $r_command";;
 esac
-[ "$r_allow_build" = false ] || [ "$r_command" = approve ] || r_die '--allow-go-undefined-red is valid only with approve.'
 r_acquire
-if [ "$r_command" = approve ]; then r_approve; exit; fi
-r_policy_load; r_load
+if [ "$r_command" = migrate ]; then r_migrate; exit; fi
+if [ "$r_command" = restart ]; then
+    [ -f "$r_meta/state.json" ] || r_die 'No active attempt to restart.'
+    r_state=$(jq -e 'select(.version==1 or .version==2)' "$r_meta/state.json") || r_die 'Invalid state.'
+    r_restart; exit
+fi
+r_load
+r_policy_load
 if [ "$r_command" = review ]; then
     r_review_choice=$r_worker
     [ "$r_explicit_worker" = true ] || r_review_choice=$(jq -r '.review_worker//.default_worker' <<< "$r_policy")
     r_review "$r_review_choice"; exit
 fi
-r_maximum=${r_limit:-$(jq -r .max_calls <<< "$r_policy")}; [ "$r_command" != step ] || r_maximum=1
-[[ "$r_maximum" =~ ^[1-9][0-9]*$ ]] || r_die 'Iteration limit must be positive.'
-for ((r_iteration=0;r_iteration<r_maximum;r_iteration++)); do
-    r_pending_plan=$(contract_plan "$r_app")
-    if jq -e '.active==null' <<< "$r_state" >/dev/null && ! jq -e 'any(.[];.checked|not)' <<< "$r_pending_plan" >/dev/null; then break; fi
-    r_step
-    r_resume=false
-done
-if [ "$r_command" = loop ]; then
-    r_pending_plan=$(contract_plan "$r_app")
-    if jq -e 'any(.[];.checked|not)' <<< "$r_pending_plan" >/dev/null; then r_die 'Iteration limit reached; verified progress preserved, plan still pending.'; fi
-    r_review "$(jq -r --arg selected "$r_worker" '.review_worker//$selected' <<< "$r_policy")"
+r_step
+if [ "$r_progress" = true ]; then
+    printf 'Pause at GREEN: consider a useful refactor, update scenarios from what you learned, then choose the next test. At a feature boundary, assess the observed outcome.\n'
 fi
 r_usage "$r_run_id"

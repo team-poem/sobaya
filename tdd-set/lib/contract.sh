@@ -1,5 +1,5 @@
 #!/bin/bash
-# Acceptance authority is the approved Git commit; execution evidence is runner output.
+# Real suite evidence and app commands; no frozen approval baseline.
 CONTRACT_LIB=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 . "$CONTRACT_LIB/common.sh"
 contract_git_dir() { git -C "$1" rev-parse --absolute-git-dir; }
@@ -21,20 +21,6 @@ contract_clean() {
   status=$(git -C "$app" status --porcelain=v1 --untracked-files=all) || return 1
   [ -z "$status" ] || { sb_error "A clean working tree and index are required (including untracked files): $status"; return 1; }
 }
-contract_baseline() {
-  local app=$1 baseline=${2:-} commit
-  case "$baseline" in ''|-*) sb_error 'An approved baseline commit is required'; return 1;; esac
-  commit=$(git -C "$app" rev-parse --verify "$baseline^{commit}") || return 1
-  git -C "$app" merge-base --is-ancestor "$commit" HEAD || { sb_error 'Baseline must be an ancestor of HEAD'; return 1; }
-  printf '%s\n' "$commit"
-}
-contract_saved_baseline() {
-  local metadata baseline
-  metadata=$(contract_git_dir "$1") || return 1
-  [ -f "$metadata/sobaya/state.json" ] || { sb_error 'No approved baseline; approve the plan before running the gate'; return 1; }
-  baseline=$(jq -er '.baseline|select(type=="string" and length>0)' "$metadata/sobaya/state.json") || { sb_error 'Invalid approval state'; return 1; }
-  contract_baseline "$1" "$baseline"
-}
 _contract_text() {
   if [ -n "${3:-}" ]; then git -C "$1" show "$3:$2"
   else [ -f "$1/$2" ] && [ ! -L "$1/$2" ] || { sb_error "Cannot read regular file $2"; return 1; }; cat "$1/$2"; fi
@@ -46,93 +32,10 @@ contract_plan() (
   _contract_text "$1" failed-test.md "${2:-}" >"$tmp/plan" || exit 1
   awk -f "$CONTRACT_LIB/plan.awk" "$tmp/plan" | jq -s .
 )
-_contract_normalize() { awk '/^```/ {fenced=!fenced} !fenced {sub(/^- \[x\]/,"- [ ]")} {print}' "$1"; }
-contract_validate() (
-  set -o pipefail
-  local app=$1 baseline=$2 complete=${3:-false} tmp old new oldcommands newcommands
-  baseline=$(contract_baseline "$app" "$baseline") || exit 1
-  tmp=$(mktemp -d) || exit 1; trap "rm -rf -- $(printf '%q' "$tmp")" EXIT
-  _contract_text "$app" failed-test.md "$baseline" >"$tmp/old" && _contract_text "$app" failed-test.md HEAD >"$tmp/new" || exit 1
-  contract_plan "$app" "$baseline" >"$tmp/before.json" && contract_plan "$app" HEAD >"$tmp/after.json" || exit 1
-  _contract_normalize "$tmp/old" >"$tmp/old.normal"; _contract_normalize "$tmp/new" >"$tmp/new.normal"
-  jq -ne --rawfile old "$tmp/old.normal" --rawfile new "$tmp/new.normal" '($old|sub("\n+$";"")) as $a|($new|sub("\n+$";"")) as $b|$a==$b or ($b|startswith($a+"\n"))' >/dev/null || { sb_error 'Approved plan text, code, and headers must not change or disappear'; exit 1; }
-  jq -ne --slurpfile old "$tmp/before.json" --slurpfile new "$tmp/after.json" '
-    $old[0] as $a|$new[0] as $b|($b|length)>=($a|length) and all(range(0;$a|length); . as $i|$a[$i].name==$b[$i].name and (($a[$i].checked|not) or $b[$i].checked))' >/dev/null || { sb_error 'Approved plan order and completed entries must not change'; exit 1; }
-  jq -ne --slurpfile old "$tmp/before.json" --slurpfile new "$tmp/after.json" '$new[0][($old[0]|length):]|all(.checked|not)' >/dev/null || { sb_error 'Unapproved appended entries cannot be checked'; exit 1; }
-  if [ "$complete" = true ]; then jq -e 'all(.checked)' "$tmp/after.json" >/dev/null || { sb_error 'Unchecked plan entries remain'; exit 1; }; fi
-  _contract_text "$app" spec.md "$baseline" >"$tmp/spec.old" && _contract_text "$app" spec.md HEAD >"$tmp/spec.new" || exit 1
-  cmp -s "$tmp/spec.old" "$tmp/spec.new" || { sb_error 'Approved spec.md must not change'; exit 1; }
-  _contract_text "$app" AGENTS.md "$baseline" >"$tmp/agents.old" && _contract_text "$app" AGENTS.md HEAD >"$tmp/agents.new" || exit 1
-  awk '/^- (Test|Test-File|Format|Lint|Bench):/' "$tmp/agents.old" >"$tmp/commands.old"
-  awk '/^- (Test|Test-File|Format|Lint|Bench):/' "$tmp/agents.new" >"$tmp/commands.new"
-  cmp -s "$tmp/commands.old" "$tmp/commands.new" || { sb_error 'Approved AGENTS.md commands must not change'; exit 1; }
-  if grep -Eq '(^|[^[:alnum:]_])(npm|npx|vitest)([^[:alnum:]_]|$)' "$tmp/commands.old"; then
-    _contract_text "$app" package.json "$baseline" >"$tmp/pkg.old" && _contract_text "$app" package.json HEAD >"$tmp/pkg.new" || exit 1
-    jq -e 'type=="object"' "$tmp/pkg.old" >/dev/null && jq -e 'type=="object"' "$tmp/pkg.new" >/dev/null || exit 1
-    jq -Sc '.scripts//{}' "$tmp/pkg.old" >"$tmp/scripts.old" && jq -Sc '.scripts//{}' "$tmp/pkg.new" >"$tmp/scripts.new" || exit 1
-    cmp -s "$tmp/scripts.old" "$tmp/scripts.new" || { sb_error 'Approved package.json scripts must not change'; exit 1; }
-  fi
-  cat "$tmp/after.json"
-)
 contract_protected() {
   case "/$1" in */test/*|*/tests/*|*/__tests__/*|*/fixtures/*|*/testdata/*|*_test.go|*_test.py|*/test_*.py|*.test.*|*.spec.*|*/conftest.py) return 0;; esac
   return 1
 }
-_contract_test_source() { case "$1" in *_test.go|*_test.py|test_*.py|*/test_*.py|*.test.*|*.spec.*) return 0;; esac; return 1; }
-_contract_tree() (
-  set -o pipefail
-  { git -C "$1" ls-tree -rz "$2" || exit; printf '.'; } | jq -Rs 'split("\u0000")[:-1]|map(capture("^(?<mode>[^ ]+) (?<kind>[^ ]+) (?<oid>[^\t]+)\t(?<path>.*)$";"m"))|map({key:.path,value:{mode,kind,oid}})|from_entries'
-)
-_contract_additions() {
-  local name=$1 old=$2 new=$3 explicit=$4 tmp=$5 total first bytes last
-  cmp -s "$old" "$new" && return 0
-  { _contract_test_source "$name" || [ "$explicit" = true ]; } || return 1
-  LC_ALL=C tr -d '\000' <"$old" >"$tmp/no-nul"; cmp -s "$old" "$tmp/no-nul" || return 1
-  LC_ALL=C tr -d '\000' <"$new" >"$tmp/no-nul"; cmp -s "$new" "$tmp/no-nul" || return 1
-  bytes=$(wc -c <"$old" | tr -d ' '); last=$(tail -c 1 "$old" | od -An -tu1 | tr -d ' \n')
-  if [ "$bytes" -eq 0 ] || [ "$last" = 10 ]; then head -c "$bytes" "$new" >"$tmp/prefix"; cmp -s "$old" "$tmp/prefix" && return 0; fi
-  case "$name" in *_test.go) ;; *) return 1;; esac
-  total=$(awk 'END{print NR}' "$old"); first=$(awk '/^func[[:space:]]/{print NR-1;found=1;exit}END{if(!found)print NR}' "$old")
-  local rc
-  if diff -U0 "$old" "$new" >"$tmp/diff"; then rc=0; else rc=$?; fi
-  [ "$rc" -le 1 ] || return 1
-  awk -v total="$total" -v firstfunc="$first" -f "$CONTRACT_LIB/go-additions.awk" "$tmp/diff"
-}
-contract_sources() (
-  set -o pipefail
-  local app=$1 baseline=$2 entries=$3 tmp path oldinfo newinfo explicit entry name target matches candidate
-  tmp=$(mktemp -d) || exit 1; trap "rm -rf -- $(printf '%q' "$tmp")" EXIT
-  _contract_tree "$app" "$baseline" >"$tmp/before" && _contract_tree "$app" HEAD >"$tmp/after" || exit 1
-  while IFS= read -r -d '' path; do
-    explicit=false; jq -e --arg p "$path" 'any(.target==$p)' "$entries" >/dev/null && explicit=true
-    { contract_protected "$path" || [ "$explicit" = true ]; } || continue
-    oldinfo=$(jq -c --arg p "$path" '.[$p]' "$tmp/before"); newinfo=$(jq -c --arg p "$path" '.[$p]' "$tmp/after")
-    [ "$(printf '%s' "$newinfo" | jq -r '[.mode,.kind]|join(" ")')" = "$(printf '%s' "$oldinfo" | jq -r '[.mode,.kind]|join(" ")')" ] || { sb_error "Protected test/fixture removed, renamed, or changed type: $path"; exit 1; }
-    if [ "$(printf '%s' "$oldinfo" | jq -r .oid)" != "$(printf '%s' "$newinfo" | jq -r .oid)" ]; then
-      git -C "$app" show "$baseline:$path" >"$tmp/old" && git -C "$app" show "HEAD:$path" >"$tmp/new" || exit 1
-      _contract_additions "$path" "$tmp/old" "$tmp/new" "$explicit" "$tmp" || { sb_error "Protected test/fixture modified: $path"; exit 1; }
-    fi
-  done < <(jq -j 'keys[]+"\u0000"' "$tmp/before")
-  while IFS= read -r entry; do
-    name=$(printf '%s' "$entry"|jq -r .name); target=$(printf '%s' "$entry"|jq -r '.target//empty')
-    printf '%s' "$entry" | jq -j .code >"$tmp/code"; printf '%s' "$entry"|jq -j .header >"$tmp/header"
-    if [ -n "$target" ]; then printf '%s\0' "$target" >"$tmp/candidates"
-    else jq -j 'keys[]|select(endswith("_test.go"))|.+"\u0000"' "$tmp/after" >"$tmp/candidates"; fi
-    matches=false
-    while IFS= read -r -d '' candidate; do
-      jq -e --arg p "$candidate" '.[$p]|(.mode=="100644" or .mode=="100755") and .kind=="blob"' "$tmp/after" >/dev/null || continue
-      git -C "$app" show "HEAD:$candidate" >"$tmp/source" || exit 1
-      if jq -ne --rawfile source "$tmp/source" --rawfile code "$tmp/code" '$source|contains($code)' >/dev/null; then
-        matches=true
-        if [ -n "$target" ] && [ -s "$tmp/header" ]; then
-          jq -ne --rawfile source "$tmp/source" --rawfile header "$tmp/header" '$source|startswith($header)' >/dev/null || { sb_error "Approved test header is not verbatim: $name"; exit 1; }
-        fi
-        break
-      fi
-    done <"$tmp/candidates"
-    [ "$matches" = true ] || { sb_error "Approved test is not verbatim in its committed file: $name"; exit 1; }
-  done < <(jq -c '.[]|select(.checked)' "$entries")
-)
 _contract_words() (
   set -o pipefail
   { awk -f "$CONTRACT_LIB/shell-words.awk" "$1" || exit; printf '.'; } | jq -Rs 'split("\u0000")[:-1]'
@@ -221,28 +124,40 @@ contract_suite() {
   [ "$rc" -eq 0 ] || return 11
   return 0
 }
+contract_snapshot() (
+  set -o pipefail
+  local app=$1 path mode value
+  git -C "$app" ls-files -z --cached --others --exclude-standard |
+  while IFS= read -r -d '' path; do
+    if [ -L "$app/$path" ]; then value="symlink:$(readlink "$app/$path")"
+    elif [ -f "$app/$path" ]; then
+      if mode=$(stat -f '%Lp' "$app/$path" 2>/dev/null) && [[ "$mode" =~ ^[0-7]+$ ]]; then :
+      else mode=$(stat -c '%a' "$app/$path"); fi
+      if command -v sha256sum >/dev/null 2>&1; then value=$(sha256sum < "$app/$path")
+      else value=$(shasum -a 256 < "$app/$path"); fi
+      value="$mode:$value"
+    elif [ -e "$app/$path" ]; then value=directory
+    else value=missing; fi
+    jq -nc --arg path "$path" --arg value "$value" '{key:$path,value:$value}'
+  done | jq -sc 'from_entries'
+)
 contract_gate() {
-  local app=$1 baseline=$2 complete=${3:-true} run_tests=${4:-true} tmp head result rc
-  contract_clean "$app" || return 1
+  local app=$1 tmp rc before after head index
+  app=$(cd "$app" && pwd -P) || return 1
+  [ "$(git -C "$app" rev-parse --show-toplevel)" = "$app" ] || { sb_error 'App must be a Git repository root'; return 1; }
+  contract_index_safe "$app" || return 1
+  before=$(contract_snapshot "$app") || return 1
   head=$(git -C "$app" rev-parse HEAD) || return 1
-  baseline=$(contract_baseline "$app" "$baseline") || return 1
+  index=$(git -C "$app" write-tree) || return 1
   tmp=$(mktemp -d) || return 1
-  contract_validate "$app" "$baseline" "$complete" >"$tmp/entries" || { rm -rf "$tmp"; return 1; }
-  contract_sources "$app" "$baseline" "$tmp/entries" || { rm -rf "$tmp"; return 1; }
-  result=null
-  if [ "$run_tests" = true ]; then
-    if contract_hygiene "$app"; then rc=0; else rc=$?; fi
-    [ "$rc" -eq 0 ] || { rm -rf "$tmp"; [ "$rc" -ne 130 ] || return 130; return 1; }
-    contract_clean "$app" || { rm -rf "$tmp"; return 1; }
-    if contract_suite "$app" >"$tmp/suite"; then rc=0; else rc=$?; fi
-    [ "$rc" -eq 0 ] || { cat "$tmp/suite" >&2; rm -rf "$tmp"; [ "$rc" -ne 130 ] || return 130; return 1; }
-    jq -ne --slurpfile entries "$tmp/entries" --slurpfile results "$tmp/suite" '
-      def named($n): .==$n or startswith($n+":") or startswith($n+" ") or startswith($n+"/");
-      all($entries[0][]|select(.checked); .name as $n|any($results[0].passed[];named($n)) and all($results[0].skipped[];named($n)|not))' >/dev/null || { sb_error 'Approved test was not executed successfully (missing or skipped)'; rm -rf "$tmp"; return 1; }
-    result=$(cat "$tmp/suite")
-  fi
+  if contract_hygiene "$app" && contract_suite "$app" >"$tmp/suite"; then rc=0; else rc=$?; fi
+  cat "$tmp/suite" 2>/dev/null || :
   rm -rf "$tmp"
-  [ "$head" = "$(git -C "$app" rev-parse HEAD)" ] || { sb_error 'HEAD changed during verification'; return 1; }
-  contract_clean "$app" || return 1
-  printf '%s\n' "$result"
+  after=$(contract_snapshot "$app") || return 1
+  contract_index_safe "$app" || return 1
+  if [ "$before" != "$after" ] || [ "$head" != "$(git -C "$app" rev-parse HEAD)" ] || [ "$index" != "$(git -C "$app" write-tree)" ]; then
+    sb_error 'Checks changed source files or Git state; edits preserved, result is not GREEN.'
+    return 1
+  fi
+  return "$rc"
 }

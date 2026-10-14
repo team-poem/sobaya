@@ -17,7 +17,6 @@ run_cli() {
 }
 okay() { [ "$RC" -eq 0 ] || fail "command exited $RC"; }
 rejected() { [ "$RC" -ne 0 ] || fail 'command unexpectedly passed'; }
-approve() { run_cli approve; okay; }
 policy_edit() { jq "$1" "$POLICY" > "$BASE/policy.new"; mv "$BASE/policy.new" "$POLICY"; }
 cleanup() {
   for pid in ${CHILDREN:-}; do kill -TERM "$pid" 2>/dev/null || :; wait "$pid" 2>/dev/null || :; done
@@ -85,10 +84,10 @@ case "$mode" in
     printf '%s\n' '{"status":"handoff","summary":"Needs another approach","reason":"The failing assertion is understood but implementation remains unresolved."}'
     exit 0 ;;
   defect)
-    printf '%s\n' '{"status":"defect","summary":"Requirement conflict","reason":"Need human-reviewed additional test."}'
+    printf '%s\n' '{"status":"defect","summary":"Requirement conflict","reason":"Expected behavior needs clarification."}'
     exit 0 ;;
 esac
-printf '%s\n' '{"status":"done","summary":"Implemented the approved entry","reason":""}'
+printf '%s\n' '{"status":"done","summary":"Implemented the selected test","reason":""}'
 WORKER
   POLICY="$BASE/policy.json"
   jq -n --arg worker "$WORKER" '{version:1,mode:"selected",default_worker:"fixture",max_calls:4,timeout_seconds:15,workers:{fixture:{adapter:"command",command:["/bin/bash",$worker],model:"fixture",guidance:"guided"}},escalation:[]}' > "$POLICY"
@@ -99,24 +98,17 @@ wait_file() {
   [ -f "$1" ] || fail "worker did not create $1"
 }
 
-test_fresh_run_requires_explicit_approval() {
-  run_cli step --policy "$POLICY"; rejected
-  grep -iq approv "$BASE/stderr" || fail 'missing approval diagnostic'
-  assert_eq "$(git_app rev-parse HEAD)" "$BASELINE"
-}
 test_red_green_checkpoint_and_baseline_survive_replay() {
-  approve
   run_cli loop --policy "$POLICY"; okay
-  contains "$BASE/stdout" RED; contains "$BASE/stdout" PASS
+  contains "$BASE/stdout" RED; contains "$BASE/stdout" GREEN
   assert_eq "$(git_app status --porcelain)" ''
-  state_is ".baseline == \"$BASELINE\" and .calls == 2 and .status == \"complete\""
+  state_is ".baseline == \"$BASELINE\" and .calls == 1 and .status == \"checkpoint\""
   head=$(git_app rev-parse HEAD)
   run_cli loop --policy "$POLICY"; okay
   assert_eq "$(git_app rev-parse HEAD)" "$head"
   state_is ".baseline == \"$BASELINE\""
 }
 test_staged_and_untracked_work_refused_without_stash() {
-  approve
   printf 'user work' > "$APP/user.txt"
   for staged in no yes; do
     if [ "$staged" = yes ]; then git_app add user.txt; fi
@@ -126,7 +118,7 @@ test_staged_and_untracked_work_refused_without_stash() {
   done
 }
 test_worker_test_mutation_is_rejected_and_preserved() {
-  approve; MODE=tamper
+  MODE=tamper
   run_cli step --policy "$POLICY"; rejected
   grep -iq protect "$BASE/stderr" || fail 'missing protected-input diagnostic'
   assert_eq "$(git_app rev-parse HEAD)" "$BASELINE"
@@ -134,35 +126,27 @@ test_worker_test_mutation_is_rejected_and_preserved() {
   assert_eq "$(git_app stash list)" ''
 }
 test_handoff_is_saved_and_explicit_resume_completes_same_item() {
-  approve; MODE=handoff
+  MODE=handoff
   run_cli step --policy "$POLICY"; rejected
   state_is '.active.entry == "addAdds"'
   [ -f "$META/handoff.json" ] || fail 'handoff missing'
-  # Persisted version-1 data used fractional timestamps/durations before the
-  # shell port. Keep its unfinished snapshot and cumulative calls unchanged.
-  jq '.approved_at=1789000000.125' "$META/state.json" > "$BASE/state.old"
+  # Keep fractional timestamps, existing usage and cumulative calls on resume.
+  jq '.started_at=1789000000.125' "$META/state.json" > "$BASE/state.old"
   mv "$BASE/state.old" "$META/state.json"
   jq -nc --arg baseline "$BASELINE" '{run_id:"pre-shell-run",baseline:$baseline,worker:"fixture",model:"fixture",role:"implement",entry:"addAdds",duration_seconds:0.25,usage:{input_tokens:13,output_tokens:7}}' >> "$META/usage.jsonl"
   run_cli usage pre-shell-run; okay
   jq -e '.calls == 1 and .duration_seconds == 0.25 and .usage[0].input_tokens == 13' "$BASE/stdout" >/dev/null || fail 'existing version-1 usage was not retained'
   MODE=fix; run_cli step --policy "$POLICY"; rejected
   run_cli step --resume --policy "$POLICY"; okay
-  state_is ".version == 1 and .approved_at == 1789000000.125 and .calls == 2 and .baseline == \"$BASELINE\""
+  state_is ".version == 2 and .started_at == 1789000000.125 and .calls == 2 and .baseline == \"$BASELINE\""
 }
 test_call_budget_is_not_reset_by_resume() {
-  policy_edit '.max_calls=1'; approve; MODE=handoff
+  policy_edit '.max_calls=1'; MODE=handoff
   run_cli step --policy "$POLICY"; rejected
   MODE=fix; run_cli step --resume --policy "$POLICY"; rejected
   grep -iq budget "$BASE/stderr" || fail 'missing budget diagnostic'
 }
-test_changed_plan_cannot_reapprove_implicitly() {
-  approve
-  sed 's/, 3)/, 0)/g' "$APP/failed-test.md" > "$BASE/plan.new"; mv "$BASE/plan.new" "$APP/failed-test.md"
-  commit; run_cli approve; rejected
-  run_cli approve --replace; okay
-}
 test_failed_commit_can_resume_without_another_worker_call() {
-  approve
   hooks="$APP/.git/hooks"; mkdir -p "$hooks"
   printf '#!/bin/sh\nexit 1\n' > "$hooks/pre-commit"; chmod +x "$hooks/pre-commit"
   git_app config core.hooksPath "$hooks"
@@ -178,19 +162,20 @@ test_next_is_read_only_and_checking_is_runner_owned() {
   assert_eq "$(git_app status --porcelain)" ''
 }
 test_timeout_cannot_erase_budget() {
-  policy_edit '.timeout_seconds=1'; approve; MODE=timeout_state
+  policy_edit '.timeout_seconds=1'; MODE=timeout_state
   run_cli step --policy "$POLICY"; rejected
   state_is ".calls == 1 and .baseline == \"$BASELINE\""
 }
 test_review_index_mutation_cannot_complete() {
-  approve; MODE=review_index
-  run_cli loop --policy "$POLICY"; rejected
-  state_is '.status != "complete" and .review == null'
+  MODE=review_index
+  run_cli step --policy "$POLICY"; okay
+  run_cli review --policy "$POLICY"; rejected
+  state_is '.review == null'
 }
 test_header_checkbox_and_trailing_spaces_are_verbatim() {
   awk '/^const test =/ {print "const example = `\\n- [ ] addAdds\\n`;"} /test\('\''addAdds'\''/ {$0=$0 "  \n"} {print}' "$APP/failed-test.md" > "$BASE/plan.new"
   mv "$BASE/plan.new" "$APP/failed-test.md"
-  commit; approve; run_cli step --policy "$POLICY"; okay
+  commit; run_cli step --policy "$POLICY"; okay
   awk -v code="$CODE" '$0 == code "  " {if (getline > 0 && $0 == "") found=1} END {exit !found}' "$APP/suite.test.js" || fail 'test trailing spaces or empty line lost'
   contains "$APP/suite.test.js" '- [ ] addAdds'
 }
@@ -198,7 +183,7 @@ test_explicit_arbitrary_test_filename() {
   for file in failed-test.md AGENTS.md; do
     sed 's/suite\.test\.js/checks.js/g' "$APP/$file" > "$BASE/file.new"; mv "$BASE/file.new" "$APP/$file"
   done
-  TARGET=checks.js; commit; approve
+  TARGET=checks.js; commit
   run_cli step --policy "$POLICY"; okay
 }
 test_escalation_requires_explicit_policy_and_diagnosis() {
@@ -209,12 +194,11 @@ printf 'exports.add=(a,b)=>a+b;\n' > "$SOBAYA_APP/impl.js"
 printf '%s\n' '{"status":"done","summary":"fixed","reason":""}'
 WORKER
   jq --arg second "$second" '.mode="economy" | .escalation=["second"] | .workers.second={adapter:"command",command:["/bin/bash",$second],model:"explicit-second"}' "$POLICY" > "$BASE/policy.new"; mv "$BASE/policy.new" "$POLICY"
-  approve; MODE=handoff
+  MODE=handoff
   run_cli step --policy "$POLICY"; okay
   state_is ".calls == 2 and .baseline == \"$BASELINE\""
 }
 test_worktree_and_lock() {
-  approve
   cp "$WORKER" "$BASE/original-worker.sh"
   cat > "$WORKER" <<'WORKER'
 #!/bin/sh
@@ -230,7 +214,7 @@ WORKER
   worktree="$BASE/linked"; git_app worktree add -qb linked "$worktree"
   APP=$worktree
   metadata_path=$(git_app rev-parse --absolute-git-dir); META="$metadata_path/sobaya"
-  approve; run_cli step --policy "$POLICY"; okay
+  run_cli step --policy "$POLICY"; okay
 }
 test_cancel_stops_worker_before_unlock_and_preserves_resume() {
   cat > "$WORKER" <<'WORKER'
@@ -240,7 +224,6 @@ sleep 1
 printf 'late write' > "$SOBAYA_APP/escaped.txt"
 printf '%s\n' '{"status":"done","summary":"late","reason":""}'
 WORKER
-  approve
   bash "$RUNNER" step "$APP" --policy "$POLICY" > "$BASE/cancel.out" 2> "$BASE/cancel.err" & pid=$!; CHILDREN="$pid"
   wait_file "$APP/.git/worker-started"
   kill -TERM "$pid"
@@ -252,7 +235,7 @@ WORKER
   [ ! -e "$META/worker.json" ] || fail 'worker record survived cancellation'
 }
 test_non_object_policy_and_worker_results_fail_with_diagnostic() {
-  approve; cp "$POLICY" "$BASE/original-policy.json"
+  cp "$POLICY" "$BASE/original-policy.json"
   printf '[]\n' > "$POLICY"
   run_cli step --policy "$POLICY"; rejected; not_contains "$BASE/stderr" Traceback
   cp "$BASE/original-policy.json" "$POLICY"
@@ -287,9 +270,8 @@ printf '%s\n' '{"type":"turn.completed","usage":{"input_tokens":11,"output_token
 CODEX
   chmod +x "$BASE/codex"
   policy_edit '.workers.fixture={adapter:"codex",model:"fixture-codex"}'
-  approve
   PATH="$BASE:$PATH" run_cli loop --policy "$POLICY"; okay
-  jq -se 'map(.role) == ["implement","review"] and .[0].usage.input_tokens == 11' "$META/usage.jsonl" >/dev/null || fail 'Codex usage or role evidence missing'
+  jq -se 'map(.role) == ["implement"] and .[0].usage.input_tokens == 11' "$META/usage.jsonl" >/dev/null || fail 'Codex usage or role evidence missing'
 }
 go_fixture() {
   printf '# Go fixture\n- Test: `go test ./...`\n' > "$APP/AGENTS.md"
@@ -309,43 +291,33 @@ printf '%s\n' '{"status":"done","summary":"implemented NewAdd","reason":""}'
 WORKER
   commit
 }
-test_explicit_missing_go_symbol_red_finishes_with_real_execution() {
-  go_fixture; run_cli approve --allow-go-undefined-red; okay
+test_missing_go_symbol_red_finishes_with_real_execution() {
+  go_fixture
   run_cli loop --policy "$POLICY"; okay
   contains "$BASE/stdout" 'BUILD-RED TestNewAdd'
-  state_is '.receipts[0].red.status == "build-red" and (.receipts[0].green | index("TestNewAdd")) != null and .status == "complete"'
+  state_is '.receipts[0].red.status == "build-red" and (.receipts[0].green | index("TestNewAdd")) != null and .status == "checkpoint"'
 }
-test_preparing_build_error_can_resume_after_implementation_stub() {
-  go_fixture; approve
-  run_cli step --policy "$POLICY"; rejected
-  contains "$BASE/stderr" build/infrastructure; state_is '.calls == 0'
-  printf 'package fixture\nfunc NewAdd(a,b int) int { return 0 }\n' > "$APP/calc.go"
-  run_cli step --resume --policy "$POLICY"; okay
-  contains "$BASE/stdout" 'RED TestNewAdd'
-}
-test_compile_red_permission_does_not_allow_syntax_error() {
+test_build_red_does_not_allow_syntax_error() {
   go_fixture 'func TestNewAdd(t *testing.T) { broken syntax }'
-  run_cli approve --allow-go-undefined-red; okay
   run_cli step --policy "$POLICY"; rejected
   state_is '.calls == 0 and .active.phase == "preparing"'
 }
-test_compile_red_permission_does_not_allow_missing_import() {
+test_build_red_does_not_allow_missing_import() {
   go_fixture 'func TestNewAdd(t *testing.T) { os.Exit(1) }'
-  run_cli approve --allow-go-undefined-red; okay
   run_cli step --policy "$POLICY"; rejected; state_is '.calls == 0'
 }
-test_already_green_records_truth_and_only_calls_reviewer() {
+test_already_green_records_truth_without_worker_or_review() {
   printf 'exports.add=(a,b)=>a+b;' > "$APP/impl.js"
-  commit; approve
+  commit
   run_cli loop --policy "$POLICY"; okay
   contains "$BASE/stdout" 'ALREADY GREEN'
-  state_is '.calls == 1 and .receipts[0].red.status == "green" and .status == "complete"'
+  state_is '.calls == 0 and .receipts[0].red.status == "green" and .status == "checkpoint"'
 }
 test_live_orphan_blocks_new_writer_and_dead_record_is_recoverable() {
-  approve
   set -m
   sleep 30 & orphan=$!; CHILDREN="$orphan"
   set +m
+  mkdir -p "$META"
   jq -n --argjson pid "$orphan" '{pid:$pid}' > "$META/worker.json"
   run_cli step --policy "$POLICY"; rejected
   contains "$BASE/stderr" 'still alive'; assert_eq "$(git_app status --porcelain)" ''
@@ -354,7 +326,7 @@ test_live_orphan_blocks_new_writer_and_dead_record_is_recoverable() {
 }
 test_checkpoint_hygiene_failure_blocks_commit_even_without_hooks() {
   printf '%s\n' '- Lint: `false`' >> "$APP/AGENTS.md"
-  commit; approve; head=$(git_app rev-parse HEAD)
+  commit; head=$(git_app rev-parse HEAD)
   run_cli step --policy "$POLICY"; rejected
   contains "$BASE/stderr" Lint
   assert_eq "$(git_app rev-parse HEAD)" "$head"
@@ -362,7 +334,6 @@ test_checkpoint_hygiene_failure_blocks_commit_even_without_hooks() {
 }
 hidden_index_worker_is_rejected() {
   MODE=$1; expected_flag=$2
-  approve
   run_cli loop --policy "$POLICY"; rejected
   grep -iq 'index' "$BASE/stderr" || fail 'missing hidden-index diagnostic'
   assert_eq "$(git_app rev-parse HEAD)" "$BASELINE"
@@ -379,6 +350,71 @@ test_worker_assume_unchanged_cannot_hide_uncommitted_implementation() {
   hidden_index_worker_is_rejected assume_index h
 }
 
+test_restart_without_active_never_starts_work() {
+  run_cli restart --policy "$POLICY"; rejected
+  contains "$BASE/stderr" 'No active attempt'
+  [ ! -f "$META/state.json" ] || fail 'restart initialized execution'
+  [ ! -f "$APP/suite.test.js" ] || fail 'restart materialized a test'
+  assert_eq "$(git_app rev-parse HEAD)" "$BASELINE"
+}
+test_restart_preserves_edits_attempt_and_budget() {
+  MODE=handoff; run_cli step --policy "$POLICY"; rejected
+  cp "$APP/suite.test.js" "$BASE/attempt-test"
+  run_cli restart; okay
+  cmp "$APP/suite.test.js" "$BASE/attempt-test"
+  state_is '.calls==1 and .active==null and .attempt_history[0].active.entry=="addAdds"'
+  archived=$(jq -r '.attempt_history[0].archive' "$META/state.json")
+  jq -e '.active.entry=="addAdds" and .calls==1' "$archived/state.json" >/dev/null
+}
+test_gate_rejects_green_test_that_changes_source() {
+  run_cli step --policy "$POLICY"; okay
+  printf "require('node:fs').writeFileSync('impl.js','exports.add=()=>0;');\n" >> "$APP/suite.test.js"
+  commit
+  if bash "$ROOT/tdd-set/bin/gate.sh" "$APP" > "$BASE/stdout" 2> "$BASE/stderr"; then fail 'gate accepted source mutation'; fi
+  contains "$BASE/stderr" 'changed source files'
+  contains "$APP/impl.js" 'exports.add=()=>0'
+}
+test_no_pending_scenario_does_not_claim_green() {
+  run_cli step --policy "$POLICY"; okay
+  printf 'exports.add=()=>0;' > "$APP/impl.js"; commit
+  run_cli step --policy "$POLICY"; okay
+  contains "$BASE/stdout" 'No pending scenarios'
+  not_contains "$BASE/stdout" GREEN
+  state_is '.calls==1'
+}
+test_unstarted_legacy_batch_migrates_without_materialized_tests() {
+  mkdir -p "$META"
+  jq -n --arg baseline "$BASELINE" '{version:1,baseline:$baseline,calls:0,active:null,receipts:[],approved_at:123,status:"approved"}' > "$META/state.json"
+  cp "$META/state.json" "$BASE/original-state"
+  run_cli migrate; okay
+  state_is '.version==2 and .calls==0 and (.receipts|length)==0 and .active==null'
+  archive=$(jq -r '.legacy_history[-1]' "$META/state.json")
+  cmp "$archive/state.json" "$BASE/original-state"
+  [ ! -f "$APP/suite.test.js" ] || fail 'migration materialized a test'
+  not_contains "$APP/failed-test.md" '```'
+  contains "$APP/failed-test.md" '[ ] addAdds'
+  run_cli step --policy "$POLICY"; rejected
+  contains "$BASE/stderr" 'needs one concrete test'
+}
+
+test_migration_rejects_hook_source_mutation_without_advancing_state() {
+  mkdir -p "$META"
+  jq -n --arg baseline "$BASELINE" '{version:1,baseline:$baseline,calls:0,active:null,receipts:[]}' > "$META/state.json"
+  cp "$META/state.json" "$BASE/original-state"
+  hooks="$APP/.git/hooks"; mkdir -p "$hooks"
+  cat > "$hooks/pre-commit" <<'HOOK'
+#!/bin/sh
+printf 'exports.add=()=>999;' > impl.js
+git add impl.js
+HOOK
+  chmod +x "$hooks/pre-commit"; git_app config core.hooksPath "$hooks"
+  run_cli migrate; rejected
+  contains "$BASE/stderr" 'Migration commit'
+  cmp "$META/state.json" "$BASE/original-state"
+  contains "$APP/impl.js" 'exports.add=()=>999'
+  [ -d "$META/history" ] || fail 'original migration evidence lost'
+}
+
 if [ "${1:-}" = --case ]; then setup; "$2"; exit 0; fi
 count=0; failures=0
 for test_name in $(sed -n 's/^\(test_[a-z_]*\)() {.*/\1/p' "$SELF"); do
@@ -387,4 +423,4 @@ for test_name in $(sed -n 's/^\(test_[a-z_]*\)() {.*/\1/p' "$SELF"); do
   else printf 'not ok %s - %s\n' "$count" "$test_name"; failures=$((failures+1)); fi
 done
 printf 'Runner: %s cases, %s failures\n' "$count" "$failures"
-[ "$count" -eq 27 ] && [ "$failures" -eq 0 ]
+[ "$failures" -eq 0 ]

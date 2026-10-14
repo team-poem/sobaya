@@ -1,7 +1,8 @@
 # Complete code and design rationale
 
-Use this reference when preparing the human review view required by the TDD
-skill. The output presents the entire original source once, followed by Korean
+Use this reference when a detailed human review view is useful or requested.
+This optional presentation does not add an approval gate to the TDD cycle.
+The output presents the entire original source once, followed by Korean
 rationale outside the code. It is a presentation artifact, not an executable
 plan, approval record, or test runner input.
 
@@ -58,7 +59,7 @@ tdd-set/bin/review-view.sh /tmp/review-source.js /tmp/review-notes.json /tmp/rev
 
 Use the reported source hash in the notes. The output path must be new; the
 helper creates Markdown without modifying the source, notes, plan, tests, or
-approval baseline. Repeat for other inventory items and explicitly connect
+execution state. Repeat for other inventory items and explicitly connect
 shared views to their dependent entries in the review document or conversation.
 
 The version-1 notes object has this shape. This example assumes a three-line
@@ -124,17 +125,16 @@ cannot prove that a rationale is true, sufficiently specific, or complete in
 meaning. Resolve unsupported claims and surface uncertain expectations for the
 human. A successful generator run does not constitute approval.
 
-## Revisions and approval
+## Revising a view
 
 Deliver the view in conversation or a separate document, keeping review prose
-and duplicate executable fences out of `failed-test.md`. Approval covers the
-exact executable inputs shown. Probes and the runtime consume those originals;
-there is no stripping or reformatting step after review.
+and duplicate executable fences out of `failed-test.md`. Probes and runtime
+helpers consume executable inputs, not the explanatory document.
 
-For revisions or replacements, state the reason and changed expectations, then
-repeat the full source inventory and complete code/rationale view. Do not show
-only a diff or only changed assertions. Reused shared views must still match
-their source and be explicitly referenced. Preserve the approved plan, tests,
-headers, helpers, and fixtures until the human approves the changed inputs and
-replacement baseline. Changed source needs a fresh hash and reviewed rationale;
-updating the hash alone does not update the review.
+When explaining revisions, state the reason and changed expectations, then
+update the source inventory and complete code/rationale view. Reused shared
+views must still match their source and be explicitly referenced. Changed
+source needs a fresh hash and updated rationale; changing the hash alone does
+not update the explanation. Tests may evolve within the authorized product
+intent. Ask the human when that intent is unclear or changing, not for routine
+test selection, correction or behavior-preserving GREEN refactoring.

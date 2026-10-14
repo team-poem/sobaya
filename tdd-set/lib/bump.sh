@@ -1,5 +1,5 @@
 #!/bin/bash
-# Explicit candidate validation, with reviewable pins and unchanged approval.
+# Explicit candidate validation, with reviewable pins and unchanged execution history.
 ib_metas=()
 ib_configs=()
 ib_mode() {
@@ -10,8 +10,8 @@ ib_mode() {
 ib_state_check() {
   local meta=$1 state pid
   if [ -e "$meta/state.json" ] || [ -L "$meta/state.json" ]; then
-    [ -f "$meta/state.json" ] && [ ! -L "$meta/state.json" ] || i_die 'active: invalid approval state path'
-    state=$(jq -ces 'if length==1 then .[0] else error("multiple states") end | select(type=="object" and .version==1 and (.baseline|type)=="string" and (.calls|type)=="number" and .calls>=0 and has("active"))' "$meta/state.json") || i_die 'active: invalid approval state'
+    [ -f "$meta/state.json" ] && [ ! -L "$meta/state.json" ] || i_die 'active: invalid execution state path'
+    state=$(jq -ces 'if length==1 then .[0] else error("multiple states") end | select(type=="object" and (.version==1 or .version==2) and (.baseline|type)=="string" and (.calls|type)=="number" and .calls>=0 and has("active"))' "$meta/state.json") || i_die 'active: invalid execution state'
     jq -e '.active==null' <<< "$state" >/dev/null || i_die 'active: finish or resolve the current entry before bump'
   fi
   if [ -e "$meta/worker.json" ] || [ -L "$meta/worker.json" ]; then
