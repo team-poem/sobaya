@@ -16,14 +16,12 @@
 - [[principles/serialize-shared-state-mutations]]
 - [[principles/subtract-before-you-add]]
 
-## Apps
-- [[apps]]
-
 ## Codebase
 - [[codebase/cdp-chrome-gotchas]]
 - [[codebase/gitignore-anchoring]]
 - [[codebase/model-neutral-checkpoints]]
 - [[codebase/noodle-reference]]
+- [[codebase/oci-ci-execution]]
 - [[codebase/persistent-cwd-and-reference-clones]]
 - [[codebase/runtime-language-is-a-user-constraint]]
 - [[codebase/svg-visual-verification]]
