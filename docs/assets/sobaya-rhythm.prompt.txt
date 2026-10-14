@@ -1,0 +1,14 @@
+Generated with the built-in image_gen tool.
+Asset: sobaya-rhythm.png
+
+Use case: illustration-story.
+Asset type: a wide editorial illustration for the overview of the Sobaya open-source engineering README.
+Primary request: intuitively explain Kent Beck's kitchen metaphor for sustainable human-and-AI development: cut and check, pause to wipe the knife and learn, then cut again. Depict a single soba-making practice as three successive scenes, not a technical flowchart.
+Composition: horizontal triptych on a continuous warm cream background, approximately 3:1 aspect ratio, comfortable outer margins, three equally legible vignettes joined by restrained hand-drawn arrows pointing left to right; one small curved return arrow beneath the scenes suggests repetition. At README width every action must be immediately readable.
+Scene 1, left: close-up of a soba cook's hands using a broad traditional soba knife to cut a folded sheet of buckwheat dough into a small batch of noodles on a wooden board. Beside the board a simple recipe/check card has two small checkboxes, a muted red mark and a green check: make one small thing and check it.
+Scene 2, middle: the same cook has completely stopped cutting. A hand grips the wooden handle; the other hand carefully wipes the FLAT face of the broad knife with a folded cloth, visibly showing the blade and cloth. A few crumbs have been swept aside. A small open notebook beside the board shows a simple drawing of more evenly spaced noodle cuts, conveying learning and preparing for change. No cutting happens here.
+Scene 3, right: the same now-clean knife is cutting a new small batch of neat, evenly spaced soba noodles. A modest dark navy soba bowl with cream noodles and ochre chopsticks sits nearby. A green check on the small recipe card indicates the checked result. The visual story should read as renewed ability to keep working, not a giant finished feast.
+Style: refined Japanese cookbook editorial illustration, hand-drawn ink contours, flat matte gouache shapes, very subtle paper texture, warm and calm, generous negative space. A grown-up open-source project, charming without being childish.
+Palette: navy #2b2d42, cream #f3ede2, ochre #c98a3a, with restrained muted red #f19a9d and green #7fd394 as small test/check accents.
+Text: only the small step numbers "01", "02", "03" above the three scenes. No other words, letters, titles, code, slogans, labels, or watermark. Captions will be provided separately in the README in English and Korean.
+Constraints: human hands should have plausible anatomy and a consistent visual identity. Visibly distinct actions in all three scenes. The middle scene is wiping/cleaning a knife, not sharpening it: no whetstone, no sparks. No robots, laptops, screens, decorative UI, or irrelevant props. No photorealism, no glossy 3D, no gradients, no panel boxes. Opaque cream background.
