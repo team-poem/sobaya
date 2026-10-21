@@ -174,12 +174,13 @@ r_build_red() {
 r_checked_suite() {
     local name=$1 target=${2:-} before rc evidence
     before=$(r_snapshot)
-    if contract_suite "$r_app" "$r_timeout" > "$r_tmp/suite.json"; then rc=0; else rc=$?; fi
+    if contract_suite "$r_app" "$r_timeout" > "$r_tmp/suite.json" 2> "$r_tmp/suite.stderr"; then rc=0; else rc=$?; fi
+    cat "$r_tmp/suite.stderr" >&2
     if [ "$rc" -ne 0 ] && [ "$(jq -r .active.phase <<< "$r_state")" = implement ]; then
         evidence="$r_meta/runs/$r_run_id/$(jq -r .calls <<< "$r_state")/suite-failure.json"
         jq -n --arg entry "$name" --arg head "$(r_git rev-parse HEAD)" --arg run "$r_run_id" \
-          --argjson call "$(jq -r .calls <<< "$r_state")" --argjson code "$rc" --slurpfile suite "$r_tmp/suite.json" \
-          '{version:1,stage:"implementation-verification",entry:$entry,head:$head,run_id:$run,call:$call,exit_code:$code,suite:$suite[0]}' | r_atomic "$evidence"
+          --argjson call "$(jq -r .calls <<< "$r_state")" --argjson code "$rc" --slurpfile suite "$r_tmp/suite.json" --rawfile stderr "$r_tmp/suite.stderr" \
+          '{version:1,stage:"implementation-verification",entry:$entry,head:$head,run_id:$run,call:$call,exit_code:$code,suite:$suite[0],stderr:$stderr}' | r_atomic "$evidence"
         printf 'Failed suite evidence: %s\n' "$evidence" >&2
     fi
     r_same "$before" "$(r_snapshot)" || r_die 'Test execution changed source files; inspect before continuing.'

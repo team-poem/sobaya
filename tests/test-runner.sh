@@ -65,6 +65,7 @@ grep -q addAdds "$app/${FIXTURE_TARGET:-suite.test.js}"
 case "$mode" in
   fix) if [ "$SOBAYA_ROLE" = implement ]; then printf 'exports.add = (a, b) => a+b;\n' > "$app/impl.js"; fi ;;
   wrong_result) printf 'exports.add = () => 42;\n' > "$app/impl.js" ;;
+  stalled_suite) printf 'exports.add = () => { console.error("VERIFY_STALLED_IN_ADD"); while (true) {} };\n' > "$app/impl.js" ;;
   review_index)
     if [ "$SOBAYA_ROLE" = review ]; then git -C "$app" update-index --chmod=+x impl.js
     else printf 'exports.add = (a, b) => a+b;\n' > "$app/impl.js"; fi ;;
@@ -122,6 +123,18 @@ test_failed_verification_survives_cleanup_separately_from_initial_red() {
   contains "$APP/failed-test.md" '[ ] addAdds'
   assert_eq "$(git_app rev-parse HEAD)" "$BASELINE"
   assert_eq "$(jq -s 'length' "$META/usage.jsonl")" 1
+}
+test_verification_timeout_retains_diagnostics_without_parsed_results() {
+  policy_edit '.timeout_seconds=2'
+  MODE=stalled_suite
+  run_cli step --policy "$POLICY"; rejected
+  evidence=$(find "$META/runs" -name suite-failure.json -print)
+  [ -f "$evidence" ] || fail 'suite timeout evidence missing'
+  jq -e '.exit_code == 1 and .suite == null and (.stderr | contains("VERIFY_STALLED_IN_ADD")) and (.stderr | contains("Command timed out"))' "$evidence" >/dev/null || fail 'suite infrastructure diagnostic was lost'
+  state_is '.active.phase == "implement" and .active.red.status == "red" and .calls == 1 and (.receipts|length) == 0'
+  contains "$APP/impl.js" 'VERIFY_STALLED_IN_ADD'
+  contains "$APP/failed-test.md" '[ ] addAdds'
+  assert_eq "$(git_app rev-parse HEAD)" "$BASELINE"
 }
 test_staged_and_untracked_work_refused_without_stash() {
   printf 'user work' > "$APP/user.txt"
