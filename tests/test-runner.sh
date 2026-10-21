@@ -66,6 +66,8 @@ case "$mode" in
   fix) if [ "$SOBAYA_ROLE" = implement ]; then printf 'exports.add = (a, b) => a+b;\n' > "$app/impl.js"; fi ;;
   wrong_result) printf 'exports.add = () => 42;\n' > "$app/impl.js" ;;
   stalled_suite) printf 'exports.add = () => { console.error("VERIFY_STALLED_IN_ADD"); while (true) {} };\n' > "$app/impl.js" ;;
+  early_exit) printf 'process.exit(0);\n' > "$app/impl.js" ;;
+  regress_existing) printf 'exports.add = (a, b) => a === 0 ? 1 : a+b;\n' > "$app/impl.js" ;;
   review_index)
     if [ "$SOBAYA_ROLE" = review ]; then git -C "$app" update-index --chmod=+x impl.js
     else printf 'exports.add = (a, b) => a+b;\n' > "$app/impl.js"; fi ;;
@@ -135,6 +137,57 @@ test_verification_timeout_retains_diagnostics_without_parsed_results() {
   contains "$APP/impl.js" 'VERIFY_STALLED_IN_ADD'
   contains "$APP/failed-test.md" '[ ] addAdds'
   assert_eq "$(git_app rev-parse HEAD)" "$BASELINE"
+}
+test_successful_process_exit_without_selected_test_retains_rejection() {
+  MODE=early_exit
+  run_cli step --policy "$POLICY"; rejected
+  contains "$BASE/stderr" 'Selected test addAdds did not execute and pass'
+  evidence=$(find "$META/runs" -name suite-failure.json -print)
+  [ -f "$evidence" ] || fail 'successful exit discarded rejected verification evidence'
+  jq -e '.exit_code == 0 and .reason == "selected-test-not-passed" and .suite.passed == [] and (.suite.output | contains("TAP version"))' "$evidence" >/dev/null || fail 'exit code was confused with verification acceptance'
+  state_is '.active.phase == "implement" and .calls == 1 and (.receipts|length) == 0'
+  contains "$APP/failed-test.md" '[ ] addAdds'
+  assert_eq "$(git_app rev-parse HEAD)" "$BASELINE"
+}
+test_regression_outside_selected_test_preserves_failed_suite() {
+  cat > "$APP/suite.test.js" <<'TEST'
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { add } = require('./impl.js');
+test('existingZero', () => assert.equal(add(0, 0), 0));
+TEST
+  commit; BASELINE=$(git_app rev-parse HEAD)
+  MODE=regress_existing
+  run_cli step --policy "$POLICY"; rejected
+  contains "$BASE/stderr" 'Tests failed outside the selected entry'
+  evidence=$(find "$META/runs" -name suite-failure.json -print)
+  [ -f "$evidence" ] || fail 'regression suite was lost before rejection'
+  jq -e '.suite.failed == ["existingZero"] and .suite.passed == ["addAdds"] and .reason == "suite-failed"' "$evidence" >/dev/null || fail 'regression evidence missing'
+  state_is '.active.red.failed == ["addAdds"] and .calls == 1 and (.receipts|length) == 0'
+  contains "$APP/failed-test.md" '[ ] addAdds'
+  assert_eq "$(git_app rev-parse HEAD)" "$BASELINE"
+}
+test_failed_retries_keep_distinct_evidence_after_successful_resume() {
+  MODE=wrong_result
+  run_cli step --policy "$POLICY"; rejected
+  first=$(find "$META/runs" -name suite-failure.json -print)
+  [ -f "$first" ] || fail 'first failure missing'
+  cp "$first" "$BASE/first-evidence.json"
+  jq '.active.red' "$META/state.json" > "$BASE/initial-red.json"
+  run_cli step --resume --policy "$POLICY"; rejected
+  assert_eq "$(find "$META/runs" -name suite-failure.json | wc -l | tr -d ' ')" 2
+  cmp "$first" "$BASE/first-evidence.json"
+  second=$(find "$META/runs" -name suite-failure.json -print | grep -Fv -- "$first")
+  jq -e --slurpfile first "$first" '.call == 2 and .run_id != $first[0].run_id and .entry == $first[0].entry' "$second" >/dev/null || fail 'retry provenance is ambiguous'
+  MODE=fix
+  run_cli step --resume --policy "$POLICY"; okay
+  state_is '.active == null and .calls == 3 and (.receipts|length) == 1'
+  jq '.receipts[0].red' "$META/state.json" > "$BASE/receipt-red.json"
+  cmp "$BASE/initial-red.json" "$BASE/receipt-red.json"
+  cmp "$first" "$BASE/first-evidence.json"
+  assert_eq "$(find "$META/runs" -name suite-failure.json | wc -l | tr -d ' ')" 2
+  assert_eq "$(jq -s 'length' "$META/usage.jsonl")" 3
+  assert_eq "$(git_app status --porcelain)" ''
 }
 test_staged_and_untracked_work_refused_without_stash() {
   printf 'user work' > "$APP/user.txt"
