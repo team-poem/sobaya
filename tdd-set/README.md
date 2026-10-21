@@ -113,6 +113,20 @@ for an unfinished implementation. Calls/timeouts remain bounded by policy;
 no automatic destructive reset or model upgrade is allowed. A failed commit
 can resume without another worker invocation when verified content is intact.
 
+When suite verification after implementation is rejected, the runner prints
+the durable evidence path under the worktree Git directory:
+`sobaya/runs/<run-id>/<call>/suite-failure.json`. It records the scenario,
+HEAD, run/call identity, contract exit code, rejection reason, parsed suite
+when available, and stderr. `exit_code` is the suite contract's return code,
+not necessarily the test process's exit code. A zero code can still have
+`reason: selected-test-not-passed`; process exit alone is not GREEN.
+Timeouts can have `suite: null` with their diagnostics retained in `stderr`.
+Read this evidence before an explicit resume. The initial RED, source edits,
+pending scenario and cumulative calls stay intact. Each retry has a separate
+path, and later success does not remove earlier failures. This covers suite
+verification, not separate hygiene failures or external interruption of the
+coordinator before it can write evidence.
+
 For a test mistake, use `restart.sh APP` after diagnosis. It archives the
 attempt and does not erase code or tests. Correct the test within the intended
 behavior, restore a coherent GREEN starting revision, then select/probe the

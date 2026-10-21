@@ -172,13 +172,25 @@ r_build_red() {
     ' <<< "$r_suite" >/dev/null
 }
 r_checked_suite() {
-    local name=$1 target=${2:-} before rc
+    local name=$1 target=${2:-} before rc evidence selected_passed=false reason=suite-failed
     before=$(r_snapshot)
-    if contract_suite "$r_app" "$r_timeout" > "$r_tmp/suite.json"; then rc=0; else rc=$?; fi
+    if contract_suite "$r_app" "$r_timeout" > "$r_tmp/suite.json" 2> "$r_tmp/suite.stderr"; then rc=0; else rc=$?; fi
+    cat "$r_tmp/suite.stderr" >&2
+    if [ "$rc" -eq 0 ]; then
+        reason=selected-test-not-passed
+        if jq -e --arg name "$name" "$r_named_filter"'any(.passed[];named($name)) and (any(.skipped[];named($name))|not)' "$r_tmp/suite.json" >/dev/null; then selected_passed=true; fi
+    fi
+    if [ "$selected_passed" = false ] && [ "$(jq -r .active.phase <<< "$r_state")" = implement ]; then
+        evidence="$r_meta/runs/$r_run_id/$(jq -r .calls <<< "$r_state")/suite-failure.json"
+        jq -n --arg entry "$name" --arg head "$(r_git rev-parse HEAD)" --arg run "$r_run_id" --arg reason "$reason" \
+          --argjson call "$(jq -r .calls <<< "$r_state")" --argjson code "$rc" --slurpfile suite "$r_tmp/suite.json" --rawfile stderr "$r_tmp/suite.stderr" \
+          '{version:1,stage:"implementation-verification",entry:$entry,head:$head,run_id:$run,call:$call,exit_code:$code,reason:$reason,suite:$suite[0],stderr:$stderr}' | r_atomic "$evidence"
+        printf 'Failed suite evidence: %s\n' "$evidence" >&2
+    fi
     r_same "$before" "$(r_snapshot)" || r_die 'Test execution changed source files; inspect before continuing.'
     r_suite=$(cat "$r_tmp/suite.json")
     case "$rc" in
-        0) jq -e --arg name "$name" "$r_named_filter"'any(.passed[];named($name)) and (any(.skipped[];named($name))|not)' <<< "$r_suite" >/dev/null || r_die "Selected test $name did not execute and pass."
+        0) [ "$selected_passed" = true ] || r_die "Selected test $name did not execute and pass."
            r_verdict=green ;;
         10) jq -e --arg name "$name" "$r_named_filter"'(.failed|length)>0 and all(.failed[];named($name))' <<< "$r_suite" >/dev/null || r_die 'Tests failed outside the selected entry; investigate baseline/environment.'
            r_verdict=red ;;
