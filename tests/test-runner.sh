@@ -24,6 +24,7 @@ cleanup() {
 }
 setup() {
   BASE=$(mktemp -d "${TMPDIR:-/tmp}/sobaya-runner-shell.XXXXXX")
+  BASE=$(cd "$BASE" && pwd -P)
   trap cleanup EXIT
   CHILDREN=''; MODE=fix; TARGET=suite.test.js
   APP="$BASE/app with spaces"; mkdir -p "$APP"
