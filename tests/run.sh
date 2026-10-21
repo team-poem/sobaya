@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Canonical local harness suite. All workers are fake; no provider calls.
 set -eu
+# Use the same physical temporary paths that installed runtimes report.
+TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P)
+export TMPDIR
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 TEMP=$(mktemp -d "${TMPDIR:-/tmp}/sobaya-tests.XXXXXX")
 trap 'rm -rf "$TEMP"' EXIT
