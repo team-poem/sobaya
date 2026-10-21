@@ -64,6 +64,7 @@ mode=${FIXTURE_MODE:-fix}
 grep -q addAdds "$app/${FIXTURE_TARGET:-suite.test.js}"
 case "$mode" in
   fix) if [ "$SOBAYA_ROLE" = implement ]; then printf 'exports.add = (a, b) => a+b;\n' > "$app/impl.js"; fi ;;
+  wrong_result) printf 'exports.add = () => 42;\n' > "$app/impl.js" ;;
   review_index)
     if [ "$SOBAYA_ROLE" = review ]; then git -C "$app" update-index --chmod=+x impl.js
     else printf 'exports.add = (a, b) => a+b;\n' > "$app/impl.js"; fi ;;
@@ -107,6 +108,20 @@ test_red_green_checkpoint_and_baseline_survive_replay() {
   run_cli loop --policy "$POLICY"; okay
   assert_eq "$(git_app rev-parse HEAD)" "$head"
   state_is ".baseline == \"$BASELINE\""
+}
+test_failed_verification_survives_cleanup_separately_from_initial_red() {
+  MODE=wrong_result
+  run_cli step --policy "$POLICY"; rejected
+  state_is '.active.phase == "implement" and .calls == 1 and (.receipts|length) == 0'
+  jq -e '.active.red.output | contains("actual: 0")' "$META/state.json" >/dev/null || fail 'initial RED was overwritten'
+  evidence=$(find "$META/runs" -name suite-failure.json -print)
+  [ -f "$evidence" ] || fail 'final failed suite was lost during cleanup'
+  jq -e '.entry == "addAdds" and .call == 1 and .exit_code == 10 and .suite.failed == ["addAdds"] and (.suite.output | contains("actual: 42"))' "$evidence" >/dev/null || fail 'final assertion evidence missing'
+  contains "$BASE/stderr" "$evidence"
+  contains "$APP/impl.js" '=> 42'
+  contains "$APP/failed-test.md" '[ ] addAdds'
+  assert_eq "$(git_app rev-parse HEAD)" "$BASELINE"
+  assert_eq "$(jq -s 'length' "$META/usage.jsonl")" 1
 }
 test_staged_and_untracked_work_refused_without_stash() {
   printf 'user work' > "$APP/user.txt"
