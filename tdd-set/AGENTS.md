@@ -15,9 +15,13 @@ frozen approval contract. Work within the user's authorized goal.
 3. Make this test and all previous tests pass with the smallest coherent
    implementation. Add newly discovered cases to the list. Do not mix
    speculative cleanup into RED-to-GREEN work.
-4. At GREEN, optionally improve the design. Refactor source and tests while
-   preserving their behavior and coverage; run the full suite after each
-   small change. Separate structural and behavioral commits. Avoid premature
+4. At GREEN, run `mutator --changed`. Each surviving mutant is a missing
+   scenario to add to the list, dead code to delete, or an equivalent mutant
+   whose reason goes in the commit. Then improve the design. A changed function
+   with CRAP 10 or more must be split, tested further, or both; below 10, no
+   refactor is a valid result. Refactor source and tests while preserving
+   their behavior and coverage; run the full suite after each small change.
+   Separate structural and behavioral commits. Avoid premature
    abstraction or tidying that delays useful feedback without a concrete benefit.
 5. Use what you learned to choose the next test. Repeat within the authorized
    goal; an empty list does not by itself prove the user's outcome occurred.
@@ -32,6 +36,15 @@ selection, test corrections or behavior-preserving refactoring.
 Never weaken a test to make a broken implementation appear correct. Diagnose
 a wrong test against the intended behavior, explain its correction, and observe
 fresh failure/pass evidence. Preserve user edits and failure diagnostics.
+
+## Quality checks
+
+`crapper`, `dryer` and `mutator` (github.com/unclebob) are app-level checks,
+run by the agent like the app's test runner. Harness scripts do not invoke
+them. Clone each next to the others under `references/unclebob/` and run it
+from the app root. Never lower a score by deleting, skipping or weakening a
+test. A run that reports every site uncovered measured nothing: for Go, the
+checkout directory name must match the module path.
 
 ## Using the shell helpers
 
@@ -55,7 +68,9 @@ the old approval commands do not grant authority or change state.
 
 ## Between features
 
-Expose what was actually observed, what surprised you or remains unknown,
+Run `mutator` over all app source and `dryer` over the app. Pairs scoring
+0.8 or more are refactoring candidates for the next GREEN. Expose what was
+actually observed, what surprised you or remains unknown,
 and how that changes the next scenario, design or need for tidying. Learning
 and restoring room for change matter more than process artifacts. No useful
 refactor or durable note is a valid result. Continue already authorized work
