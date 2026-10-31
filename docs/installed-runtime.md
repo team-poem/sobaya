@@ -107,7 +107,7 @@ worker_policy="/absolute/path/to/worker-policy.json"
 GREEN에서 소스·테스트를 필요한 만큼 정리하고 `gate`로 현재 전체 스위트와
 포맷·린트를 확인한 뒤, 배운 내용으로 다음 테스트를 선택합니다. 기능 사이에는
 실제 결과와 불확실성을 돌아봅니다. `review`는 유용할 때 선택하며 자동 호출하지
-않습니다. `approve`는 폐기 안내를 반환합니다.
+않습니다.
 
 `config check`는 로컬 설정을 읽고 `doctor`는 유료 작업자를 호출하지 않습니다.
 `next`·`usage [RUN_ID]`도 같은 경로 인자로 호출합니다. 일반 실행은 lock의 정확한
