@@ -184,7 +184,7 @@ printf '{:candidates [\n {:score %s\n  :language "typescript"\n  :left {:file "c
 printf 'DUPLICATE score=%s\n  calc.js:1-4\n  sum.js:1-4\n' "$FAKE_DUP"
 TOOL
   chmod +x "$SOBAYA_UNCLEBOB_DIR"/*/*
-  printf '.metrics/\n' >"$app/.gitignore"; green
+  printf '.metrics/\n' >"$app/.gitignore"; printf '%s\n' '- Quality: required' >>"$app/AGENTS.md"; green
   printf 'export const add = (a, b) => a + b;\n' >"$app/calc.js"
 }
 gate() { expect_rc "$1" /bin/bash "$ROOT/tdd-set/bin/gate.sh" "$app"; }
@@ -195,11 +195,9 @@ test_quality_crap_below() { FAKE_CRAP=9.99; fake_quality; gate 0; }
 test_quality_duplicate() { FAKE_DUP=0.8; fake_quality; gate 1; contains 'duplicate pairs'; contains 'sum.js:1-4'; }
 test_quality_all_uncovered() { FAKE_KILLED=0 FAKE_UNCOVERED=4; fake_quality; gate 1; contains 'all 4 mutation sites are uncovered'; }
 test_quality_unignored_output() { fake_quality; rm "$app/.gitignore"; g rm -q --cached .gitignore; g commit -qm unignore; gate 1; contains 'Git does not ignore'; contains '.metrics/crap.edn'; }
-test_quality_absent() {
-  export SOBAYA_UNCLEBOB_DIR="$case_dir/none"; green; gate 0; contains 'Quality checks skipped'; grep -q '^PASS' "$case_dir/result"
-  printf '%s\n' '- Quality: required' >>"$app/AGENTS.md"; commit; gate 1; contains 'required by AGENTS.md'
-}
+test_quality_not_enabled() { fake_quality; printf '%s\n' '- Test: `node --test calc.test.js`' >"$app/AGENTS.md"; commit; gate 0; contains 'not enabled for this app'; [ ! -e "$app/.metrics" ]; grep -q '^PASS' "$case_dir/result"; }
+test_quality_absent() { printf '%s\n' '- Quality: required' >>"$app/AGENTS.md"; green; export SOBAYA_UNCLEBOB_DIR="$case_dir/none"; gate 1; contains 'required by AGENTS.md but not found'; }
 if [ "${1:-}" = __case ]; then set -e; fixture; "$2"; exit; fi
-for test in test_plan_exact test_plan_malformed test_go_plan_exact test_index_flags_hide_broken_head test_valid_gate test_unsupported_runner test_real_red_build_error test_timeout test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation test_quality_clean test_quality_survivor test_quality_crap test_quality_crap_below test_quality_duplicate test_quality_all_uncovered test_quality_unignored_output test_quality_absent; do run_case "$test"; done
+for test in test_plan_exact test_plan_malformed test_go_plan_exact test_index_flags_hide_broken_head test_valid_gate test_unsupported_runner test_real_red_build_error test_timeout test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation test_quality_clean test_quality_survivor test_quality_crap test_quality_crap_below test_quality_duplicate test_quality_all_uncovered test_quality_unignored_output test_quality_not_enabled test_quality_absent; do run_case "$test"; done
 printf '%s tests, %s failures\n' "$count" "$failures"
 [ "$failures" -eq 0 ]
