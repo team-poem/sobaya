@@ -115,7 +115,7 @@ Git 작업 디렉터리 아래 `sobaya/history/<run-id>/`에 보관하고, 플�
 테스트의 설계를 자세히 함께 검토할 필요가 있으면
 `tdd-set/bin/review-view.sh SOURCE NOTES_JSON OUTPUT.md`로 전체 원본과
 한국어 설계 근거를 담은 별도 문서를 만들 수 있습니다.
-[입력 형식](../tdd-set/skills/tdd/references/human-review.md)에 따라 원본 일치와
+[입력 형식](../.agents/skills/sobaya-mode/references/human-review.md)에 따라 원본 일치와
 줄 범위 누락을 검사합니다. 설명의 정확성과 필요한 파일 목록은 직접 확인합니다.
 이 문서는 테스트마다 승인받거나 이후 코드를 고정하는 절차는 아닙니다.
 설치된 런타임의 연결·버전 변경은 [설치 안내](installed-runtime.md)를 참고하세요.

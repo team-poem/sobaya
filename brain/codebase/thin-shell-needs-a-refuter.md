@@ -20,5 +20,5 @@ review found a genuine display bug in `run` (the untested tick loop) — see
 usage routing. The pure functions were flawless; the shell was where the
 bug was.
 
-This is why the `sobaya` skill's pipeline puts a refuter stage after execute
-and has the orchestrator do live verification directly.
+This is why the former `sobaya` skill's pipeline put a refuter stage after
+execute and had the orchestrator do live verification directly.

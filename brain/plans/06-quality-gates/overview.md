@@ -38,6 +38,6 @@ green and Bash-only.
   app before turning it on everywhere.
 - [ ] Measure whether `step.sh` and `loop.sh` are still used. If not, delete
   them and most of `tdd-set/lib/runner.sh`.
-- [ ] Collapse `.agents/skills/sobaya` and `tdd` into one `sobaya-mode` skill
+- [x] Collapse `.agents/skills/sobaya` and `tdd` into one `sobaya-mode` skill
   shaped like ub-mode, pointing at pstack principles instead of the copies in
   `brain/principles/`.
