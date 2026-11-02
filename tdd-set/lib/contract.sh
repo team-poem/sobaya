@@ -161,3 +161,59 @@ contract_gate() {
   fi
   return "$rc"
 }
+# unclebob's crapper, dryer and mutator run as subprocesses; this code stays Bash.
+_contract_tool() {
+  local dir=$1 tmp=$2 app=$3 name=$4; shift 4
+  sb_run 3600 "$tmp/$name.out" "$tmp/$name.err" /dev/null "$app" -- "$dir/$name/$name" "$@"
+}
+_contract_mutate_sums() { find "$1/.metrics/mutate" -type f -name '*.edn' -exec cksum {} + 2>/dev/null | sort; }
+contract_quality() {
+  local app dir tool missing='' tmp before after rc failed=0 sites
+  app=$(cd "$1" && pwd -P) || return 1
+  dir=${SOBAYA_UNCLEBOB_DIR:-$CONTRACT_LIB/../../references/unclebob}
+  for tool in mutator crapper dryer; do [ -x "$dir/$tool/$tool" ] || missing="$missing $tool"; done
+  if [ -n "$missing" ]; then
+    if grep -qx -- '- Quality: required' "$app/AGENTS.md" 2>/dev/null; then
+      sb_error "Quality checks required by AGENTS.md but not found in $dir:$missing (set SOBAYA_UNCLEBOB_DIR)"; return 1
+    fi
+    sb_error "Quality checks skipped: not found in $dir:$missing (set SOBAYA_UNCLEBOB_DIR)"; return 0
+  fi
+  tmp=$(mktemp -d) || return 1
+  rm -f "$app/.metrics/crap.edn" "$app/.metrics/dry.edn"
+  before=$(contract_snapshot "$app") || { rm -rf "$tmp"; return 1; }
+  _contract_mutate_sums "$app" >"$tmp/sums.before"
+  if _contract_tool "$dir" "$tmp" "$app" mutator --changed; then rc=0; else rc=$?; fi
+  [ "$rc" -ne 130 ] || { rm -rf "$tmp"; return 130; }
+  case "$rc" in
+    0) ;;
+    3) cat "$tmp/mutator.out" "$tmp/mutator.err" >&2; sb_error 'mutator: surviving mutants; add a scenario, delete dead code, or explain an equivalent mutant'; failed=1;;
+    *) cat "$tmp/mutator.out" "$tmp/mutator.err" >&2; sb_error "mutator failed (exit $rc)"; failed=1;;
+  esac
+  _contract_mutate_sums "$app" >"$tmp/sums.after"
+  comm -13 "$tmp/sums.before" "$tmp/sums.after" | sed 's/^[0-9]* [0-9]* //' | while IFS= read -r tool; do cat "$tool"; echo; done >"$tmp/mutate.edn"
+  if sites=$(awk '{s=$0; while(match(s,/:sites [0-9]+/)){n+=substr(s,RSTART+7,RLENGTH-7); s=substr(s,RSTART+RLENGTH)}
+      s=$0; while(match(s,/:uncovered [0-9]+/)){u+=substr(s,RSTART+11,RLENGTH-11); s=substr(s,RSTART+RLENGTH)}}
+      END{print n+0; exit !(n>0 && u==n)}' "$tmp/mutate.edn"); then
+    sb_error "mutator: all $sites mutation sites are uncovered, so coverage measured nothing (for Go, the checkout directory name must match the module path)"; failed=1
+  fi
+  if _contract_tool "$dir" "$tmp" "$app" crapper; then rc=0; else rc=$?; fi
+  [ "$rc" -ne 130 ] || { rm -rf "$tmp"; return 130; }
+  [ "$rc" -eq 0 ] || { cat "$tmp/crapper.out" "$tmp/crapper.err" >&2; sb_error "crapper failed (exit $rc)"; failed=1; }
+  awk 'match($0,/:crap [0-9.]+/){c=substr($0,RSTART+6,RLENGTH-6); if(c+0>=10){match($0,/:namespace "[^"]*"/); ns=substr($0,RSTART+12,RLENGTH-13); match($0,/:name "[^"]*"/); print "  " ns " " substr($0,RSTART+7,RLENGTH-8) " CRAP " c}}' \
+    "$app/.metrics/crap.edn" 2>/dev/null >"$tmp/crap.high" || :
+  [ ! -s "$tmp/crap.high" ] || { sb_error 'crapper: functions at CRAP 10 or more; split them, test them further, or both:'; cat "$tmp/crap.high" >&2; failed=1; }
+  if _contract_tool "$dir" "$tmp" "$app" dryer --threshold 0.8; then rc=0; else rc=$?; fi
+  [ "$rc" -ne 130 ] || { rm -rf "$tmp"; return 130; }
+  [ "$rc" -eq 0 ] || { cat "$tmp/dryer.out" "$tmp/dryer.err" >&2; sb_error "dryer failed (exit $rc)"; failed=1; }
+  if awk 'match($0,/:score [0-9.]+/){if(substr($0,RSTART+7,RLENGTH-7)+0>=0.8)f=1}END{exit !f}' "$app/.metrics/dry.edn" 2>/dev/null; then
+    cat "$tmp/dryer.out" >&2; sb_error 'dryer: duplicate pairs at similarity 0.8 or more; remove the duplication'; failed=1
+  fi
+  after=$(contract_snapshot "$app") || { rm -rf "$tmp"; return 1; }
+  if [ "$before" != "$after" ]; then
+    sb_error "Quality tools changed files Git does not ignore; ignore their outputs (.metrics/, coverage reports): $(jq -rn --argjson a "$before" --argjson b "$after" '[($a+$b)|keys[]|select($a[.]!=$b[.])]|join(", ")')"
+    failed=1
+  fi
+  rm -rf "$tmp"
+  [ "$failed" -eq 0 ] || return 1
+  echo 'Quality: no surviving mutant, no CRAP 10 or more, no duplicate pair at 0.8 or more.'
+}
