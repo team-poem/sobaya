@@ -39,12 +39,18 @@ fresh failure/pass evidence. Preserve user edits and failure diagnostics.
 
 ## Quality checks
 
-`crapper`, `dryer` and `mutator` (github.com/unclebob) are app-level checks,
-run by the agent like the app's test runner. Harness scripts do not invoke
-them. Clone each next to the others under `references/unclebob/` and run it
-from the app root. Never lower a score by deleting, skipping or weakening a
-test. A run that reports every site uncovered measured nothing: for Go, the
-checkout directory name must match the module path.
+`crapper`, `dryer` and `mutator` (github.com/unclebob) are app-level checks.
+Clone each next to the others under `references/unclebob/`, or point
+`SOBAYA_UNCLEBOB_DIR` at the directory holding the clones. `gate.sh` runs
+`mutator --changed`, `crapper` and `dryer` from the app root and fails on a
+surviving mutant, any function at CRAP 10 or more, a duplicate pair at
+similarity 0.8 or more, or a run where every mutation site is uncovered.
+Ignore the tools' outputs (`.metrics/` and the coverage reports) in the app's
+`.gitignore`. When the tools are missing, `gate.sh` says so and passes on the
+suite alone; an app whose `AGENTS.md` has the line `- Quality: required` fails
+instead. Never lower a score by deleting, skipping or weakening a test. A run
+that reports every site uncovered measured nothing: for Go, the checkout
+directory name must match the module path.
 
 ## Using the shell helpers
 

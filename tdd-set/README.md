@@ -22,7 +22,7 @@ Run from the workspace root; prefix paths below with `tdd-set/`.
 | `bin/next.sh APP` | Read the next unchecked scenario without mutation |
 | `bin/step.sh APP [--policy PATH] [--worker NAME]` | Materialize one concrete test, observe RED, implement and verify GREEN |
 | `bin/loop.sh APP [--policy PATH]` | Compatibility alias for one step; returns to the orchestrator for learning |
-| `bin/gate.sh APP` | Check current full suite and hygiene, including uncommitted tidying |
+| `bin/gate.sh APP` | Check current full suite, hygiene and quality tools, including uncommitted tidying |
 | `bin/review.sh APP [--policy PATH] [--worker NAME]` | Optional read-only review of current committed work; pending scenarios are allowed |
 | `bin/status.sh APP` | Inspect current attempt, pending scenarios and legacy state |
 | `bin/migrate.sh APP` | Archive a legacy plan/state and convert executable batches into mutable scenarios |
@@ -107,6 +107,13 @@ initially dirty files but rejects test/hygiene side effects that change code or
 Git state while checking. Review is an optional tool, with no cached approval
 needed for future work. Full-suite evidence and user feedback answer different
 questions; at feature boundaries expose outcomes, learning and the next choice.
+
+After the suite passes, `gate.sh` runs unclebob's `mutator --changed`,
+`crapper` and `dryer` as subprocesses from `references/unclebob/<tool>/<tool>`
+(override the directory with `SOBAYA_UNCLEBOB_DIR`). It reads their exit codes
+and `.metrics/` EDN and fails on a surviving mutant, CRAP 10 or more, a
+duplicate pair at 0.8 or more, or every mutation site uncovered. Missing tools
+are reported and skipped unless the app's `AGENTS.md` has `- Quality: required`.
 
 On failure preserve edits, inspect diagnostics and use `step.sh APP --resume`
 for an unfinished implementation. Calls/timeouts remain bounded by policy;
@@ -229,7 +236,7 @@ command argv and allowed workers before an unattended run.
 
 ## Skills and local validation
 
-The TDD skill supports scenario selection and the learning cycle. Stack skills
+The `.agents/skills/sobaya-mode` skill supports scenario selection and the learning cycle. Stack skills
 support relevant optional GREEN tidying. Commands are provider-neutral prompt
 references; adapters do not redefine the cycle. Use `bash tests/run.sh` for
 local deterministic fixtures; it makes no paid model calls.
