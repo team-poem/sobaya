@@ -159,7 +159,7 @@ EOF
 }
 # Fake unclebob tools emit the real EDN shapes; knobs come from FAKE_* variables.
 fake_quality() {
-  export SOBAYA_UNCLEBOB_DIR="$case_dir/unclebob" FAKE_KILLED=${FAKE_KILLED:-2} FAKE_SURVIVED=${FAKE_SURVIVED:-0} FAKE_UNCOVERED=${FAKE_UNCOVERED:-0} FAKE_CRAP=${FAKE_CRAP:-1.0} FAKE_DUP=${FAKE_DUP:-}
+  export SOBAYA_UNCLEBOB_DIR="$case_dir/unclebob" FAKE_KILLED=${FAKE_KILLED:-2} FAKE_SURVIVED=${FAKE_SURVIVED:-0} FAKE_UNCOVERED=${FAKE_UNCOVERED:-0} FAKE_CRAP=${FAKE_CRAP:-1.0} FAKE_DUP=${FAKE_DUP:-} FAKE_CRAP_NAME=${FAKE_CRAP_NAME:-add}
   mkdir -p "$SOBAYA_UNCLEBOB_DIR/mutator" "$SOBAYA_UNCLEBOB_DIR/crapper" "$SOBAYA_UNCLEBOB_DIR/dryer"
   cat >"$SOBAYA_UNCLEBOB_DIR/mutator/mutator" <<'TOOL'
 #!/bin/bash
@@ -171,8 +171,9 @@ printf 'Function Namespace Killed Survived Uncovered Sites Score\nadd calc %s %s
 TOOL
   cat >"$SOBAYA_UNCLEBOB_DIR/crapper/crapper" <<'TOOL'
 #!/bin/bash
+[ "$1" = --changed ] || exit 1
 mkdir -p .metrics
-printf '{:entries [\n  {:name "add", :namespace "calc", :complexity 3, :coverage 0.0, :crap %s}\n]}\n' "$FAKE_CRAP" >.metrics/crap.edn
+printf '{:entries [\n  {:name "%s", :namespace "calc", :complexity 3, :coverage 0.0, :crap %s}\n]}\n' "$FAKE_CRAP_NAME" "$FAKE_CRAP" >.metrics/crap.edn
 printf 'add calc CRAP %s\n' "$FAKE_CRAP"
 TOOL
   cat >"$SOBAYA_UNCLEBOB_DIR/dryer/dryer" <<'TOOL'
@@ -192,12 +193,14 @@ test_quality_clean() { fake_quality; gate 0; grep -q '^Quality: no surviving mut
 test_quality_survivor() { FAKE_SURVIVED=1; fake_quality; gate 1; contains 'surviving mutants'; contains 'CHECK FAILED'; }
 test_quality_crap() { FAKE_CRAP=10.0; fake_quality; gate 1; contains 'CRAP 10 or more'; contains 'calc add CRAP 10.0'; }
 test_quality_crap_below() { FAKE_CRAP=9.99; fake_quality; gate 0; }
+test_quality_crap_unchanged_function() { FAKE_CRAP=10.0; fake_quality; commit; printf 'export const two = 2;\n' >>"$app/calc.js"; gate 0; }
+test_quality_crap_unlocated() { FAKE_CRAP=10.0 FAKE_CRAP_NAME=sub; fake_quality; gate 1; contains 'calc sub CRAP 10.0'; }
 test_quality_duplicate() { FAKE_DUP=0.8; fake_quality; gate 1; contains 'duplicate pairs'; contains 'sum.js:1-4'; }
 test_quality_all_uncovered() { FAKE_KILLED=0 FAKE_UNCOVERED=4; fake_quality; gate 1; contains 'all 4 mutation sites are uncovered'; }
 test_quality_unignored_output() { fake_quality; rm "$app/.gitignore"; g rm -q --cached .gitignore; g commit -qm unignore; gate 1; contains 'Git does not ignore'; contains '.metrics/crap.edn'; }
 test_quality_not_enabled() { fake_quality; printf '%s\n' '- Test: `node --test calc.test.js`' >"$app/AGENTS.md"; commit; gate 0; contains 'not enabled for this app'; [ ! -e "$app/.metrics" ]; grep -q '^PASS' "$case_dir/result"; }
 test_quality_absent() { printf '%s\n' '- Quality: required' >>"$app/AGENTS.md"; green; export SOBAYA_UNCLEBOB_DIR="$case_dir/none"; gate 1; contains 'required by AGENTS.md but not found'; }
 if [ "${1:-}" = __case ]; then set -e; fixture; "$2"; exit; fi
-for test in test_plan_exact test_plan_malformed test_go_plan_exact test_index_flags_hide_broken_head test_valid_gate test_unsupported_runner test_real_red_build_error test_timeout test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation test_quality_clean test_quality_survivor test_quality_crap test_quality_crap_below test_quality_duplicate test_quality_all_uncovered test_quality_unignored_output test_quality_not_enabled test_quality_absent; do run_case "$test"; done
+for test in test_plan_exact test_plan_malformed test_go_plan_exact test_index_flags_hide_broken_head test_valid_gate test_unsupported_runner test_real_red_build_error test_timeout test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation test_quality_clean test_quality_survivor test_quality_crap test_quality_crap_below test_quality_crap_unchanged_function test_quality_crap_unlocated test_quality_duplicate test_quality_all_uncovered test_quality_unignored_output test_quality_not_enabled test_quality_absent; do run_case "$test"; done
 printf '%s tests, %s failures\n' "$count" "$failures"
 [ "$failures" -eq 0 ]

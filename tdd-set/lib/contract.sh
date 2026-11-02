@@ -167,6 +167,21 @@ _contract_tool() {
   sb_run 3600 "$tmp/$name.out" "$tmp/$name.err" /dev/null "$app" -- "$dir/$name/$name" "$@"
 }
 _contract_mutate_sums() { find "$1/.metrics/mutate" -type f -name '*.edn' -exec cksum {} + 2>/dev/null | sort; }
+# crap.edn has no file or lines; mutator's forms do, keyed by the same namespace and name.
+_contract_forms() {
+  find "$1/.metrics/mutate" -type f -name '*.edn' -exec awk '
+    FNR==1{ns=""} !ns && match($0,/:namespace "[^"]*"/){ns=substr($0,RSTART+12,RLENGTH-13)}
+    {s=$0; while(match(s,/\{:id "[^"]*" [^{}]*\}/)){f=substr(s,RSTART,RLENGTH); s=substr(s,RSTART+RLENGTH)
+      match(f,/:id "[^"]*"/); id=substr(f,RSTART+5,RLENGTH-6); sub(/^[^\/]*\//,"",id)
+      match(f,/:file "[^"]*"/); file=substr(f,RSTART+7,RLENGTH-8)
+      match(f,/ :line [0-9]+/); a=substr(f,RSTART+7,RLENGTH-7); match(f,/:end-line [0-9]+/); b=substr(f,RSTART+10,RLENGTH-10)
+      print ns "\t" id "\t" file "\t" a "\t" b}}' {} + 2>/dev/null
+}
+# Whether lines START..END of FILE differ from HEAD, the baseline contract_gate uses.
+_contract_lines_changed() {
+  git -C "$1" ls-files --error-unmatch -- "$2" >/dev/null 2>&1 || return 0
+  git -C "$1" diff -U0 HEAD -- "$2" | awk -v a="$3" -v b="$4" '/^@@/{split($3,h,","); s=substr(h[1],2)+0; n=(h[2]=="")?1:h[2]+0; e=s+(n?n:1)-1; if(s<=b+0 && e>=a+0) f=1} END{exit !f}'
+}
 contract_quality() {
   local app dir tool missing='' tmp before after rc failed=0 sites
   app=$(cd "$1" && pwd -P) || return 1
@@ -192,12 +207,21 @@ contract_quality() {
       END{print n+0; exit !(n>0 && u==n)}' "$tmp/mutate.edn"); then
     sb_error "mutator: all $sites mutation sites are uncovered, so coverage measured nothing (for Go, the checkout directory name must match the module path)"; failed=1
   fi
-  if _contract_tool "$dir" "$tmp" "$app" crapper; then rc=0; else rc=$?; fi
+  if _contract_tool "$dir" "$tmp" "$app" crapper --changed; then rc=0; else rc=$?; fi
   [ "$rc" -ne 130 ] || { rm -rf "$tmp"; return 130; }
   [ "$rc" -eq 0 ] || { cat "$tmp/crapper.out" "$tmp/crapper.err" >&2; sb_error "crapper failed (exit $rc)"; failed=1; }
-  awk 'match($0,/:crap [0-9.]+/){c=substr($0,RSTART+6,RLENGTH-6); if(c+0>=10){match($0,/:namespace "[^"]*"/); ns=substr($0,RSTART+12,RLENGTH-13); match($0,/:name "[^"]*"/); print "  " ns " " substr($0,RSTART+7,RLENGTH-8) " CRAP " c}}' \
-    "$app/.metrics/crap.edn" 2>/dev/null >"$tmp/crap.high" || :
-  [ ! -s "$tmp/crap.high" ] || { sb_error 'crapper: functions at CRAP 10 or more; split them, test them further, or both:'; cat "$tmp/crap.high" >&2; failed=1; }
+  _contract_forms "$app" >"$tmp/forms"
+  awk 'match($0,/:crap [0-9.]+/){c=substr($0,RSTART+6,RLENGTH-6); if(c+0>=10){match($0,/:namespace "[^"]*"/); ns=substr($0,RSTART+12,RLENGTH-13); match($0,/:name "[^"]*"/); print ns "\t" substr($0,RSTART+7,RLENGTH-8) "\t" c}}' \
+    "$app/.metrics/crap.edn" 2>/dev/null |
+  while IFS=$'\t' read -r ns name crap; do
+    # A function mutator does not locate stays in: crapper --changed already limited it to changed files.
+    located=0 changed=0
+    while IFS=$'\t' read -r _ _ file start end; do
+      located=1; ! _contract_lines_changed "$app" "$file" "$start" "$end" || changed=1
+    done < <(awk -F '\t' -v ns="$ns" -v name="$name" '$1==ns && $2==name' "$tmp/forms")
+    [ "$located" -eq 1 ] && [ "$changed" -eq 0 ] || printf '  %s %s CRAP %s\n' "$ns" "$name" "$crap"
+  done >"$tmp/crap.high"
+  [ ! -s "$tmp/crap.high" ] || { sb_error 'crapper: changed functions at CRAP 10 or more; split them, test them further, or both:'; cat "$tmp/crap.high" >&2; failed=1; }
   if _contract_tool "$dir" "$tmp" "$app" dryer --threshold 0.8; then rc=0; else rc=$?; fi
   [ "$rc" -ne 130 ] || { rm -rf "$tmp"; return 130; }
   [ "$rc" -eq 0 ] || { cat "$tmp/dryer.out" "$tmp/dryer.err" >&2; sb_error "dryer failed (exit $rc)"; failed=1; }
