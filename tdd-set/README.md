@@ -108,12 +108,16 @@ Git state while checking. Review is an optional tool, with no cached approval
 needed for future work. Full-suite evidence and user feedback answer different
 questions; at feature boundaries expose outcomes, learning and the next choice.
 
-After the suite passes, `gate.sh` runs unclebob's `mutator --changed`,
-`crapper` and `dryer` as subprocesses from `references/unclebob/<tool>/<tool>`
-(override the directory with `SOBAYA_UNCLEBOB_DIR`). It reads their exit codes
-and `.metrics/` EDN and fails on a surviving mutant, CRAP 10 or more, a
-duplicate pair at 0.8 or more, or every mutation site uncovered. Missing tools
-are reported and skipped unless the app's `AGENTS.md` has `- Quality: required`.
+For an app whose `AGENTS.md` has the line `- Quality: required`, `gate.sh`
+runs unclebob's `mutator --changed`, `crapper --changed` and `dryer` after the
+suite passes, as subprocesses from `references/unclebob/<tool>/<tool>`
+(override the directory with `SOBAYA_UNCLEBOB_DIR`). It reads their `.metrics/`
+EDN and fails on an unlisted surviving mutant, CRAP 10 or more on a function
+whose lines changed against `HEAD`, a duplicate pair at 0.8 or more, every
+mutation site uncovered, or dryer finding no source files. Equivalent mutants
+go in the app's `.sobaya-equivalent-mutants`, one outcome key per line with a
+`#` reason; stale keys are reported. Other apps skip the tools with a one-line
+notice; an opted-in app fails when the tools are missing.
 
 On failure preserve edits, inspect diagnostics and use `step.sh APP --resume`
 for an unfinished implementation. Calls/timeouts remain bounded by policy;
@@ -236,9 +240,10 @@ command argv and allowed workers before an unattended run.
 
 ## Skills and local validation
 
-The `.agents/skills/sobaya-mode` skill supports scenario selection and the learning cycle. Stack skills
-support relevant optional GREEN tidying. Commands are provider-neutral prompt
-references; adapters do not redefine the cycle. Use `bash tests/run.sh` for
-local deterministic fixtures; it makes no paid model calls.
+The `.agents/skills/sobaya-mode` skill supports scenario selection and the
+learning cycle. Stack skills support relevant optional GREEN tidying. Commands
+are provider-neutral prompt references; adapters do not redefine the cycle.
+Use `bash tests/run.sh` for local deterministic fixtures; it makes no paid
+model calls.
 Passing harness tests does not prove an arbitrary feature's user
 outcome or the quality of a live model's judgment.

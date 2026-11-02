@@ -17,10 +17,11 @@ frozen approval contract. Work within the user's authorized goal.
    speculative cleanup into RED-to-GREEN work.
 4. At GREEN, run `mutator --changed`. Each surviving mutant is a missing
    scenario to add to the list, dead code to delete, or an equivalent mutant
-   whose reason goes in the commit. Then improve the design. A changed function
-   with CRAP 10 or more must be split, tested further, or both; below 10, no
-   refactor is a valid result. Refactor source and tests while preserving
-   their behavior and coverage; run the full suite after each small change.
+   listed with its reason in `.sobaya-equivalent-mutants`. Then improve the
+   design. A changed function with CRAP 10 or more must be split, tested
+   further, or both; below 10, no refactor is a valid result. Refactor source
+   and tests while preserving their behavior and coverage; run the full suite
+   after each small change.
    Separate structural and behavioral commits. Avoid premature
    abstraction or tidying that delays useful feedback without a concrete benefit.
 5. Use what you learned to choose the next test. Repeat within the authorized
@@ -40,17 +41,23 @@ fresh failure/pass evidence. Preserve user edits and failure diagnostics.
 ## Quality checks
 
 `crapper`, `dryer` and `mutator` (github.com/unclebob) are app-level checks.
-Clone each next to the others under `references/unclebob/`, or point
-`SOBAYA_UNCLEBOB_DIR` at the directory holding the clones. `gate.sh` runs
-`mutator --changed`, `crapper` and `dryer` from the app root and fails on a
-surviving mutant, any function at CRAP 10 or more, a duplicate pair at
-similarity 0.8 or more, or a run where every mutation site is uncovered.
+An app opts in with the line `- Quality: required` in its `AGENTS.md`; without
+it `gate.sh` does not run them and says so in one line. Clone each tool next to
+the others under `references/unclebob/`, or point `SOBAYA_UNCLEBOB_DIR` at the
+directory holding the clones; an opted-in app fails when they are missing.
+`gate.sh` runs `mutator --changed`, `crapper --changed` and `dryer` from the
+app root and fails on a surviving mutant, a changed function at CRAP 10 or
+more, a duplicate pair at similarity 0.8 or more, a run where every mutation
+site is uncovered, or a dryer run that found no source files. A function is
+changed when its lines in mutator's snapshot overlap the diff against `HEAD`.
+List an equivalent mutant in `.sobaya-equivalent-mutants` at the app root: one
+mutator outcome key per line (the string key in `:outcomes` of
+`.metrics/mutate/*.edn`), with a `#` comment line giving the reason. Listed
+survivors pass; a listed key that no longer survives is reported as stale.
 Ignore the tools' outputs (`.metrics/` and the coverage reports) in the app's
-`.gitignore`. When the tools are missing, `gate.sh` says so and passes on the
-suite alone; an app whose `AGENTS.md` has the line `- Quality: required` fails
-instead. Never lower a score by deleting, skipping or weakening a test. A run
-that reports every site uncovered measured nothing: for Go, the checkout
-directory name must match the module path.
+`.gitignore`. Never lower a score by deleting, skipping or weakening a test. A
+run that reports every site uncovered measured nothing: for Go, the checkout
+directory name must match the module path. dryer reads no JavaScript files.
 
 ## Using the shell helpers
 
