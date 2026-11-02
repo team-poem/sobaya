@@ -33,11 +33,15 @@ green and Bash-only.
   CRAP 10 or more on a changed function, or a run with zero covered sites.
   The zero-coverage case is a measured trap: a Go checkout whose directory
   name differs from the module path reports every site uncovered and exits 0.
-- [ ] Classify the 38 survivors in poem-news-collector into missing scenario,
-  dead code and equivalent mutant, to see how much work the gate creates per
-  app before turning it on everywhere.
-- [ ] Measure whether `step.sh` and `loop.sh` are still used. If not, delete
-  them and most of `tdd-set/lib/runner.sh`.
+- [x] Classify the 38 survivors in poem-news-collector: 31 missing scenario
+  (about 17 distinct behaviors), 6 equivalent, 1 dead code. A no-survivor gate
+  therefore needs an exception list keyed by mutator's outcome key, since its
+  text report gives line but not column. Classification is by reading, not by
+  applying each mutant.
+- [x] Measure helper use. `step.sh` committed in 11 apps, latest 2026-10-23;
+  `loop.sh` and `review.sh` have review usage records. Keep them. `restart.sh`
+  was never observed but sobaya-mode names it as the recovery for a corrected
+  test, so it stays. No installed `sobaya` CLI is in use.
 - [x] Collapse `.agents/skills/sobaya` and `tdd` into one `sobaya-mode` skill
   shaped like ub-mode, pointing at pstack principles instead of the copies in
   `brain/principles/`.
