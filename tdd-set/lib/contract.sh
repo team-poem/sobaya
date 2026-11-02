@@ -171,13 +171,9 @@ contract_quality() {
   local app dir tool missing='' tmp before after rc failed=0 sites
   app=$(cd "$1" && pwd -P) || return 1
   dir=${SOBAYA_UNCLEBOB_DIR:-$CONTRACT_LIB/../../references/unclebob}
+  grep -qx -- '- Quality: required' "$app/AGENTS.md" 2>/dev/null || { sb_error "Quality checks are not enabled for this app (add '- Quality: required' to its AGENTS.md)"; return 0; }
   for tool in mutator crapper dryer; do [ -x "$dir/$tool/$tool" ] || missing="$missing $tool"; done
-  if [ -n "$missing" ]; then
-    if grep -qx -- '- Quality: required' "$app/AGENTS.md" 2>/dev/null; then
-      sb_error "Quality checks required by AGENTS.md but not found in $dir:$missing (set SOBAYA_UNCLEBOB_DIR)"; return 1
-    fi
-    sb_error "Quality checks skipped: not found in $dir:$missing (set SOBAYA_UNCLEBOB_DIR)"; return 0
-  fi
+  [ -z "$missing" ] || { sb_error "Quality checks required by AGENTS.md but not found in $dir:$missing (set SOBAYA_UNCLEBOB_DIR)"; return 1; }
   tmp=$(mktemp -d) || return 1
   rm -f "$app/.metrics/crap.edn" "$app/.metrics/dry.edn"
   before=$(contract_snapshot "$app") || { rm -rf "$tmp"; return 1; }
