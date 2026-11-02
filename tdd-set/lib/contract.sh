@@ -166,7 +166,6 @@ _contract_tool() {
   local dir=$1 tmp=$2 app=$3 name=$4; shift 4
   sb_run 3600 "$tmp/$name.out" "$tmp/$name.err" /dev/null "$app" -- "$dir/$name/$name" "$@"
 }
-_contract_mutate_sums() { find "$1/.metrics/mutate" -type f -name '*.edn' -exec cksum {} + 2>/dev/null | sort; }
 # crap.edn has no file or lines; mutator's forms do, keyed by the same namespace and name.
 _contract_forms() {
   find "$1/.metrics/mutate" -type f -name '*.edn' -exec awk '
@@ -176,6 +175,11 @@ _contract_forms() {
       match(f,/:file "[^"]*"/); file=substr(f,RSTART+7,RLENGTH-8)
       match(f,/ :line [0-9]+/); a=substr(f,RSTART+7,RLENGTH-7); match(f,/:end-line [0-9]+/); b=substr(f,RSTART+10,RLENGTH-10)
       print ns "\t" id "\t" file "\t" a "\t" b}}' {} + 2>/dev/null
+}
+# Unescaped :outcomes keys whose value is :survived, one per line.
+_contract_survivors() {
+  awk '{s=$0; while(match(s,/"([^"\\]|\\.)*" :survived/)){k=substr(s,RSTART+1,RLENGTH-12); s=substr(s,RSTART+RLENGTH)
+    gsub(/\\"/,"\"",k); gsub(/\\\\/,"\\",k); print k}}' "$@" | sort -u
 }
 # Whether lines START..END of FILE differ from HEAD, the baseline contract_gate uses.
 _contract_lines_changed() {
@@ -192,16 +196,26 @@ contract_quality() {
   tmp=$(mktemp -d) || return 1
   rm -f "$app/.metrics/crap.edn" "$app/.metrics/dry.edn"
   before=$(contract_snapshot "$app") || { rm -rf "$tmp"; return 1; }
-  _contract_mutate_sums "$app" >"$tmp/sums.before"
+  : >"$tmp/marker"
   if _contract_tool "$dir" "$tmp" "$app" mutator --changed; then rc=0; else rc=$?; fi
   [ "$rc" -ne 130 ] || { rm -rf "$tmp"; return 130; }
   case "$rc" in
-    0) ;;
-    3) cat "$tmp/mutator.out" "$tmp/mutator.err" >&2; sb_error 'mutator: surviving mutants; add a scenario, delete dead code, or explain an equivalent mutant'; failed=1;;
+    0|3) ;;
     *) cat "$tmp/mutator.out" "$tmp/mutator.err" >&2; sb_error "mutator failed (exit $rc)"; failed=1;;
   esac
-  _contract_mutate_sums "$app" >"$tmp/sums.after"
-  comm -13 "$tmp/sums.before" "$tmp/sums.after" | sed 's/^[0-9]* [0-9]* //' | while IFS= read -r tool; do cat "$tool"; echo; done >"$tmp/mutate.edn"
+  find "$app/.metrics/mutate" -type f -name '*.edn' -newer "$tmp/marker" -exec cat {} + >"$tmp/mutate.edn" 2>/dev/null || :
+  # Survivors come from the outcome keys, not the exit code, so listed equivalent mutants can pass.
+  { git -C "$app" diff --name-only HEAD; git -C "$app" ls-files --others --exclude-standard; } >"$tmp/changed"
+  _contract_survivors "$tmp/mutate.edn" | awk 'NR==FNR{c[$0]=1; next} match($0,/^\["[^"]*"/) && c[substr($0,3,RLENGTH-3)]' "$tmp/changed" - >"$tmp/survived"
+  sed -e 's/[[:space:]]*$//' -e '/^#/d' -e '/^$/d' "$app/.sobaya-equivalent-mutants" 2>/dev/null | sort -u >"$tmp/equivalent"
+  comm -23 "$tmp/survived" "$tmp/equivalent" >"$tmp/unlisted"
+  if [ -s "$tmp/unlisted" ] || { [ "$rc" -eq 3 ] && [ ! -s "$tmp/survived" ]; }; then
+    cat "$tmp/mutator.out" "$tmp/mutator.err" >&2
+    sb_error 'mutator: surviving mutants; add a scenario, delete dead code, or list an equivalent mutant in .sobaya-equivalent-mutants with a # reason:'
+    sed 's/^/  /' "$tmp/unlisted" >&2; failed=1
+  fi
+  find "$app/.metrics/mutate" -type f -name '*.edn' -exec cat {} + 2>/dev/null | _contract_survivors | comm -23 "$tmp/equivalent" - >"$tmp/stale"
+  [ ! -s "$tmp/stale" ] || { sb_error 'mutator: stale entries in .sobaya-equivalent-mutants, no longer surviving; delete them:'; sed 's/^/  /' "$tmp/stale" >&2; }
   if sites=$(awk '{s=$0; while(match(s,/:sites [0-9]+/)){n+=substr(s,RSTART+7,RLENGTH-7); s=substr(s,RSTART+RLENGTH)}
       s=$0; while(match(s,/:uncovered [0-9]+/)){u+=substr(s,RSTART+11,RLENGTH-11); s=substr(s,RSTART+RLENGTH)}}
       END{print n+0; exit !(n>0 && u==n)}' "$tmp/mutate.edn"); then

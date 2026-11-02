@@ -165,7 +165,8 @@ fake_quality() {
 #!/bin/bash
 [ "$1" = --changed ] || exit 1
 sites=$((FAKE_KILLED+FAKE_SURVIVED+FAKE_UNCOVERED)); mkdir -p .metrics/mutate
-printf '{:version 1 :tested-at "2026-11-02T00:00:00+00:00" :source "calc.js" :namespace "calc" :outcomes {} :forms [{:id "defn/add" :kind "defn" :file "calc.js" :line 1 :end-line 1 :hash "h" :killed %s :survived %s :uncovered %s :sites %s}]}\n' "$FAKE_KILLED" "$FAKE_SURVIVED" "$FAKE_UNCOVERED" "$sites" >.metrics/mutate/calc.edn
+outcomes=$(i=0; while [ "$i" -lt "$FAKE_SURVIVED" ]; do i=$((i+1)); printf '"[\\"calc.js\\",\\"calc\\",\\"defn/add\\",1,%s,\\"+\\",\\"-\\"]" :survived ' "$i"; done)
+printf '{:version 1 :tested-at "2026-11-02T00:00:00+00:00" :source "calc.js" :namespace "calc" :outcomes {%s} :forms [{:id "defn/add" :kind "defn" :file "calc.js" :line 1 :end-line 1 :hash "h" :killed %s :survived %s :uncovered %s :sites %s}]}\n' "$outcomes" "$FAKE_KILLED" "$FAKE_SURVIVED" "$FAKE_UNCOVERED" "$sites" >.metrics/mutate/calc.edn
 printf 'Function Namespace Killed Survived Uncovered Sites Score\nadd calc %s %s %s %s\n' "$FAKE_KILLED" "$FAKE_SURVIVED" "$FAKE_UNCOVERED" "$sites"
 [ "$FAKE_SURVIVED" -eq 0 ] || exit 3
 TOOL
@@ -190,7 +191,14 @@ TOOL
 }
 gate() { expect_rc "$1" /bin/bash "$ROOT/tdd-set/bin/gate.sh" "$app"; }
 test_quality_clean() { fake_quality; gate 0; grep -q '^Quality: no surviving mutant' "$case_dir/result"; grep -q '^PASS' "$case_dir/result"; }
-test_quality_survivor() { FAKE_SURVIVED=1; fake_quality; gate 1; contains 'surviving mutants'; contains 'CHECK FAILED'; }
+test_quality_survivor() { FAKE_SURVIVED=1; fake_quality; gate 1; contains 'surviving mutants'; contains 'CHECK FAILED'; contains '"calc.js","calc","defn/add",1,1,'; }
+test_quality_equivalent() {
+  FAKE_SURVIVED=2; fake_quality
+  printf '%s\n' '# a+b and b+a agree' '["calc.js","calc","defn/add",1,1,"+","-"]' >"$app/.sobaya-equivalent-mutants"
+  gate 1; contains 'defn/add",1,2,'; ! contains 'defn/add",1,1,'
+  printf '%s\n' '["calc.js","calc","defn/add",1,2,"+","-"]' >>"$app/.sobaya-equivalent-mutants"; gate 0
+}
+test_quality_stale_equivalent() { fake_quality; printf '%s\n' '["calc.js","calc","defn/add",1,9,"+","-"]' >"$app/.sobaya-equivalent-mutants"; gate 0; contains 'stale entries'; contains 'defn/add",1,9,'; }
 test_quality_crap() { FAKE_CRAP=10.0; fake_quality; gate 1; contains 'CRAP 10 or more'; contains 'calc add CRAP 10.0'; }
 test_quality_crap_below() { FAKE_CRAP=9.99; fake_quality; gate 0; }
 test_quality_crap_unchanged_function() { FAKE_CRAP=10.0; fake_quality; commit; printf 'export const two = 2;\n' >>"$app/calc.js"; gate 0; }
@@ -201,6 +209,6 @@ test_quality_unignored_output() { fake_quality; rm "$app/.gitignore"; g rm -q --
 test_quality_not_enabled() { fake_quality; printf '%s\n' '- Test: `node --test calc.test.js`' >"$app/AGENTS.md"; commit; gate 0; contains 'not enabled for this app'; [ ! -e "$app/.metrics" ]; grep -q '^PASS' "$case_dir/result"; }
 test_quality_absent() { printf '%s\n' '- Quality: required' >>"$app/AGENTS.md"; green; export SOBAYA_UNCLEBOB_DIR="$case_dir/none"; gate 1; contains 'required by AGENTS.md but not found'; }
 if [ "${1:-}" = __case ]; then set -e; fixture; "$2"; exit; fi
-for test in test_plan_exact test_plan_malformed test_go_plan_exact test_index_flags_hide_broken_head test_valid_gate test_unsupported_runner test_real_red_build_error test_timeout test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation test_quality_clean test_quality_survivor test_quality_crap test_quality_crap_below test_quality_crap_unchanged_function test_quality_crap_unlocated test_quality_duplicate test_quality_all_uncovered test_quality_unignored_output test_quality_not_enabled test_quality_absent; do run_case "$test"; done
+for test in test_plan_exact test_plan_malformed test_go_plan_exact test_index_flags_hide_broken_head test_valid_gate test_unsupported_runner test_real_red_build_error test_timeout test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation test_quality_clean test_quality_survivor test_quality_equivalent test_quality_stale_equivalent test_quality_crap test_quality_crap_below test_quality_crap_unchanged_function test_quality_crap_unlocated test_quality_duplicate test_quality_all_uncovered test_quality_unignored_output test_quality_not_enabled test_quality_absent; do run_case "$test"; done
 printf '%s tests, %s failures\n' "$count" "$failures"
 [ "$failures" -eq 0 ]
