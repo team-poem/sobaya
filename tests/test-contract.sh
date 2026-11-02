@@ -159,7 +159,7 @@ EOF
 }
 # Fake unclebob tools emit the real EDN shapes; knobs come from FAKE_* variables.
 fake_quality() {
-  export SOBAYA_UNCLEBOB_DIR="$case_dir/unclebob" FAKE_KILLED=${FAKE_KILLED:-2} FAKE_SURVIVED=${FAKE_SURVIVED:-0} FAKE_UNCOVERED=${FAKE_UNCOVERED:-0} FAKE_CRAP=${FAKE_CRAP:-1.0} FAKE_DUP=${FAKE_DUP:-} FAKE_CRAP_NAME=${FAKE_CRAP_NAME:-add}
+  export SOBAYA_UNCLEBOB_DIR="$case_dir/unclebob" FAKE_KILLED=${FAKE_KILLED:-2} FAKE_SURVIVED=${FAKE_SURVIVED:-0} FAKE_UNCOVERED=${FAKE_UNCOVERED:-0} FAKE_CRAP=${FAKE_CRAP:-1.0} FAKE_DUP=${FAKE_DUP:-} FAKE_NO_SOURCE=${FAKE_NO_SOURCE:-} FAKE_CRAP_NAME=${FAKE_CRAP_NAME:-add}
   mkdir -p "$SOBAYA_UNCLEBOB_DIR/mutator" "$SOBAYA_UNCLEBOB_DIR/crapper" "$SOBAYA_UNCLEBOB_DIR/dryer"
   cat >"$SOBAYA_UNCLEBOB_DIR/mutator/mutator" <<'TOOL'
 #!/bin/bash
@@ -181,6 +181,7 @@ TOOL
 #!/bin/bash
 [ "$1 $2" = '--threshold 0.8' ] || exit 1
 mkdir -p .metrics
+[ -z "$FAKE_NO_SOURCE" ] || { echo 'No source files to analyze.'; exit 0; }
 if [ -z "$FAKE_DUP" ]; then printf '{:candidates []}\n' >.metrics/dry.edn; exit 0; fi
 printf '{:candidates [\n {:score %s\n  :language "typescript"\n  :left {:file "calc.js", :start-line 1, :end-line 4}\n  :right {:file "sum.js", :start-line 1, :end-line 4}\n  :left-nodes 30\n  :right-nodes 30}\n]}\n' "$FAKE_DUP" >.metrics/dry.edn
 printf 'DUPLICATE score=%s\n  calc.js:1-4\n  sum.js:1-4\n' "$FAKE_DUP"
@@ -205,10 +206,11 @@ test_quality_crap_unchanged_function() { FAKE_CRAP=10.0; fake_quality; commit; p
 test_quality_crap_unlocated() { FAKE_CRAP=10.0 FAKE_CRAP_NAME=sub; fake_quality; gate 1; contains 'calc sub CRAP 10.0'; }
 test_quality_duplicate() { FAKE_DUP=0.8; fake_quality; gate 1; contains 'duplicate pairs'; contains 'sum.js:1-4'; }
 test_quality_all_uncovered() { FAKE_KILLED=0 FAKE_UNCOVERED=4; fake_quality; gate 1; contains 'all 4 mutation sites are uncovered'; }
+test_quality_dryer_no_source() { FAKE_NO_SOURCE=1; fake_quality; gate 1; contains 'duplication measured nothing'; }
 test_quality_unignored_output() { fake_quality; rm "$app/.gitignore"; g rm -q --cached .gitignore; g commit -qm unignore; gate 1; contains 'Git does not ignore'; contains '.metrics/crap.edn'; }
 test_quality_not_enabled() { fake_quality; printf '%s\n' '- Test: `node --test calc.test.js`' >"$app/AGENTS.md"; commit; gate 0; contains 'not enabled for this app'; [ ! -e "$app/.metrics" ]; grep -q '^PASS' "$case_dir/result"; }
 test_quality_absent() { printf '%s\n' '- Quality: required' >>"$app/AGENTS.md"; green; export SOBAYA_UNCLEBOB_DIR="$case_dir/none"; gate 1; contains 'required by AGENTS.md but not found'; }
 if [ "${1:-}" = __case ]; then set -e; fixture; "$2"; exit; fi
-for test in test_plan_exact test_plan_malformed test_go_plan_exact test_index_flags_hide_broken_head test_valid_gate test_unsupported_runner test_real_red_build_error test_timeout test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation test_quality_clean test_quality_survivor test_quality_equivalent test_quality_stale_equivalent test_quality_crap test_quality_crap_below test_quality_crap_unchanged_function test_quality_crap_unlocated test_quality_duplicate test_quality_all_uncovered test_quality_unignored_output test_quality_not_enabled test_quality_absent; do run_case "$test"; done
+for test in test_plan_exact test_plan_malformed test_go_plan_exact test_index_flags_hide_broken_head test_valid_gate test_unsupported_runner test_real_red_build_error test_timeout test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation test_quality_clean test_quality_survivor test_quality_equivalent test_quality_stale_equivalent test_quality_crap test_quality_crap_below test_quality_crap_unchanged_function test_quality_crap_unlocated test_quality_duplicate test_quality_all_uncovered test_quality_dryer_no_source test_quality_unignored_output test_quality_not_enabled test_quality_absent; do run_case "$test"; done
 printf '%s tests, %s failures\n' "$count" "$failures"
 [ "$failures" -eq 0 ]

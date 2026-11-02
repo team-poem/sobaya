@@ -239,6 +239,7 @@ contract_quality() {
   if _contract_tool "$dir" "$tmp" "$app" dryer --threshold 0.8; then rc=0; else rc=$?; fi
   [ "$rc" -ne 130 ] || { rm -rf "$tmp"; return 130; }
   [ "$rc" -eq 0 ] || { cat "$tmp/dryer.out" "$tmp/dryer.err" >&2; sb_error "dryer failed (exit $rc)"; failed=1; }
+  [ "$rc" -ne 0 ] || [ -f "$app/.metrics/dry.edn" ] || { cat "$tmp/dryer.out" >&2; sb_error "dryer: no source files it reads (dryer has no .js, .jsx, .mjs or .cjs support), so duplication measured nothing"; failed=1; }
   if awk 'match($0,/:score [0-9.]+/){if(substr($0,RSTART+7,RLENGTH-7)+0>=0.8)f=1}END{exit !f}' "$app/.metrics/dry.edn" 2>/dev/null; then
     cat "$tmp/dryer.out" >&2; sb_error 'dryer: duplicate pairs at similarity 0.8 or more; remove the duplication'; failed=1
   fi
