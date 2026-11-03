@@ -29,10 +29,20 @@ green and Bash-only.
   `AGENTS.md` requires explicit user approval for a non-Bash runtime, and
   `tests/run.sh` fails any harness call to python. Until then the checks are
   prose, which nothing enforces.
-- [ ] If approved, `gate.sh` runs the three tools and fails on a survivor,
-  CRAP 10 or more on a changed function, or a run with zero covered sites.
-  The zero-coverage case is a measured trap: a Go checkout whose directory
-  name differs from the module path reports every site uncovered and exits 0.
+  Open options, recorded 2026-11-03:
+  1. Prose only (this branch). Bash-only, nothing enforced.
+  2. `gate.sh` runs the tools (branch `claude/gate-enforce`). Strongest, but
+     every machine running the gate needs Python and tree-sitter, and a run
+     may take up to an hour.
+  3. The agent runs the tools and `gate.sh` reads `.metrics/*.edn` with jq.
+     Bash-only, but needs proof the metrics match the current code.
+- [x] Option 2 built on `claude/gate-enforce`, not merged. Opt-in per app with
+  `- Quality: required`, exception list `.sobaya-equivalent-mutants`, CRAP
+  only on changed functions, fails on zero covered sites (a Go checkout whose
+  directory name differs from the module path reports every site uncovered
+  and exits 0) and when dryer reads no files (it skips `.js`). Known gap:
+  "changed" means the diff against `HEAD`, so a gate run after `step.sh`
+  commits at GREEN may check nothing. Not yet run against a real Go app.
 - [x] Classify the 38 survivors in poem-news-collector: 31 missing scenario
   (about 17 distinct behaviors), 6 equivalent, 1 dead code. A no-survivor gate
   therefore needs an exception list keyed by mutator's outcome key, since its
