@@ -32,7 +32,7 @@ Run from the workspace root; prefix paths below with `tdd-set/`.
 | `bin/review-view.sh SOURCE NOTES_JSON OUTPUT.md` | Optional source-and-rationale view for a useful human review |
 | `bin/usage.sh summary APP [RUN_ID]` | Read recorded worker usage, including historical runs |
 
-`approve.sh`, `--append`, `--replace`, `--checkpoint`, old loop iteration counts
+`--append`, `--replace`, `--checkpoint`, old loop iteration counts
 and gate baseline arguments are retired and return diagnostics. They do not
 silently grant approval or execute work. Product intent still comes from the
 human's request; a runnable test is not permission for an unrequested feature.
@@ -232,7 +232,6 @@ command argv and allowed workers before an unattended run.
 The TDD skill supports scenario selection and the learning cycle. Stack skills
 support relevant optional GREEN tidying. Commands are provider-neutral prompt
 references; adapters do not redefine the cycle. Use `bash tests/run.sh` for
-local deterministic fixtures; it makes no paid model calls. Historical
-approval-contract tests live in `tests/archive/approval-v1/` and are not active
-acceptance. Passing harness tests does not prove an arbitrary feature's user
+local deterministic fixtures; it makes no paid model calls.
+Passing harness tests does not prove an arbitrary feature's user
 outcome or the quality of a live model's judgment.

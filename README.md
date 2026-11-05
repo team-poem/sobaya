@@ -127,7 +127,7 @@ migration and recovery.
 
 - `AGENTS.md`: shared contract; maintenance authority comes from task scope.
 - `tdd-set/`: development cycle, optional shell helpers and stack skills.
-- `.agents/skills/`: orchestration, reflection and knowledge maintenance.
+- `.agents/skills/`: the `sobaya-mode` working mode, reflection and knowledge maintenance.
 - `brain/`: durable knowledge, read when relevant.
 - `docs/`: Korean user guides and historical records.
 

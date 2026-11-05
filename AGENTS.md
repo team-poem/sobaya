@@ -45,10 +45,9 @@ App design documents, `spec.md`, and `failed-test.md` belong in the app repo.
 Use explicit working directories or `git -C <app>` for repository commands.
 
 Start with the relevant brain notes and the target repository's status.
-Read only the context needed for the current decision. For substantial
-orchestration, use the `sobaya` skill; for planning, use `tdd`; for the
-verified development cycle, read `tdd-set/AGENTS.md`. Runtime commands and
-worker policy are described in `tdd-set/README.md`.
+Read only the context needed for the current decision. For any change, use
+the `sobaya-mode` skill; `tdd-set/AGENTS.md` owns the verified development
+cycle. Runtime commands and worker policy are described in `tdd-set/README.md`.
 
 ## Memory and language
 

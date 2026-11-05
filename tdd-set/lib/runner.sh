@@ -430,7 +430,6 @@ while [ "$#" -gt 0 ]; do
            r_die "Unsupported argument $1. Approval/append/replacement/checkpoint-review gates have been retired.";;
     esac
 done
-if [ "$r_command" = approve ]; then r_die 'Test approval is retired. Select one scenario, write its test, and use step.sh APP.'; fi
 if [ "$r_command" = next ]; then
     contract_plan "$r_app" | jq -er '[.[]|select(.checked|not)][0]//empty | (if .heading!="" then .heading+"\n" else "" end)+(if .header!="" and .code!="" then "```"+.language+"\n"+.header+"```\n" else "" end)+"- [ ] "+.name+" — "+.description+(if .code!="" then "\n```"+.language+"\n"+.code+"```" else "" end)' || exit 1
     exit 0

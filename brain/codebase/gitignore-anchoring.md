@@ -3,7 +3,7 @@
 An unanchored directory pattern in `.gitignore` matches at EVERY depth:
 `references/` once silently blocked the orchestration skill's nested
 reference directory from being staged. The current equivalent path is
-`.agents/skills/sobaya/references/`.
+`.agents/skills/sobaya-mode/references/`.
 
 **Pattern:** anchor workspace-root ignores with a leading slash —
 `/references/`, not `references/`. Reserve unanchored patterns for things

@@ -11,7 +11,7 @@ mutated the clone.
 - Never bare-`cd` into `references/*`; use `git -C references/noodle ...`
   or a subshell `(cd ... && cmd)` for one-off reads.
 - Subagent briefs in this workspace state this rule explicitly (see the
-  sobaya skill's dispatch patterns).
+  sobaya-mode skill's Practice section).
 
 **Evidence:** plan 01 execution, 2026-06-12 — one failed commit plus a
 diagnosis turn. Same family as noodle's worktree CWD gotchas.

@@ -9,8 +9,8 @@ orchestrator already had.
 
 **In practice:**
 - Dispatch prompts state: target app path, the task, constraints, what NOT
-  to touch, and the expected report format (templates live in the sobaya
-  skill's references).
+  to touch, and the expected report format (see the sobaya-mode skill's
+  Practice section).
 - Match agent count and model to the work; don't fan out ten agents where
   two suffice.
 - Repeatedly re-dispatching failing work is backpressure ignored, not
