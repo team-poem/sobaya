@@ -201,12 +201,12 @@ _contract_quality_base() {
 }
 # The agent runs unclebob's mutator, crapper and dryer; this reads their .metrics results.
 contract_quality() {
-  local app base tmp f result failed=0 sites
+  local app base tmp f result snaps failed=0 sites
   app=$(cd "$1" && pwd -P) || return 1
   grep -qx -- '- Quality: required' "$app/AGENTS.md" 2>/dev/null || { sb_error "Quality checks are not enabled for this app (add '- Quality: required' to its AGENTS.md)"; return 0; }
   base=$(_contract_quality_base "$app") || { sb_error "SOBAYA_QUALITY_BASE is not a commit: $SOBAYA_QUALITY_BASE"; return 1; }
   tmp=$(mktemp -d) || return 1
-  { git -C "$app" diff --name-only --diff-filter=d "$base"; git -C "$app" ls-files --others --exclude-standard; } |
+  { git -C "$app" -c core.quotepath=false diff --name-only --diff-filter=d "$base"; git -C "$app" -c core.quotepath=false ls-files --others --exclude-standard; } |
     grep -v -e '\.md$' -e '^\.sobaya-equivalent-mutants$' | sort -u >"$tmp/changed"
   if [ ! -s "$tmp/changed" ]; then rm -rf "$tmp"; echo "Quality: nothing changed since ${base%"${base#???????}"}."; return 0; fi
   if grep -q '^\.metrics/' "$tmp/changed"; then sb_error 'Quality results are not ignored by Git; add .metrics/ to the app .gitignore'; rm -rf "$tmp"; return 1; fi
@@ -214,7 +214,9 @@ contract_quality() {
   find "$app/.metrics/mutate" -type f -name '*.edn' 2>/dev/null | grep -q . || echo 'mutate/*.edn' >>"$tmp/missing"
   while IFS= read -r f; do
     for result in crap.edn dry.edn; do [ ! -f "$app/.metrics/$result" ] || [ -z "$(find "$app/$f" -newer "$app/.metrics/$result")" ] || echo "$f"; done
-    [ ! -d "$app/.metrics/mutate" ] || find "$app/.metrics/mutate" -type f -name '*.edn' -newer "$app/$f" | grep -q . || echo "$f"
+    # A snapshot that names this file must be newer; another file's fresh snapshot proves nothing about it.
+    [ ! -d "$app/.metrics/mutate" ] || { snaps=$(grep -rlF ":file \"$f\"" "$app/.metrics/mutate" --include='*.edn'); [ -n "$snaps" ] || snaps=$(find "$app/.metrics/mutate" -type f -name '*.edn')
+      printf '%s\n' "$snaps" | while IFS= read -r snap; do find "$snap" -newer "$app/$f"; done | grep -q . || echo "$f"; }
   done <"$tmp/changed" | sort -u >"$tmp/stale"
   if [ -s "$tmp/missing" ] || [ -s "$tmp/stale" ]; then
     [ ! -s "$tmp/missing" ] || { sb_error 'Quality results missing from .metrics/:'; sed 's/^/  /' "$tmp/missing" >&2; }

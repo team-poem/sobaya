@@ -53,8 +53,11 @@ It fails when a result is missing or older than a changed file, on a
 surviving mutant or CRAP 10 or more in a changed function, a duplicate pair at
 similarity 0.8 or more, or a run where every mutation site in the changed
 files is uncovered. A function is changed when its lines in mutator's snapshot
-overlap the diff against the base. mutator's verdict can differ between runs;
-a mutant no test can kill is equivalent, not killed.
+overlap the diff against the base. Run crapper on the changed files only: a
+function mutator's snapshots do not locate counts as changed. Freshness is by
+modification time, so it catches a forgotten rerun, not a forged result.
+mutator's verdict can differ between runs; a mutant no test can kill is
+equivalent, not killed.
 List an equivalent mutant in `.sobaya-equivalent-mutants` at the app root: one
 mutator outcome key per line (the string key in `:outcomes` of
 `.metrics/mutate/*.edn`), with a `#` comment line giving the reason. Listed
