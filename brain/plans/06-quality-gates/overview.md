@@ -25,24 +25,35 @@ green and Bash-only.
   unreferenced approval-era review drafts under `docs/`.
 - [x] Put the three checks into `tdd-set/AGENTS.md` at GREEN and between
   features, as app-level checks the agent runs.
-- [ ] Decide whether the harness may invoke the Python tools. Root
-  `AGENTS.md` requires explicit user approval for a non-Bash runtime, and
-  `tests/run.sh` fails any harness call to python. Until then the checks are
-  prose, which nothing enforces.
-  Open options, recorded 2026-11-03:
-  1. Prose only (this branch). Bash-only, nothing enforced.
-  2. `gate.sh` runs the tools (branch `claude/gate-enforce`). Strongest, but
-     every machine running the gate needs Python and tree-sitter, and a run
-     may take up to an hour.
-  3. The agent runs the tools and `gate.sh` reads `.metrics/*.edn` with jq.
-     Bash-only, but needs proof the metrics match the current code.
-- [x] Option 2 built on `claude/gate-enforce`, not merged. Opt-in per app with
-  `- Quality: required`, exception list `.sobaya-equivalent-mutants`, CRAP
-  only on changed functions, fails on zero covered sites (a Go checkout whose
-  directory name differs from the module path reports every site uncovered
-  and exits 0) and when dryer reads no files (it skips `.js`). Known gap:
-  "changed" means the diff against `HEAD`, so a gate run after `step.sh`
-  commits at GREEN may check nothing. Not yet run against a real Go app.
+- [x] Decide whether the harness may invoke the Python tools. Decided
+  2026-11-06: no. The agent runs them and `gate.sh` reads `.metrics/*.edn`
+  with awk (the tools write EDN only, so jq cannot read it). Root `AGENTS.md`
+  keeps the Bash-only rule. The option where `gate.sh` runs the tools stays on
+  the unmerged branch `claude/gate-enforce` for reference.
+- [x] `gate.sh` reads the results. Opt-in per app with `- Quality: required`.
+  A result missing or older than a changed file (mtime) fails and prints the
+  rerun command. Survivors and CRAP 10 or more count only in changed
+  functions; listed equivalent mutants in `.sobaya-equivalent-mutants` pass.
+  Changes are measured from the cycle base: `HEAD`, the parent of `step.sh`'s
+  checkpoint while `HEAD` is that checkpoint, or `SOBAYA_QUALITY_BASE`. This
+  closes the gap where a gate after the GREEN commit checked nothing:
+  `mutator --changed` and `crapper --changed` read `git status`
+  (mutator `cli.py` `_changed_files`).
+- [x] Run against a real Go app, a clone of `poem-news-collector` with one new
+  function. Observed: missing results fail; old `Normalize` survivors no
+  longer block an unrelated change; after a `step.sh`-style commit the gate
+  still caught the new function's survivor; the full cycle passed once the
+  equivalent mutant was listed. Found and fixed on the way: crapper scores
+  test files named on its command line (test functions at CRAP 72), and
+  `&&` after mutator skipped crapper and dryer because mutator exits 3 on a
+  survivor. Unexplained: the first run recorded the equivalent
+  `ClampDisplay` mutant `>` to `>=` as killed; a rerun said survived.
+- [x] Cross-model review (Codex) of the diff. Fixed: a fresh snapshot of one
+  file no longer vouches for another changed file, and non-ASCII paths are no
+  longer quoted by Git into false stale reports. Kept as documented limits:
+  empty or forged result files pass the freshness check, and a CRAP entry
+  mutator does not locate counts as changed, so crapper must run on the
+  changed files only.
 - [x] Classify the 38 survivors in poem-news-collector: 31 missing scenario
   (about 17 distinct behaviors), 6 equivalent, 1 dead code. A no-survivor gate
   therefore needs an exception list keyed by mutator's outcome key, since its

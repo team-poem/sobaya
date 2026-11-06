@@ -161,3 +161,106 @@ contract_gate() {
   fi
   return "$rc"
 }
+# crap.edn has no file or lines; mutator's forms do, keyed by the same namespace and name.
+_contract_forms() {
+  find "$1/.metrics/mutate" -type f -name '*.edn' -exec awk '
+    FNR==1{ns=""} !ns && match($0,/:namespace "[^"]*"/){ns=substr($0,RSTART+12,RLENGTH-13)}
+    {s=$0; while(match(s,/\{:id "[^"]*" [^{}]*\}/)){f=substr(s,RSTART,RLENGTH); s=substr(s,RSTART+RLENGTH)
+      match(f,/:id "[^"]*"/); id=substr(f,RSTART+5,RLENGTH-6); sub(/^[^\/]*\//,"",id)
+      match(f,/:file "[^"]*"/); file=substr(f,RSTART+7,RLENGTH-8)
+      match(f,/ :line [0-9]+/); a=substr(f,RSTART+7,RLENGTH-7); match(f,/:end-line [0-9]+/); b=substr(f,RSTART+10,RLENGTH-10)
+      print ns "\t" id "\t" file "\t" a "\t" b}}' {} + 2>/dev/null
+}
+# Unescaped :outcomes keys whose value is :survived, one per line.
+_contract_survivors() {
+  awk '{s=$0; while(match(s,/"([^"\\]|\\.)*" :survived/)){k=substr(s,RSTART+1,RLENGTH-12); s=substr(s,RSTART+RLENGTH)
+    gsub(/\\"/,"\"",k); gsub(/\\\\/,"\\",k); print k}}' "$@" | sort -u
+}
+# Whether lines START..END of FILE differ from BASE.
+_contract_lines_changed() {
+  git -C "$1" cat-file -e "$2:$3" 2>/dev/null || return 0
+  git -C "$1" diff -U0 "$2" -- "$3" | awk -v a="$4" -v b="$5" '/^@@/{split($3,h,","); s=substr(h[1],2)+0; n=(h[2]=="")?1:h[2]+0; e=s+(n?n:1)-1; if(s<=b+0 && e>=a+0) f=1} END{exit !f}'
+}
+# Whether function NAME in namespace NS overlaps the diff against BASE. A function mutator's
+# FORMS do not locate counts as changed, since nothing narrows it further.
+_contract_form_changed() {
+  local app=$1 base=$2 forms=$3 ns=$4 name=$5 unchanged=0 file start end
+  while IFS=$'\t' read -r _ _ file start end; do
+    unchanged=1; ! _contract_lines_changed "$app" "$base" "$file" "$start" "$end" || return 0
+  done < <(awk -F '\t' -v ns="$ns" -v name="$name" '$1==ns && $2==name' "$forms")
+  return "$unchanged"
+}
+# The commit this cycle's changes are measured from. step.sh commits at GREEN, so right after its
+# checkpoint the cycle started at the receipt's parent, not at HEAD.
+_contract_quality_base() {
+  local head state
+  if [ -n "${SOBAYA_QUALITY_BASE:-}" ]; then git -C "$1" rev-parse -q --verify "$SOBAYA_QUALITY_BASE^{commit}"; return; fi
+  head=$(git -C "$1" rev-parse HEAD) || return 1
+  state="$(git -C "$1" rev-parse --absolute-git-dir)/sobaya/state.json"
+  jq -er --arg head "$head" '.receipts[-1] | select(.head==$head) | .before' "$state" 2>/dev/null || echo "$head"
+}
+# The agent runs unclebob's mutator, crapper and dryer; this reads their .metrics results.
+contract_quality() {
+  local app base tmp f result snaps failed=0 sites
+  app=$(cd "$1" && pwd -P) || return 1
+  grep -qx -- '- Quality: required' "$app/AGENTS.md" 2>/dev/null || { sb_error "Quality checks are not enabled for this app (add '- Quality: required' to its AGENTS.md)"; return 0; }
+  base=$(_contract_quality_base "$app") || { sb_error "SOBAYA_QUALITY_BASE is not a commit: $SOBAYA_QUALITY_BASE"; return 1; }
+  tmp=$(mktemp -d) || return 1
+  { git -C "$app" -c core.quotepath=false diff --name-only --diff-filter=d "$base"; git -C "$app" -c core.quotepath=false ls-files --others --exclude-standard; } |
+    grep -v -e '\.md$' -e '^\.sobaya-equivalent-mutants$' | sort -u >"$tmp/changed"
+  if [ ! -s "$tmp/changed" ]; then rm -rf "$tmp"; echo "Quality: nothing changed since ${base%"${base#???????}"}."; return 0; fi
+  if grep -q '^\.metrics/' "$tmp/changed"; then sb_error 'Quality results are not ignored by Git; add .metrics/ to the app .gitignore'; rm -rf "$tmp"; return 1; fi
+  for result in crap.edn dry.edn; do [ -f "$app/.metrics/$result" ] || echo "$result"; done >"$tmp/missing"
+  find "$app/.metrics/mutate" -type f -name '*.edn' 2>/dev/null | grep -q . || echo 'mutate/*.edn' >>"$tmp/missing"
+  while IFS= read -r f; do
+    for result in crap.edn dry.edn; do [ ! -f "$app/.metrics/$result" ] || [ -z "$(find "$app/$f" -newer "$app/.metrics/$result")" ] || echo "$f"; done
+    # A snapshot that names this file must be newer; another file's fresh snapshot proves nothing about it.
+    [ ! -d "$app/.metrics/mutate" ] || { snaps=$(grep -rlF ":file \"$f\"" "$app/.metrics/mutate" --include='*.edn'); [ -n "$snaps" ] || snaps=$(find "$app/.metrics/mutate" -type f -name '*.edn')
+      printf '%s\n' "$snaps" | while IFS= read -r snap; do find "$snap" -newer "$app/$f"; done | grep -q . || echo "$f"; }
+  done <"$tmp/changed" | sort -u >"$tmp/stale"
+  if [ -s "$tmp/missing" ] || [ -s "$tmp/stale" ]; then
+    [ ! -s "$tmp/missing" ] || { sb_error 'Quality results missing from .metrics/:'; sed 's/^/  /' "$tmp/missing" >&2; }
+    [ ! -s "$tmp/stale" ] || { sb_error 'Quality results are older than these changed files:'; sed 's/^/  /' "$tmp/stale" >&2; }
+    # --changed reads git status; after a commit name the files, leaving out tests, which crapper scores when named.
+    if [ "$base" = "$(git -C "$app" rev-parse HEAD)" ]; then f='--changed'
+    else f=$(grep -v -E '(^|/)(tests?|specs?|__tests__)/|_test\.[a-z]+$|\.(test|spec)\.[a-z]+$|(^|/)test_[^/]*\.py$' "$tmp/changed" | tr '\n' ' '); fi
+    sb_error "Run from the app root, then rerun gate.sh: mutator $f; crapper $f; dryer --threshold 0.8 (dryer reads no .js, .jsx, .mjs or .cjs files and then writes no dry.edn)"
+    rm -rf "$tmp"; return 1
+  fi
+  find "$app/.metrics/mutate" -type f -name '*.edn' -exec cat {} + >"$tmp/mutate.edn"
+  _contract_forms "$app" >"$tmp/forms"
+  _contract_survivors "$tmp/mutate.edn" | awk 'NR==FNR{c[$0]=1; next} match($0,/^\["[^"]*"/) && c[substr($0,3,RLENGTH-3)]' "$tmp/changed" - |
+  while IFS= read -r key; do
+    IFS=$'\t' read -r ns name < <(awk -F '","' '{n=$3; sub(/".*/,"",n); sub(/^[^\/]*\//,"",n); print $2 "\t" n}' <<<"$key")
+    ! _contract_form_changed "$app" "$base" "$tmp/forms" "$ns" "$name" || printf '%s\n' "$key"
+  done >"$tmp/survived"
+  sed -e 's/[[:space:]]*$//' -e '/^#/d' -e '/^$/d' "$app/.sobaya-equivalent-mutants" 2>/dev/null | sort -u >"$tmp/equivalent"
+  comm -23 "$tmp/survived" "$tmp/equivalent" >"$tmp/unlisted"
+  if [ -s "$tmp/unlisted" ]; then
+    sb_error 'mutator: surviving mutants; add a scenario, delete dead code, or list an equivalent mutant in .sobaya-equivalent-mutants with a # reason:'
+    sed 's/^/  /' "$tmp/unlisted" >&2; failed=1
+  fi
+  _contract_survivors "$tmp/mutate.edn" | comm -23 "$tmp/equivalent" - >"$tmp/gone"
+  [ ! -s "$tmp/gone" ] || { sb_error 'mutator: stale entries in .sobaya-equivalent-mutants, no longer surviving; delete them:'; sed 's/^/  /' "$tmp/gone" >&2; }
+  if sites=$(awk 'NR==FNR{c[$0]=1; next} match($0,/:source "[^"]*"/) && c[substr($0,RSTART+9,RLENGTH-10)]{
+      s=$0; while(match(s,/:sites [0-9]+/)){n+=substr(s,RSTART+7,RLENGTH-7); s=substr(s,RSTART+RLENGTH)}
+      s=$0; while(match(s,/:uncovered [0-9]+/)){u+=substr(s,RSTART+11,RLENGTH-11); s=substr(s,RSTART+RLENGTH)}}
+      END{print n+0; exit !(n>0 && u==n)}' "$tmp/changed" "$tmp/mutate.edn"); then
+    sb_error "mutator: all $sites mutation sites in changed files are uncovered, so coverage measured nothing (for Go, the checkout directory name must match the module path)"; failed=1
+  fi
+  awk 'match($0,/:crap [0-9.]+/){c=substr($0,RSTART+6,RLENGTH-6); if(c+0>=10){match($0,/:namespace "[^"]*"/); ns=substr($0,RSTART+12,RLENGTH-13); match($0,/:name "[^"]*"/); print ns "\t" substr($0,RSTART+7,RLENGTH-8) "\t" c}}' \
+    "$app/.metrics/crap.edn" |
+  while IFS=$'\t' read -r ns name crap; do
+    ! _contract_form_changed "$app" "$base" "$tmp/forms" "$ns" "$name" || printf '  %s %s CRAP %s\n' "$ns" "$name" "$crap"
+  done >"$tmp/crap.high"
+  [ ! -s "$tmp/crap.high" ] || { sb_error 'crapper: changed functions at CRAP 10 or more; split them, test them further, or both:'; cat "$tmp/crap.high" >&2; failed=1; }
+  awk '{s=s $0 " "} END{while(match(s,/:score [0-9.]+/)){c=substr(s,RSTART+7,RLENGTH-7); s=substr(s,RSTART+RLENGTH); p=""
+      for(i=0;i<2;i++){match(s,/:file "[^"]*", :start-line [0-9]+, :end-line [0-9]+/); f=substr(s,RSTART,RLENGTH); s=substr(s,RSTART+RLENGTH)
+        match(f,/"[^"]*"/); n=substr(f,RSTART+1,RLENGTH-2); match(f,/:start-line [0-9]+/); a=substr(f,RSTART+12,RLENGTH-12); match(f,/:end-line [0-9]+/)
+        p=p "  " n ":" a "-" substr(f,RSTART+10,RLENGTH-10)}
+      if(c+0>=0.8) print "  score " c p}}' "$app/.metrics/dry.edn" >"$tmp/dup"
+  [ ! -s "$tmp/dup" ] || { sb_error 'dryer: duplicate pairs at similarity 0.8 or more; remove the duplication:'; cat "$tmp/dup" >&2; failed=1; }
+  rm -rf "$tmp"
+  [ "$failed" -eq 0 ] || return 1
+  echo 'Quality: no surviving mutant, no CRAP 10 or more, no duplicate pair at 0.8 or more.'
+}
