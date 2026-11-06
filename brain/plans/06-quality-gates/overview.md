@@ -48,6 +48,12 @@ green and Bash-only.
   `&&` after mutator skipped crapper and dryer because mutator exits 3 on a
   survivor. Unexplained: the first run recorded the equivalent
   `ClampDisplay` mutant `>` to `>=` as killed; a rerun said survived.
+- [x] Cross-model review (Codex) of the diff. Fixed: a fresh snapshot of one
+  file no longer vouches for another changed file, and non-ASCII paths are no
+  longer quoted by Git into false stale reports. Kept as documented limits:
+  empty or forged result files pass the freshness check, and a CRAP entry
+  mutator does not locate counts as changed, so crapper must run on the
+  changed files only.
 - [x] Classify the 38 survivors in poem-news-collector: 31 missing scenario
   (about 17 distinct behaviors), 6 equivalent, 1 dead code. A no-survivor gate
   therefore needs an exception list keyed by mutator's outcome key, since its
