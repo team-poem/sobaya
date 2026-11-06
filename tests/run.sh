@@ -9,6 +9,11 @@ TEMP=$(mktemp -d "${TMPDIR:-/tmp}/sobaya-tests.XXXXXX")
 trap 'rm -rf "$TEMP"' EXIT
 cd "$ROOT"
 
+# Local execution runs the complete suite. CI may distribute it over two jobs;
+# reject invalid values instead of accidentally reporting an incomplete pass.
+case ${SOBAYA_CI_SHARD:-all} in all|1|2) ;; *) echo 'Invalid SOBAYA_CI_SHARD (expected 1 or 2)' >&2; exit 2 ;; esac
+suite_index=0
+
 # Reject tracked, staged, and untracked interpreter sources in the repository.
 # Deleted working-tree paths are omitted so conversion can be tested before staging.
 forbidden_extension=$(printf '.%s' py)
@@ -49,7 +54,12 @@ done < "$TEMP/shell-sources"
 for suite in tests/test-contract.sh tests/test-runner.sh tests/test-canon.sh tests/test-tools.sh \
   tests/test-config.sh tests/test-release.sh tests/test-install-flow.sh \
   tests/test-review-view.sh \
-  tdd-set/tests/next-entry.sh tdd-set/tests/probe-go-imports.sh; do
+  tdd-set/tests/next-entry.sh tdd-set/tests/probe-go-imports.sh tests/test-ci-shards.sh; do
+  suite_index=$((suite_index + 1))
+  case ${SOBAYA_CI_SHARD:-all} in
+    1) [ $((suite_index % 2)) -eq 1 ] || continue ;;
+    2) [ $((suite_index % 2)) -eq 0 ] || continue ;;
+  esac
   printf '\nRunning %s\n' "$suite"
   bash "$ROOT/$suite"
 done
@@ -57,4 +67,4 @@ done
   cat "$SOBAYA_FORBIDDEN_INTERPRETER_LOG" >&2
   echo 'FAIL: interpreter sentinel was invoked' >&2; exit 1;
 }
-printf '\nPASS: all shell harness suites; no forbidden interpreter used.\n'
+printf '\nPASS: shell harness shard %s; no forbidden interpreter used.\n' "${SOBAYA_CI_SHARD:-all}"
