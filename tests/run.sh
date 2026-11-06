@@ -32,8 +32,6 @@ DENY
   chmod +x "$TEMP/bin/$interpreter"
 done
 export PATH="$TEMP/bin:$PATH"
-# Suites use fake quality tools; a real references/unclebob clone would start its interpreter.
-export SOBAYA_UNCLEBOB_DIR="$TEMP/no-unclebob"
 pattern='(^#!.*|(^|[;&|[:space:]])(exec[[:space:]]+)?)(/[^[:space:]]*/)?(py''thon[0-9.]*|py''py[0-9.]*)([[:space:]]|$)'
 find scripts tdd-set/bin tdd-set/lib tdd-set/hooks tdd-set/tests tests -type f -name '*.sh' -print0 > "$TEMP/shell-sources"
 find .githooks -type f -print0 >> "$TEMP/shell-sources"

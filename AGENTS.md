@@ -12,9 +12,7 @@ feature boundaries to review outcomes and learning before the next choice;
 ## Shared contract
 
 - **Implementation language:** the harness uses Bash 3.2, jq, Git, and
-  standard Unix tools. It may run external quality tools (unclebob's
-  `crapper`, `dryer`, `mutator`) as subprocesses; its own code stays Bash.
-  A different runtime language for harness code requires explicit user
+  standard Unix tools. A different runtime language requires explicit user
   approval; architecture approval alone does not authorize that change.
   App source languages remain app-specific.
 - **Canonical instructions:** this `AGENTS.md`, the app's `AGENTS.md`, and

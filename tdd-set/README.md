@@ -109,15 +109,17 @@ needed for future work. Full-suite evidence and user feedback answer different
 questions; at feature boundaries expose outcomes, learning and the next choice.
 
 For an app whose `AGENTS.md` has the line `- Quality: required`, `gate.sh`
-runs unclebob's `mutator --changed`, `crapper --changed` and `dryer` after the
-suite passes, as subprocesses from `references/unclebob/<tool>/<tool>`
-(override the directory with `SOBAYA_UNCLEBOB_DIR`). It reads their `.metrics/`
-EDN and fails on an unlisted surviving mutant, CRAP 10 or more on a function
-whose lines changed against `HEAD`, a duplicate pair at 0.8 or more, every
-mutation site uncovered, or dryer finding no source files. Equivalent mutants
-go in the app's `.sobaya-equivalent-mutants`, one outcome key per line with a
-`#` reason; stale keys are reported. Other apps skip the tools with a one-line
-notice; an opted-in app fails when the tools are missing.
+reads the `.metrics/` EDN that unclebob's `mutator`, `crapper` and `dryer`
+wrote after the agent ran them; the harness never starts the tools. It fails
+when a result is missing or older than a file changed since the cycle's base
+commit, and prints the command to rerun. It also fails on an unlisted
+surviving mutant or CRAP 10 or more in a function whose lines changed, a
+duplicate pair at 0.8 or more, or every mutation site in the changed files
+uncovered. The base is `HEAD`, the parent of `step.sh`'s checkpoint while
+`HEAD` is that checkpoint, or `SOBAYA_QUALITY_BASE`. Equivalent mutants go in
+the app's `.sobaya-equivalent-mutants`, one outcome key per line with a `#`
+reason; stale keys are reported. Other apps skip the check with a one-line
+notice.
 
 On failure preserve edits, inspect diagnostics and use `step.sh APP --resume`
 for an unfinished implementation. Calls/timeouts remain bounded by policy;
