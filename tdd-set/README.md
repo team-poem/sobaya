@@ -22,7 +22,7 @@ Run from the workspace root; prefix paths below with `tdd-set/`.
 | `bin/next.sh APP` | Read the next unchecked scenario without mutation |
 | `bin/step.sh APP [--policy PATH] [--worker NAME]` | Materialize one concrete test, observe RED, implement and verify GREEN |
 | `bin/loop.sh APP [--policy PATH]` | Compatibility alias for one step; returns to the orchestrator for learning |
-| `bin/gate.sh APP` | Check current full suite and hygiene, including uncommitted tidying |
+| `bin/gate.sh APP` | Check current full suite, hygiene and quality tools, including uncommitted tidying |
 | `bin/review.sh APP [--policy PATH] [--worker NAME]` | Optional read-only review of current committed work; pending scenarios are allowed |
 | `bin/status.sh APP` | Inspect current attempt, pending scenarios and legacy state |
 | `bin/migrate.sh APP` | Archive a legacy plan/state and convert executable batches into mutable scenarios |
@@ -107,6 +107,19 @@ initially dirty files but rejects test/hygiene side effects that change code or
 Git state while checking. Review is an optional tool, with no cached approval
 needed for future work. Full-suite evidence and user feedback answer different
 questions; at feature boundaries expose outcomes, learning and the next choice.
+
+For an app whose `AGENTS.md` has the line `- Quality: required`, `gate.sh`
+reads the `.metrics/` EDN that unclebob's `mutator`, `crapper` and `dryer`
+wrote after the agent ran them; the harness never starts the tools. It fails
+when a result is missing or older than a file changed since the cycle's base
+commit, and prints the command to rerun. It also fails on an unlisted
+surviving mutant or CRAP 10 or more in a function whose lines changed, a
+duplicate pair at 0.8 or more, or every mutation site in the changed files
+uncovered. The base is `HEAD`, the parent of `step.sh`'s checkpoint while
+`HEAD` is that checkpoint, or `SOBAYA_QUALITY_BASE`. Equivalent mutants go in
+the app's `.sobaya-equivalent-mutants`, one outcome key per line with a `#`
+reason; stale keys are reported. Other apps skip the check with a one-line
+notice.
 
 On failure preserve edits, inspect diagnostics and use `step.sh APP --resume`
 for an unfinished implementation. Calls/timeouts remain bounded by policy;
@@ -229,9 +242,10 @@ command argv and allowed workers before an unattended run.
 
 ## Skills and local validation
 
-The TDD skill supports scenario selection and the learning cycle. Stack skills
-support relevant optional GREEN tidying. Commands are provider-neutral prompt
-references; adapters do not redefine the cycle. Use `bash tests/run.sh` for
-local deterministic fixtures; it makes no paid model calls.
+The `.agents/skills/sobaya-mode` skill supports scenario selection and the
+learning cycle. Stack skills support relevant optional GREEN tidying. Commands
+are provider-neutral prompt references; adapters do not redefine the cycle.
+Use `bash tests/run.sh` for local deterministic fixtures; it makes no paid
+model calls.
 Passing harness tests does not prove an arbitrary feature's user
 outcome or the quality of a live model's judgment.
