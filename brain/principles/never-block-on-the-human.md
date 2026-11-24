@@ -6,10 +6,9 @@ let the human course-correct afterward. Code is cheap; waiting is expensive.
 **Why:** Mid-execution questions stall the entire pipeline, and most of them
 are answerable from the plan, the brain, or the code.
 
-**Boundary:** This governs *execution*, not *design*. Design-approval gates
-(human-written spec.md, failed-test.md approval before code) still apply — this principle starts
-after approval, and stops for destructive or scope-changing decisions, which
-always go to the human.
+**Boundary:** This governs *execution*, not *design*. The human still owns
+`spec.md` and decides changed product behavior. Tests need no approval. Stop
+for destructive or scope-changing decisions, which always go to the human.
 
 **In practice:**
 - Inside an approved plan, resolve ambiguity from the spec and principles,
