@@ -111,7 +111,7 @@ questions; at feature boundaries expose outcomes, learning and the next choice.
 For an app whose `AGENTS.md` has the line `- Quality: required`, `gate.sh`
 reads the `.metrics/` EDN that unclebob's `mutator`, `crapper` and `dryer`
 wrote after the agent ran them; the harness never starts the tools. It fails
-when a result is missing or older than a file changed since the cycle's base
+when a result is missing, empty, or older than a file changed since the cycle's base
 commit, and prints the command to rerun. It also fails on an unlisted
 surviving mutant or CRAP 10 or more in a function whose lines changed, a
 duplicate pair at 0.8 or more, or every mutation site in the changed files

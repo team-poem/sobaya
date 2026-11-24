@@ -31,7 +31,7 @@ green and Bash-only.
   keeps the Bash-only rule. The option where `gate.sh` runs the tools stays on
   the unmerged branch `claude/gate-enforce` for reference.
 - [x] `gate.sh` reads the results. Opt-in per app with `- Quality: required`.
-  A result missing or older than a changed file (mtime) fails and prints the
+  A missing or zero-byte result, or one older than a changed file, fails and prints the
   rerun command. Survivors and CRAP 10 or more count only in changed
   functions; listed equivalent mutants in `.sobaya-equivalent-mutants` pass.
   Changes are measured from the cycle base: `HEAD`, the parent of `step.sh`'s
@@ -51,7 +51,7 @@ green and Bash-only.
 - [x] Cross-model review (Codex) of the diff. Fixed: a fresh snapshot of one
   file no longer vouches for another changed file, and non-ASCII paths are no
   longer quoted by Git into false stale reports. Kept as documented limits:
-  empty or forged result files pass the freshness check, and a CRAP entry
+  nonempty forged results can pass the freshness check, and a CRAP entry
   mutator does not locate counts as changed, so crapper must run on the
   changed files only.
 - [x] Classify the 38 survivors in poem-news-collector: 31 missing scenario

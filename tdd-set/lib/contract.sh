@@ -210,8 +210,16 @@ contract_quality() {
     grep -v -e '\.md$' -e '^\.sobaya-equivalent-mutants$' | sort -u >"$tmp/changed"
   if [ ! -s "$tmp/changed" ]; then rm -rf "$tmp"; echo "Quality: nothing changed since ${base%"${base#???????}"}."; return 0; fi
   if grep -q '^\.metrics/' "$tmp/changed"; then sb_error 'Quality results are not ignored by Git; add .metrics/ to the app .gitignore'; rm -rf "$tmp"; return 1; fi
-  for result in crap.edn dry.edn; do [ -f "$app/.metrics/$result" ] || echo "$result"; done >"$tmp/missing"
-  find "$app/.metrics/mutate" -type f -name '*.edn' 2>/dev/null | grep -q . || echo 'mutate/*.edn' >>"$tmp/missing"
+  for result in crap.edn dry.edn; do
+    [ -f "$app/.metrics/$result" ] && [ -s "$app/.metrics/$result" ] || echo "$result"
+  done >"$tmp/missing"
+  if ! (cd "$app/.metrics" && find mutate -type f -name '*.edn') 2>/dev/null >"$tmp/snapshots" || [ ! -s "$tmp/snapshots" ]; then
+    echo 'mutate/*.edn' >>"$tmp/missing"
+  else
+    while IFS= read -r result; do
+      [ -s "$app/.metrics/$result" ] || echo "$result"
+    done <"$tmp/snapshots" >>"$tmp/missing"
+  fi
   while IFS= read -r f; do
     for result in crap.edn dry.edn; do [ ! -f "$app/.metrics/$result" ] || [ -z "$(find "$app/$f" -newer "$app/.metrics/$result")" ] || echo "$f"; done
     # A snapshot that names this file must be newer; another file's fresh snapshot proves nothing about it.
@@ -219,7 +227,7 @@ contract_quality() {
       printf '%s\n' "$snaps" | while IFS= read -r snap; do find "$snap" -newer "$app/$f"; done | grep -q . || echo "$f"; }
   done <"$tmp/changed" | sort -u >"$tmp/stale"
   if [ -s "$tmp/missing" ] || [ -s "$tmp/stale" ]; then
-    [ ! -s "$tmp/missing" ] || { sb_error 'Quality results missing from .metrics/:'; sed 's/^/  /' "$tmp/missing" >&2; }
+    [ ! -s "$tmp/missing" ] || { sb_error 'Quality results missing from .metrics/ or empty:'; sed 's/^/  /' "$tmp/missing" >&2; }
     [ ! -s "$tmp/stale" ] || { sb_error 'Quality results are older than these changed files:'; sed 's/^/  /' "$tmp/stale" >&2; }
     # --changed reads git status; after a commit name the files, leaving out tests, which crapper scores when named.
     if [ "$base" = "$(git -C "$app" rev-parse HEAD)" ]; then f='--changed'

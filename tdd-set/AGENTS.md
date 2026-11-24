@@ -49,7 +49,7 @@ commit before `step.sh`'s checkpoint when `HEAD` is that checkpoint, or
 `SOBAYA_QUALITY_BASE`. `mutator --changed` and `crapper --changed` read
 `git status`, so after a commit pass the changed source files instead, not
 tests, which crapper scores when named; `gate.sh` prints the exact command.
-It fails when a result is missing or older than a changed file, on a
+It fails when a result is missing, empty, or older than a changed file, on a
 surviving mutant or CRAP 10 or more in a changed function, a duplicate pair at
 similarity 0.8 or more, or a run where every mutation site in the changed
 files is uncovered. A function is changed when its lines in mutator's snapshot

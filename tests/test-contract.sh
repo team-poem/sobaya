@@ -212,6 +212,15 @@ test_quality_dryer_no_source() { FAKE_NO_SOURCE=1; fake_quality; gate 1; contain
 test_quality_unignored_output() { fake_quality; rm "$app/.gitignore"; g rm -q --cached .gitignore; g commit -qm unignore; gate 1; contains 'not ignored by Git'; }
 test_quality_not_enabled() { fake_quality; printf '%s\n' '- Test: `node --test calc.test.js`' >"$app/AGENTS.md"; commit; gate_only 0; contains 'not enabled for this app'; grep -q '^PASS' "$case_dir/result"; }
 test_quality_missing() { fake_quality; gate_only 1; contains 'missing from .metrics'; contains 'crap.edn'; contains 'mutator --changed; crapper --changed; dryer'; }
+test_quality_empty_results() {
+  fake_quality
+  for result in crap.edn dry.edn mutate/calc.edn; do
+    measure
+    : >"$app/.metrics/$result"
+    gate_only 1
+    contains "$result"
+  done
+}
 test_quality_stale() { fake_quality; measure; printf 'export const two = 2;\n' >>"$app/calc.js"; gate_only 1; contains 'older than these changed files'; contains '  calc.js'; }
 test_quality_stale_other_snapshot() {
   fake_quality; measure; printf 'export const two = 2;\n' >>"$app/calc.js"; sleep 1
@@ -228,6 +237,6 @@ test_quality_step_checkpoint() {
 }
 test_quality_base_override() { FAKE_SURVIVED=1; fake_quality; commit; SOBAYA_QUALITY_BASE=HEAD~1 gate 1; contains 'surviving mutants'; SOBAYA_QUALITY_BASE=nope gate 1; contains 'not a commit'; }
 if [ "${1:-}" = __case ]; then set -e; fixture; "$2"; exit; fi
-for test in test_plan_exact test_plan_malformed test_go_plan_exact test_index_flags_hide_broken_head test_valid_gate test_unsupported_runner test_real_red_build_error test_timeout test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation test_quality_clean test_quality_survivor test_quality_equivalent test_quality_stale_equivalent test_quality_crap test_quality_crap_below test_quality_crap_unchanged_function test_quality_survivor_unchanged_function test_quality_crap_unlocated test_quality_duplicate test_quality_all_uncovered test_quality_dryer_no_source test_quality_unignored_output test_quality_not_enabled test_quality_missing test_quality_stale test_quality_stale_other_snapshot test_quality_unicode_path test_quality_nothing_changed test_quality_step_checkpoint test_quality_base_override; do run_case "$test"; done
+for test in test_plan_exact test_plan_malformed test_go_plan_exact test_index_flags_hide_broken_head test_valid_gate test_unsupported_runner test_real_red_build_error test_timeout test_hygiene_hooks_disabled test_hygiene_output_mutation test_gofmt test_quoted_gofmt test_go_evidence test_vitest_evidence test_process_groups test_live_orphan test_suite_cancellation test_quality_clean test_quality_survivor test_quality_equivalent test_quality_stale_equivalent test_quality_crap test_quality_crap_below test_quality_crap_unchanged_function test_quality_survivor_unchanged_function test_quality_crap_unlocated test_quality_duplicate test_quality_all_uncovered test_quality_dryer_no_source test_quality_unignored_output test_quality_not_enabled test_quality_missing test_quality_empty_results test_quality_stale test_quality_stale_other_snapshot test_quality_unicode_path test_quality_nothing_changed test_quality_step_checkpoint test_quality_base_override; do run_case "$test"; done
 printf '%s tests, %s failures\n' "$count" "$failures"
 [ "$failures" -eq 0 ]
